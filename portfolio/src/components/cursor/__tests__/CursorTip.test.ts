@@ -13,24 +13,32 @@ describe('CursorTip Component', () => {
     document.body.innerHTML = '';
   });
 
-  it('mounts into container with default label and frosted styling classes', () => {
+  it('mounts in hidden circle state by default', () => {
     const tip = new CursorTip();
     tip.mount(container);
 
     const el = container.querySelector<HTMLElement>('[data-cursor-tip]');
     expect(el).not.toBeNull();
-    expect(el?.textContent).toContain('Click to enter');
     expect(el?.className).toContain('backdrop-blur-md');
-    expect(el?.className).toContain('pointer-events-none');
+    expect(el?.style.opacity).toBe('0');
     tip.destroy();
   });
 
-  it('supports custom label', () => {
-    const tip = new CursorTip({ label: 'Explore Portfolio' });
+  it('reveals by expanding from circle to pill with blur-to-sharp content transition', async () => {
+    const tip = new CursorTip({ label: 'Drag to stretch' });
     tip.mount(container);
 
     const el = container.querySelector<HTMLElement>('[data-cursor-tip]');
-    expect(el?.textContent).toContain('Explore Portfolio');
+    const content = el?.querySelector<HTMLElement>('[data-pill-content]');
+
+    expect(content).not.toBeNull();
+    expect(content?.textContent).toContain('Drag to stretch');
+
+    await tip.reveal();
+
+    expect(el?.style.opacity).toBe('1');
+    expect(content?.style.opacity).toBe('1');
+    expect(content?.style.filter).toContain('blur(0px)');
     tip.destroy();
   });
 
@@ -39,14 +47,14 @@ describe('CursorTip Component', () => {
     tip.mount(container);
 
     const event = new MouseEvent('pointermove', {
-      clientX: 150,
-      clientY: 250,
+      clientX: 180,
+      clientY: 320,
     });
     window.dispatchEvent(event);
 
     const coords = tip.getPosition();
-    expect(coords.x).toBe(150);
-    expect(coords.y).toBe(250);
+    expect(coords.x).toBe(180);
+    expect(coords.y).toBe(320);
     tip.destroy();
   });
 
@@ -54,10 +62,10 @@ describe('CursorTip Component', () => {
     const tip = new CursorTip();
     tip.mount(container);
 
-    const el = container.querySelector<HTMLElement>('[data-cursor-tip]');
-    expect(el).not.toBeNull();
-
+    await tip.reveal();
     await tip.hide();
+
+    const el = container.querySelector<HTMLElement>('[data-cursor-tip]');
     expect(el?.style.opacity).toBe('0');
 
     tip.destroy();
