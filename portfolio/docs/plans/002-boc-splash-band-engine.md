@@ -1,4 +1,4 @@
-# 002 - BOC Splash Screen & Elastic Top Navigation Implementation Plan
+# 002 - Authentic BOC Splash-to-Band Animation Implementation Plan
 
 - **Status**: Ready for Implementation
 - **Created**: 2026-10-28
@@ -7,46 +7,41 @@
 ---
 
 ## 1. Goal & Context
-Build a zero-flicker splash screen inspired by BOC Studio that transitions on user click into an elastic top navigation bar, featuring frosted glass cursor guidance ("Click to enter"), calibrated non-glitching rubber physics, seamless logo migration, and animated nav tab hovers.
+Replicate the authentic animation choreography from [boc.studio](https://boc.studio/) on page load: staggered letter reveal for "Zeiad Mohammed", energetic overshoot zoom down, automatic curtain collapse into a center elastic marquee band, background shader container reveal, and circle-to-pill expanding cursor guidance with blur + fade-in.
 
 ---
 
 ## 2. Requirements & Constraints
-- Primary color: `#ff4421` (vermilion), dark neutral `#0d0d0d`, background `#0a0a0c`.
+- Primary color: `#ff4421` (vermilion), dark neutral `#0d0d0d`, background `#09090b`.
 - Wordmark brand name: `"Zeiad Mohammed"`.
-- Zero direct file copying from reference demos; rewrite from scratch with clean TypeScript architecture.
-- Strict TDD: failing tests covering boundaries, lifecycle, and teardown must pass before code is committed.
-- Drop-in reusability: Engines and components must implement standard `mount(container)`, `destroy()`, `resize()`.
-- **Motion Choreography & Easing Rules**:
-  - **Curtain Collapse**: Starts slow, ends fast (`ease: 'power3.in'`, `duration: 0.85s`).
-  - **Logo Migration**: Smooth ease-in-out (`ease: 'power2.inOut'`, `duration: 0.9s`), animating color from `#0d0d0d` to `#ffffff`.
-  - **Cursor Pill**: Reveals slowly on load (`duration: 1.0s`, `ease: 'power2.out'`), hides rapidly on click (`duration: 0.2s`, `ease: 'power3.in'`).
-  - **Nav Tabs Reveal**: Staggers in with a noticeable delay *after* the logo completes its prominent glide (`delay: 0.2s`, `duration: 0.4s`), ensuring undivided focus on the logo.
+- Band location: Fixed across the vertical center of the screen (`top: 50%`, `-translate-y-1/2`, height `clamp(3.25rem, 2.75rem + 1.2vw, 3.897rem)`), matching authentic BOC design.
+- Background container: `#shader-background` occupying full viewport behind the band, ready for custom shader injection.
+- Zero direct file copying; clean architectural rewrite.
+- Strict TDD: failing tests written and verified before implementation code.
 
 ---
 
-## 3. Architecture & Approach (Approach A)
-- **Unified DOM Typography**: Authoritative DOM elements for splash logo, docked logo, and nav tabs eliminate rasterization mismatch, subpixel jitter, and text flicker.
-- **Elastic Canvas Underlay**: WebGL canvas placed beneath typography renders calibrated vermilion (`#ff4421`) rubber ribbon deformation with gentle tension, zero tears, and velocity clamping.
-- **GSAP Orchestrated Timeline**: Smoothly transitions full-screen curtain (`100vh`) into docked header (`h-16`), glides logo to left padding (`px-8`), morphs logo color to white, and reveals navigation tabs on the right.
+## 3. Choreography & Architecture
+1. **Logo Stagger In**: Letters of "Zeiad Mohammed" stagger in with `bocLetters` custom ease (`M0,0 C0.16,1 0.3,1 1,1`).
+2. **Overshoot Zoom Down**: Hero wrapper scales down with `bocOvershoot` custom ease (`M0,0 C1,-0.02 0,1.44 1,1`).
+3. **Curtain Collapse**: Curtain collapses automatically into horizontal center band with `bocCollapse` (`M0,0 C1,0 0.99,0.21 1,1`).
+4. **Shader Background Reveal**: `#shader-background` container fades in as curtain collapses.
+5. **Continuous Marquee & Satellites**: Satellites stagger in; marquee track scrolls infinitely.
+6. **Circle-to-Pill Cursor Guidance**: Starts as a compact circle, expands horizontally into a frosted glass pill, with content fading in from blur.
+7. **Calibrated Rubber Physics**: Subtle, non-glitching rubber elasticity on cursor interaction.
 
 ---
 
 ## 4. Tasks & TDD Breakdown
-1. **Frosted Glass Cursor Tip (`src/components/cursor/CursorTip.ts`)**:
-   - `CursorTip.test.ts`: Lifecycle mounting, tracking, slow entrance, fast hiding, DOM disposal.
-2. **Calibrated Band Physics Engine (`src/engines/band/bandPhysics.ts`)**:
-   - `bandPhysics.test.ts`: Lattice spring dynamics, neutral texture packing, force clamping.
-3. **Elastic Band WebGL Renderer (`src/engines/band/index.ts`)**:
-   - `bandEngine.test.ts`: WebGL initialization, viewport resizing, event binding, `destroy()` cleanup.
-4. **Splash-to-Band Orchestrator (`src/engines/band/splashTimeline.ts`)**:
-   - `splashTimeline.test.ts`: Timeline generation with slow-start fast-end curtain collapse, ease-in-out logo migration, and delayed nav tab entrance.
-5. **App Shell Integration (`portfolio/index.html`, `src/main.ts`, `src/style.css`)**:
-   - Connect splash curtain to user click, activate band on completion, verify tab hover transitions.
+1. **Wordmark Generator (`src/engines/band/wordmark.ts`)**: Generates `.hero-char` spans for letter-by-letter staggering and satellite units.
+2. **Circle-to-Pill Cursor Tip (`src/components/cursor/CursorTip.ts`)**: Circle expansion into pill with blur-to-sharp content fade-in and smooth tracking.
+3. **Authentic BOC Splash Timeline (`src/engines/band/splashTimeline.ts`)**: Implements `bocLetters`, `bocOvershoot`, `bocCollapse` sequence.
+4. **Center Marquee Engine Adapter (`src/engines/band/index.ts`)**: Center alignment, track pre-positioning, continuous scrolling, calibrated physics.
+5. **App Shell Integration (`portfolio/index.html`, `src/main.ts`, `src/style.css`)**: Wire auto-play splash, shader background viewport, and pill trigger.
 
 ---
 
 ## 5. Verification Plan
-- Unit tests: `cd portfolio && npm test`
+- Vitest suite: `cd portfolio && npm test`
 - Build & typecheck: `cd portfolio && npm run build`
-- Visual checks: Zero-flicker transition, frosted glass pill tracking, subtle rubber interaction, and animated tab hovers.
+- Visual checks: Letter stagger on load, overshoot bounce, center band collapse, background fade-in, circle-to-pill expansion, and gentle rubber physics.
