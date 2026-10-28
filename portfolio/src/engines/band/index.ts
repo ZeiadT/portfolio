@@ -33,7 +33,6 @@ export class ElasticBandEngine implements Engine {
   private height = 1;
   private dpr = 1;
   private prevPointer: [number, number] | null = null;
-  private isPointerInside = false;
 
   constructor() {
     this.simulator = new BandPhysicsSimulator();
@@ -224,7 +223,6 @@ export class ElasticBandEngine implements Engine {
   }
 
   private onPointerEnter = (e: PointerEvent): void => {
-    this.isPointerInside = true;
     this.prevPointer = [e.clientX, e.clientY];
   };
 
@@ -247,7 +245,6 @@ export class ElasticBandEngine implements Engine {
   };
 
   private onPointerLeave = (): void => {
-    this.isPointerInside = false;
     this.prevPointer = null;
   };
 
@@ -264,7 +261,7 @@ export class ElasticBandEngine implements Engine {
   }
 
   private render(): void {
-    const energy = this.simulator.step();
+    this.simulator.step();
 
     // Render WebGL
     if (this.gl && this.program && this.uTex && this.uData && this.ribbonCanvas) {

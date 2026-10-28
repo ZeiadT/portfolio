@@ -22,7 +22,7 @@ export function buildSplashToBandTimeline(
   elements: SplashElements,
   callbacks: SplashTimelineCallbacks = {}
 ): gsap.core.Timeline {
-  const { curtain, splashLogo, navLogo, navTabs, bandContainer } = elements;
+  const { curtain, splashLogo, navLogo, navTabs } = elements;
 
   const tl = gsap.timeline({
     onStart: () => {

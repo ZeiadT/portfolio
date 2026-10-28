@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zeiad Mohammed — Mobile & Systems Portfolio</title>
+  </head>
+  <body class="bg-[#0a0a0c] text-neutral-100 min-h-screen flex flex-col selection:bg-[#ff4421] selection:text-black">
+    <!-- Top Docked Navigation Bar (Elastic Band Mount) -->
+    <header
+      id="band-container"
+      class="fixed top-0 left-0 right-0 z-40 h-16 pointer-events-auto select-none overflow-visible flex items-center justify-between px-6 md:px-8 border-b border-white/5"
+    >
+      <canvas id="marquee-canvas" class="absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing select-none"></canvas>
+      
+      <!-- Foreground Brand & Navigation Layer -->
+      <div class="relative z-10 flex items-center justify-between w-full pointer-events-none">
+        <div id="nav-logo" class="font-extrabold uppercase tracking-wider text-base md:text-lg text-white opacity-0 select-none">
+          Zeiad Mohammed
+        </div>
+
+        <nav id="nav-tabs" class="flex items-center gap-6 md:gap-8 font-bold uppercase text-xs md:text-sm tracking-wider pointer-events-auto opacity-0" aria-label="Main Navigation">
+          <a href="#projects" class="nav-tab text-[#0d0d0d]">Work</a>
+          <a href="#about" class="nav-tab text-[#0d0d0d]">About</a>
+          <a href="#contact" class="nav-tab text-[#0d0d0d]">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Fullscreen Vermilion Splash Curtain -->
+    <div
+      id="splash-curtain"
+      class="fixed top-0 left-0 right-0 z-50 overflow-hidden bg-[#ff4421] flex items-center justify-center cursor-pointer select-none"
+      style="height: 100vh;"
+      aria-label="Click to enter portfolio"
+    >
+      <div
+        id="splash-logo"
+        class="relative text-4xl md:text-6xl lg:text-7xl font-extrabold uppercase tracking-tight text-[#0d0d0d] select-none text-center px-6"
+      >
+        Zeiad Mohammed
+      </div>
+    </div>
+
+    <!-- Main View Mount (Artemii 3D WebGL Carousel) -->
+    <main id="app" class="relative flex-1 flex flex-col items-center justify-center min-h-screen pt-16 p-6">
+      <div id="carousel-container" class="absolute inset-0 z-10 w-full h-full pointer-events-auto"></div>
+
+      <!-- Hero Overlay Content -->
+      <div class="relative z-20 pointer-events-none text-center max-w-2xl px-4 mt-8">
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-white">
+          Engineered for Motion & Scale.
+        </h1>
+        <p class="text-neutral-400 text-sm md:text-base leading-relaxed mb-6">
+          Native Android, Kotlin Multiplatform, and reactive full-stack solutions.
+        </p>
+        <div id="project-counter" class="text-xs font-mono text-neutral-500">
+          <!-- Populated by main.ts -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Core-A Glare Wipe Overlay Mount -->
+    <div
+      id="glare-overlay"
+      class="fixed inset-0 pointer-events-none z-50 bg-white opacity-0 transition-opacity duration-300"
+      aria-hidden="true"
+    ></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
