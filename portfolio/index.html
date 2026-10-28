@@ -3,84 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zeiad Mohammed — Mobile & Systems Portfolio</title>
   </head>
-  <body class="bg-[#09090b] text-neutral-100 min-h-screen flex flex-col selection:bg-[#ff4421] selection:text-black overflow-x-hidden">
-    <!-- Background Shader Viewport (Placed directly behind the band, ready for custom shader injection) -->
-    <div
-      id="shader-background"
-      class="fixed inset-0 z-0 bg-[#09090b] opacity-0 transition-opacity duration-500 overflow-hidden flex flex-col justify-between"
-    >
-      <!-- Top Minimal Header Navigation -->
-      <header class="relative z-20 flex items-center justify-between px-6 py-5 md:px-12 backdrop-blur-md bg-[#09090b]/60 border-b border-white/5">
-        <div class="text-[12px] md:text-[13px] tracking-[0.08em] font-semibold uppercase text-zinc-400">
-          Mobile &amp; Systems / Worldwide
-        </div>
-        <nav class="flex items-center gap-6 md:gap-8 text-[12px] md:text-[13px] tracking-[0.08em] uppercase font-semibold text-zinc-300">
-          <a href="#projects" class="hover:text-[#ff4421] transition-colors">Work</a>
-          <a href="#about" class="hover:text-[#ff4421] transition-colors">About</a>
-          <a href="#contact" class="hover:text-[#ff4421] transition-colors">Contact</a>
-        </nav>
-      </header>
-
-      <!-- Main Stage Mount (Artemii 3D WebGL Carousel Viewport) -->
-      <main id="app" class="relative flex-1 flex flex-col items-center justify-center p-6">
-        <div id="carousel-container" class="absolute inset-0 z-10 w-full h-full pointer-events-auto"></div>
-
-        <div class="relative z-20 pointer-events-none text-center max-w-2xl px-4 mt-8">
-          <h1 class="text-3xl md:text-5xl font-light leading-snug tracking-tight text-zinc-100 mb-3">
-            Engineered for <span class="text-[#ff4421] font-normal">Motion &amp; Scale</span>.
-          </h1>
-          <p class="text-neutral-400 text-xs md:text-sm leading-relaxed mb-4">
-            Native Android, Kotlin Multiplatform, and reactive full-stack solutions.
-          </p>
-          <div id="project-counter" class="text-xs font-mono text-neutral-500">
-            <!-- Populated by main.ts -->
-          </div>
-        </div>
-      </main>
-
-      <footer class="relative z-20 px-6 py-4 md:px-12 flex items-center justify-between border-t border-white/5 text-[11px] font-mono text-zinc-500">
-        <span>© 2026 Zeiad Mohammed</span>
-        <span>Crafted with Three.js &amp; WebGL</span>
-      </footer>
-    </div>
-
-    <!-- The Center Horizontal Elastic Marquee Band -->
-    <div id="band-container" class="fixed top-[50svh] left-0 right-0 -translate-y-1/2 z-40 select-none pointer-events-auto">
-      <div id="brand-bar" class="relative w-full overflow-visible select-none h-[clamp(3.25rem,2.75rem+1.2vw,3.897rem)]">
-        <!-- Marquee Track (Pre-positioned synchronously so hero wordmark is dead-center) -->
-        <div id="brand-track" class="boc-marquee-track h-full flex items-center whitespace-nowrap z-10 relative">
-          <!-- Repeated units generated dynamically by setupMarqueeTrack -->
-        </div>
-
-        <!-- WebGL Elastic Rubber Band Canvas (With overflow air margins for natural bouncing) -->
-        <canvas id="marquee-canvas" class="absolute left-0 pointer-events-auto cursor-grab active:cursor-grabbing z-0 transition-opacity duration-200"></canvas>
+  <body class="bg-[#0a0a0c] text-neutral-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+    <!-- BOC Elastic Splash Band Mount -->
+    <header id="band-container" class="sticky top-0 z-40 w-full h-16 border-b border-white/10 backdrop-blur-md bg-black/40 flex items-center px-6">
+      <div class="flex items-center justify-between w-full">
+        <span class="font-bold tracking-wider text-sm uppercase">Zeiad Mohammed</span>
+        <canvas id="marquee-canvas" class="hidden"></canvas>
+        <span class="text-xs text-neutral-400 font-mono">Mobile / KMP / Systems</span>
       </div>
-    </div>
+    </header>
 
-    <!-- The Fullscreen Vermilion Overlay Curtain (Collapses into center horizontal band) -->
+    <!-- Main View Mount (Artemii 3D WebGL Carousel) -->
+    <main id="app" class="relative flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6">
+      <div id="carousel-container" class="absolute inset-0 z-10 w-full h-full pointer-events-auto"></div>
+
+      <!-- Hero Overlay Content -->
+      <div class="relative z-20 pointer-events-none text-center max-w-2xl px-4">
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
+          Engineered for Motion & Scale.
+        </h1>
+        <p class="text-neutral-400 text-sm md:text-base leading-relaxed mb-6">
+          Native Android, Kotlin Multiplatform, and reactive full-stack solutions.
+        </p>
+        <div id="project-counter" class="text-xs font-mono text-neutral-500">
+          <!-- Populated by main.ts -->
+        </div>
+      </div>
+    </main>
+
+    <!-- Core-A Glare Wipe Overlay Mount -->
     <div
-      id="curtain"
-      class="pointer-events-none fixed top-[50svh] left-0 right-0 -translate-y-1/2 z-30 overflow-hidden bg-[#ff4421]"
-      style="height: 100vh;"
+      id="glare-overlay"
+      class="fixed inset-0 pointer-events-none z-50 bg-white opacity-0 transition-opacity duration-300"
+      aria-hidden="true"
     ></div>
-
-    <!-- Floating Replay Action Control -->
-    <aside class="fixed bottom-6 right-6 z-50 flex items-center gap-3">
-      <button
-        id="replay-btn"
-        class="flex items-center gap-2 bg-[#ff4421] text-[#0d0d0d] font-semibold text-xs tracking-wider uppercase px-4 py-2 rounded-full shadow-xl hover:bg-white hover:text-black transition-all active:scale-95 cursor-pointer"
-        aria-label="Replay splash animation"
-      >
-        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-          <path d="M3 3v5h5"/>
-        </svg>
-        <span>Replay</span>
-      </button>
-    </aside>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
