@@ -1,9 +1,57 @@
 import type { Engine } from '@/domain/types';
 import { BandPhysicsSimulator } from './bandPhysics';
+import { createWordmarkHtml } from './wordmark';
+
+/**
+ * Builds repeated marquee track units with hero center wordmark and satellites
+ */
+export function setupMarqueeTrack(trackEl?: HTMLElement | null): void {
+  const track = trackEl ?? document.querySelector<HTMLElement>('#brand-track');
+  if (!track) return;
+
+  const totalUnits = 6;
+  const heroIndex = 2; // Dead-center unit for the splash zoom-in
+
+  let html = '';
+
+  for (let i = 0; i < totalUnits; i++) {
+    const isHero = i === heroIndex;
+
+    const wordmarkHtml = isHero
+      ? `<div id="hero-wordmark-wrapper" class="relative inline-flex items-center justify-center select-none" style="transform-origin: 50% 50%;">
+           <div id="hero-wordmark">${createWordmarkHtml(true)}</div>
+         </div>`
+      : `<div class="satellite-item inline-flex items-center justify-center select-none">${createWordmarkHtml(false)}</div>`;
+
+    html += `
+      <div class="flex items-center shrink-0 select-none" style="gap: clamp(2rem, 1.5rem + 1.5vw, 3.125rem); padding-right: clamp(2rem, 1.5rem + 1.5vw, 3.125rem);">
+        ${wordmarkHtml}
+
+        <div class="satellite-item flex items-center text-[12px] md:text-[13px] font-semibold tracking-[0.05em] uppercase text-[#0d0d0d] whitespace-nowrap select-none">
+          Brand Direction & Motion
+        </div>
+
+        <span class="satellite-item text-[#0d0d0d] opacity-50 text-[10px] select-none">✦</span>
+
+        <div class="satellite-item flex items-center text-[12px] md:text-[13px] font-semibold tracking-[0.05em] uppercase text-[#0d0d0d] whitespace-nowrap select-none">
+          Interactive Web Experiences
+        </div>
+
+        <span class="satellite-item text-[#0d0d0d] opacity-50 text-[10px] select-none">●</span>
+
+        <div class="satellite-item flex items-center text-[12px] md:text-[13px] font-bold tracking-[0.05em] uppercase text-[#0d0d0d] whitespace-nowrap underline underline-offset-4 cursor-pointer hover:opacity-75 select-none">
+          Watch Selected Works
+        </div>
+      </div>
+    `;
+  }
+
+  track.innerHTML = html;
+}
 
 /**
  * Elastic Band WebGL Engine
- * Renders an interactive rubber ribbon with subtle cursor-driven spring dynamics.
+ * Renders an authentic interactive rubber marquee ribbon with subtle cursor-driven spring dynamics.
  */
 export class ElasticBandEngine implements Engine {
   public readonly id = 'elastic-band';
@@ -29,10 +77,13 @@ export class ElasticBandEngine implements Engine {
   private ribbonCanvas: HTMLCanvasElement | null = null;
   private ribbonCtx: CanvasRenderingContext2D | null = null;
 
+  private air = 30; // Air margin in px for elastic rubber stretch
   private width = 1;
   private height = 1;
+  private totalHeight = 1;
   private dpr = 1;
   private prevPointer: [number, number] | null = null;
+  private isRunning = false;
 
   constructor() {
     this.simulator = new BandPhysicsSimulator();
@@ -41,11 +92,17 @@ export class ElasticBandEngine implements Engine {
   public mount(container: HTMLElement): void {
     this.container = container;
 
+    // Check if marquee track exists, setup if needed
+    const track = container.querySelector<HTMLElement>('#brand-track');
+    if (track && track.children.length === 0) {
+      setupMarqueeTrack(track);
+    }
+
     // Check if canvas already exists or create one
     let canvas = container.querySelector<HTMLCanvasElement>('canvas');
     if (!canvas) {
       canvas = document.createElement('canvas');
-      canvas.className = 'absolute inset-0 w-full h-full pointer-events-auto cursor-grab active:cursor-grabbing select-none';
+      canvas.className = 'absolute left-0 pointer-events-auto cursor-grab active:cursor-grabbing select-none z-0';
       container.appendChild(canvas);
       this.createdCanvas = true;
     } else {
@@ -57,13 +114,12 @@ export class ElasticBandEngine implements Engine {
     this.initRenderer();
     this.bindEvents();
     this.resize();
-    this.startLoop();
+    this.start();
   }
 
   private initRenderer(): void {
     if (!this.canvas) return;
 
-    // Offscreen ribbon surface (for primary vermilion base)
     this.ribbonCanvas = document.createElement('canvas');
     this.ribbonCtx = this.ribbonCanvas.getContext('2d');
 
@@ -75,7 +131,6 @@ export class ElasticBandEngine implements Engine {
     });
 
     if (!gl) {
-      // Fallback 2D context for environments without WebGL
       this.ctx2d = this.canvas.getContext('2d');
       return;
     }
@@ -99,7 +154,7 @@ export class ElasticBandEngine implements Engine {
       uniform vec2 uReach;
 
       void main() {
-        // 128 is neutral zero offset
+        // Byte 128 is exact neutral zero displacement
         vec2 offset = (texture2D(uData, vUv).rg * 255.0 - 128.0) / 127.0;
         vec2 uv = vUv + offset * uReach;
 
@@ -142,7 +197,6 @@ export class ElasticBandEngine implements Engine {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-    // Fullscreen triangle buffer
     this.buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
     gl.bufferData(
@@ -179,11 +233,17 @@ export class ElasticBandEngine implements Engine {
 
     const rect = this.container.getBoundingClientRect();
     this.width = Math.max(1, Math.round(rect.width || window.innerWidth));
-    this.height = Math.max(1, Math.round(rect.height || 64));
+    this.height = Math.max(1, Math.round(rect.height || 60));
+    this.totalHeight = this.height + 2 * this.air;
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+    // Negative top overflow for rubber air margin
+    this.canvas.style.width = `${this.width}px`;
+    this.canvas.style.height = `${this.totalHeight}px`;
+    this.canvas.style.top = `-${this.air}px`;
+
     this.canvas.width = Math.round(this.width * this.dpr);
-    this.canvas.height = Math.round(this.height * this.dpr);
+    this.canvas.height = Math.round(this.totalHeight * this.dpr);
 
     if (this.ribbonCanvas) {
       this.ribbonCanvas.width = this.canvas.width;
@@ -191,7 +251,7 @@ export class ElasticBandEngine implements Engine {
       this.drawRibbonBase();
     }
 
-    this.simulator.initGrid(this.width, this.height);
+    this.simulator.initGrid(this.width, this.totalHeight);
 
     if (this.gl) {
       this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
@@ -201,10 +261,13 @@ export class ElasticBandEngine implements Engine {
   private drawRibbonBase(): void {
     if (!this.ribbonCtx || !this.ribbonCanvas) return;
     const ctx = this.ribbonCtx;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, this.ribbonCanvas.width, this.ribbonCanvas.height);
-    // Draw solid vermilion ribbon
+    ctx.scale(this.dpr, this.dpr);
+
+    // Draw solid vermilion band in the center of the air margin
     ctx.fillStyle = '#ff4421';
-    ctx.fillRect(0, 0, this.ribbonCanvas.width, this.ribbonCanvas.height);
+    ctx.fillRect(0, this.air, this.width, this.height);
   }
 
   private bindEvents(): void {
@@ -216,15 +279,10 @@ export class ElasticBandEngine implements Engine {
     window.addEventListener('resize', this.resize, { passive: true });
 
     if (this.canvas) {
-      this.canvas.addEventListener('pointerenter', this.onPointerEnter);
       this.canvas.addEventListener('pointermove', this.onPointerMove, { passive: true });
       this.canvas.addEventListener('pointerleave', this.onPointerLeave);
     }
   }
-
-  private onPointerEnter = (e: PointerEvent): void => {
-    this.prevPointer = [e.clientX, e.clientY];
-  };
 
   private onPointerMove = (e: PointerEvent): void => {
     if (!this.container) return;
@@ -233,11 +291,11 @@ export class ElasticBandEngine implements Engine {
     const ry = e.clientY - rect.top;
 
     const normX = rx / this.width;
-    const normY = 1.0 - ry / this.height;
+    const normY = 1.0 - (ry + this.air) / this.totalHeight;
 
     if (this.prevPointer) {
       const vX = (e.clientX - this.prevPointer[0]) / this.width;
-      const vY = -(e.clientY - this.prevPointer[1]) / this.height;
+      const vY = -(e.clientY - this.prevPointer[1]) / this.totalHeight;
       this.simulator.injectForce(normX, normY, vX, vY);
     }
 
@@ -248,34 +306,39 @@ export class ElasticBandEngine implements Engine {
     this.prevPointer = null;
   };
 
-  public triggerInteractiveWave(normX: number, normY: number): void {
-    this.simulator.injectForce(normX, normY, 0.08, -0.08);
-  }
+  public start(): void {
+    if (this.isRunning) return;
+    this.isRunning = true;
 
-  private startLoop(): void {
     const loop = () => {
+      if (!this.isRunning) return;
       this.render();
       this.animId = requestAnimationFrame(loop);
     };
     this.animId = requestAnimationFrame(loop);
   }
 
+  public stop(): void {
+    this.isRunning = false;
+    if (this.animId !== null) {
+      cancelAnimationFrame(this.animId);
+      this.animId = null;
+    }
+  }
+
   private render(): void {
     this.simulator.step();
 
-    // Render WebGL
     if (this.gl && this.program && this.uTex && this.uData && this.ribbonCanvas) {
       const gl = this.gl;
       gl.useProgram(this.program);
 
-      // Upload base texture if not already
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this.uTex);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.ribbonCanvas);
       gl.uniform1i(this.uTexLoc, 0);
 
-      // Upload displacement data texture
       const dims = this.simulator.getGridDimensions();
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D, this.uData);
@@ -293,27 +356,22 @@ export class ElasticBandEngine implements Engine {
       );
       gl.uniform1i(this.uDataLoc, 1);
 
-      // Uniform reach
       const reachX = 18 / Math.max(1, this.width);
-      const reachY = 12 / Math.max(1, this.height);
+      const reachY = 12 / Math.max(1, this.totalHeight);
       gl.uniform2f(this.uReachLoc, reachX, reachY);
 
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     } else if (this.ctx2d && this.canvas) {
-      // 2D Fallback: solid vermilion ribbon
       this.ctx2d.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx2d.fillStyle = '#ff4421';
-      this.ctx2d.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx2d.fillRect(0, this.air * this.dpr, this.canvas.width, this.height * this.dpr);
     }
   }
 
   public destroy(): void {
-    if (this.animId !== null) {
-      cancelAnimationFrame(this.animId);
-      this.animId = null;
-    }
+    this.stop();
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
@@ -323,7 +381,6 @@ export class ElasticBandEngine implements Engine {
     window.removeEventListener('resize', this.resize);
 
     if (this.canvas) {
-      this.canvas.removeEventListener('pointerenter', this.onPointerEnter);
       this.canvas.removeEventListener('pointermove', this.onPointerMove);
       this.canvas.removeEventListener('pointerleave', this.onPointerLeave);
 

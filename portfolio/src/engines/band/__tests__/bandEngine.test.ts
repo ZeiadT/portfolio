@@ -1,13 +1,20 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { ElasticBandEngine } from '../index';
+import { ElasticBandEngine, setupMarqueeTrack } from '../index';
 
 describe('ElasticBandEngine', () => {
   let container: HTMLElement;
+  let trackEl: HTMLElement;
 
   beforeEach(() => {
     container = document.createElement('div');
+    container.id = 'brand-bar';
     container.style.width = '1000px';
-    container.style.height = '64px';
+    container.style.height = '60px';
+
+    trackEl = document.createElement('div');
+    trackEl.id = 'brand-track';
+    container.appendChild(trackEl);
+
     document.body.appendChild(container);
   });
 
@@ -21,6 +28,14 @@ describe('ElasticBandEngine', () => {
     expect(typeof engine.mount).toBe('function');
     expect(typeof engine.destroy).toBe('function');
     expect(typeof engine.resize).toBe('function');
+  });
+
+  it('setupMarqueeTrack populates hero and satellite items into track', () => {
+    setupMarqueeTrack(trackEl);
+    expect(trackEl.innerHTML).toContain('hero-wordmark-wrapper');
+    expect(trackEl.innerHTML).toContain('hero-wordmark');
+    expect(trackEl.innerHTML).toContain('satellite-item');
+    expect(trackEl.textContent?.replace(/\u00A0/g, ' ')).toContain('Zeiad Mohammed');
   });
 
   it('mounts canvas element and starts lifecycle', () => {
