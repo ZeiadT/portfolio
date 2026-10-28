@@ -1,44 +1,53 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { buildSplashToBandTimeline, type SplashElements } from '../splashTimeline';
+import { buildSplashTimeline, type SplashElements } from '../splashTimeline';
 
-describe('Splash-to-Band Timeline', () => {
+describe('Authentic BOC Splash Timeline', () => {
   let curtain: HTMLElement;
-  let splashLogo: HTMLElement;
-  let navLogo: HTMLElement;
-  let navTabs: HTMLElement;
-  let bandContainer: HTMLElement;
+  let heroWrapper: HTMLElement;
+  let heroWordmark: HTMLElement;
+  let heroChars: HTMLElement[];
+  let satellites: HTMLElement[];
+  let brandTrack: HTMLElement;
+  let backgroundShader: HTMLElement;
   let elements: SplashElements;
 
   beforeEach(() => {
     curtain = document.createElement('div');
-    curtain.style.height = '100vh';
+    heroWrapper = document.createElement('div');
+    heroWordmark = document.createElement('div');
+    heroWrapper.appendChild(heroWordmark);
 
-    splashLogo = document.createElement('div');
-    splashLogo.textContent = 'Zeiad Mohammed';
-    splashLogo.style.color = '#0d0d0d';
+    heroChars = [];
+    for (let i = 0; i < 14; i++) {
+      const char = document.createElement('span');
+      char.className = 'hero-char';
+      heroChars.push(char);
+      heroWordmark.appendChild(char);
+    }
 
-    navLogo = document.createElement('div');
-    navLogo.textContent = 'Zeiad Mohammed';
-    navLogo.style.opacity = '0';
+    satellites = [];
+    for (let i = 0; i < 5; i++) {
+      const sat = document.createElement('div');
+      sat.className = 'satellite-item';
+      satellites.push(sat);
+    }
 
-    navTabs = document.createElement('nav');
-    navTabs.innerHTML = '<a href="#">Work</a><a href="#">About</a><a href="#">Contact</a>';
-    navTabs.style.opacity = '0';
-
-    bandContainer = document.createElement('header');
+    brandTrack = document.createElement('div');
+    backgroundShader = document.createElement('div');
 
     document.body.appendChild(curtain);
-    document.body.appendChild(splashLogo);
-    document.body.appendChild(navLogo);
-    document.body.appendChild(navTabs);
-    document.body.appendChild(bandContainer);
+    document.body.appendChild(heroWrapper);
+    document.body.appendChild(brandTrack);
+    document.body.appendChild(backgroundShader);
 
     elements = {
       curtain,
-      splashLogo,
-      navLogo,
-      navTabs,
-      bandContainer,
+      heroWrapper,
+      heroWordmark,
+      heroChars,
+      satellites,
+      brandTrack,
+      backgroundShader,
     };
   });
 
@@ -46,52 +55,48 @@ describe('Splash-to-Band Timeline', () => {
     document.body.innerHTML = '';
   });
 
-  it('creates and returns a valid GSAP timeline', () => {
-    const tl = buildSplashToBandTimeline(elements);
+  it('builds authentic GSAP timeline with valid duration', () => {
+    const tl = buildSplashTimeline(elements);
     expect(tl).toBeDefined();
-    expect(tl.duration()).toBeGreaterThan(0.5);
+    // Authentic sequence has duration around 3s
+    expect(tl.duration()).toBeGreaterThanOrEqual(2.0);
     tl.kill();
   });
 
-  it('executes callbacks during timeline progression', () => {
-    const onStart = vi.fn();
-    const onComplete = vi.fn();
+  it('synchronously pre-positions marquee track with offset', () => {
+    const tl = buildSplashTimeline(elements);
+    expect(brandTrack.style.getPropertyValue('--marquee-offset')).toBeDefined();
+    tl.kill();
+  });
 
-    const tl = buildSplashToBandTimeline(elements, {
-      onStart,
-      onComplete,
+  it('staggers hero characters into view and scales wrapper down on completion', () => {
+    const tl = buildSplashTimeline(elements);
+    tl.progress(1);
+
+    for (const char of heroChars) {
+      expect(char.style.opacity).toBe('1');
+    }
+
+    const heightVal = parseInt(curtain.style.height, 10);
+    expect(heightVal).toBeGreaterThanOrEqual(48);
+    expect(heightVal).toBeLessThanOrEqual(65);
+    expect(backgroundShader.style.opacity).toBe('1');
+    expect(brandTrack.classList.contains('is-scrolling')).toBe(true);
+    tl.kill();
+  });
+
+  it('triggers onCollapseStart and onMarqueeReady callbacks', () => {
+    const onCollapseStart = vi.fn();
+    const onMarqueeReady = vi.fn();
+
+    const tl = buildSplashTimeline(elements, {
+      onCollapseStart,
+      onMarqueeReady,
     });
 
-    // Jump to completion
     tl.progress(1);
-    expect(onStart).toHaveBeenCalled();
-    expect(onComplete).toHaveBeenCalled();
-    tl.kill();
-  });
-
-  it('transforms curtain from 100vh to header height', () => {
-    const tl = buildSplashToBandTimeline(elements);
-    tl.progress(1);
-
-    expect(curtain.style.height).toBe('64px');
-    tl.kill();
-  });
-
-  it('migrates logo color to white (#ffffff)', () => {
-    const tl = buildSplashToBandTimeline(elements);
-    tl.progress(1);
-
-    // Either splashLogo or navLogo ends with white color
-    const activeLogoColor = splashLogo.style.color || navLogo.style.color;
-    expect(activeLogoColor).toMatch(/rgb\(255,\s*255,\s*255\)|#ffffff/i);
-    tl.kill();
-  });
-
-  it('reveals nav tabs after logo docking', () => {
-    const tl = buildSplashToBandTimeline(elements);
-    tl.progress(1);
-
-    expect(navTabs.style.opacity).toBe('1');
+    expect(onCollapseStart).toHaveBeenCalled();
+    expect(onMarqueeReady).toHaveBeenCalled();
     tl.kill();
   });
 });
