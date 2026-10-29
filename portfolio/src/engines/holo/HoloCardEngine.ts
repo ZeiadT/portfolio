@@ -26,9 +26,12 @@ uniform sampler2D u_image;
 uniform vec2 u_pointer; // Normalized [-1.0, 1.0]
 uniform float u_edgeSensitivity; // default 12.0
 uniform float u_holoIntensity;   // default 2.0
+uniform vec2 u_uvScale;
+uniform vec2 u_uvOffset;
 
 void main() {
-  vec4 base = texture(u_image, v_uv);
+  vec2 texUV = v_uv * u_uvScale + u_uvOffset;
+  vec4 base = texture(u_image, texUV);
   if (base.a < 0.01) {
     fragColor = vec4(0.0);
     return;
@@ -46,7 +49,7 @@ void main() {
   float highPass = smoothstep(0.6, 0.92, luma);
   float traceMask = max(edge, highPass * 0.45);
 
-  // 4. Procedural micro-etching & 3D normals
+  // 4. Procedural micro-etching & 3D normals (operates on screen v_uv coordinates)
   float etch = sin(v_uv.x * 320.0 + cos(v_uv.y * 320.0) * 5.0) * 0.15;
   vec3 normal = normalize(vec3(-dx * 15.0 + etch, -dy * 15.0 + etch, 1.0));
 
@@ -54,7 +57,7 @@ void main() {
   vec3 lightDir = normalize(vec3(u_pointer.x, u_pointer.y, 0.65));
   float spec = max(dot(normal, lightDir), 0.0);
 
-  // Cosine spectral palette
+  // Cosine spectral palette (operates on screen v_uv coordinates)
   float t = dot(normal.xy, u_pointer) * 1.5 + (v_uv.x + v_uv.y) * 0.8 + luma;
   vec3 rainbow = 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67)));
 
@@ -98,11 +101,14 @@ export class HoloCardEngine {
   private fs: WebGLShader | null = null;
   private buffer: WebGLBuffer | null = null;
   private texture: WebGLTexture | null = null;
+  private imgElement: HTMLImageElement | null = null;
 
   private uPointerLoc: WebGLUniformLocation | null = null;
   private uEdgeSensitivityLoc: WebGLUniformLocation | null = null;
   private uHoloIntensityLoc: WebGLUniformLocation | null = null;
   private uImageLoc: WebGLUniformLocation | null = null;
+  private uUvScaleLoc: WebGLUniformLocation | null = null;
+  private uUvOffsetLoc: WebGLUniformLocation | null = null;
 
   private supported: boolean = false;
   private destroyed: boolean = false;
@@ -155,9 +161,17 @@ export class HoloCardEngine {
       } catch (err) {
         console.warn('HoloCardEngine: WebGL2 initialization failed', err);
         this.supported = false;
+        if (this.canvas) {
+          this.canvas.remove();
+          this.canvas = null;
+        }
       }
     } else {
       this.supported = false;
+      if (this.canvas) {
+        this.canvas.remove();
+        this.canvas = null;
+      }
     }
 
     // Attach interaction and window resize events
@@ -171,8 +185,8 @@ export class HoloCardEngine {
     // Initial sizing
     this.resize();
 
-    // Start physics and render animation loop
-    this.rafId = requestAnimationFrame(this.tick);
+    // Start physics and render animation loop (will render initial frame and suspend if at rest)
+    this.startLoop();
   }
 
   private initWebGL(): void {
@@ -233,11 +247,15 @@ export class HoloCardEngine {
     this.uEdgeSensitivityLoc = gl.getUniformLocation(program, 'u_edgeSensitivity');
     this.uHoloIntensityLoc = gl.getUniformLocation(program, 'u_holoIntensity');
     this.uImageLoc = gl.getUniformLocation(program, 'u_image');
+    this.uUvScaleLoc = gl.getUniformLocation(program, 'u_uvScale');
+    this.uUvOffsetLoc = gl.getUniformLocation(program, 'u_uvOffset');
 
     if (this.uImageLoc) gl.uniform1i(this.uImageLoc, 0);
     if (this.uEdgeSensitivityLoc) gl.uniform1f(this.uEdgeSensitivityLoc, this.edgeSensitivity);
     if (this.uHoloIntensityLoc) gl.uniform1f(this.uHoloIntensityLoc, this.holoIntensity);
     if (this.uPointerLoc) gl.uniform2f(this.uPointerLoc, 0.0, 0.0);
+    if (this.uUvScaleLoc) gl.uniform2f(this.uUvScaleLoc, 1.0, 1.0);
+    if (this.uUvOffsetLoc) gl.uniform2f(this.uUvOffsetLoc, 0.0, 0.0);
 
     // Setup base texture
     this.texture = gl.createTexture();
@@ -262,6 +280,7 @@ export class HoloCardEngine {
 
     // Asynchronously load image
     const image = new Image();
+    this.imgElement = image;
     image.crossOrigin = 'anonymous';
     image.onload = () => {
       if (this.destroyed || !this.gl || !this.texture) return;
@@ -274,6 +293,8 @@ export class HoloCardEngine {
         this.gl.UNSIGNED_BYTE ?? GL_CONST.UNSIGNED_BYTE,
         image
       );
+      this.updateUvTransform();
+      this.render();
     };
     image.src = this.options.imageSrc;
     if (image.complete && image.naturalWidth > 0 && this.gl && this.texture) {
@@ -286,7 +307,36 @@ export class HoloCardEngine {
         this.gl.UNSIGNED_BYTE ?? GL_CONST.UNSIGNED_BYTE,
         image
       );
+      this.updateUvTransform();
     }
+  }
+
+  private updateUvTransform(): void {
+    if (!this.gl || !this.program || !this.uUvScaleLoc || !this.uUvOffsetLoc) return;
+
+    const imgAspect = (this.imgElement?.naturalWidth || 1) / (this.imgElement?.naturalHeight || 1);
+    const canvasAspect =
+      (this.canvas?.clientWidth || this.canvas?.width || 1) /
+      (this.canvas?.clientHeight || this.canvas?.height || 1);
+
+    let scaleX = 1.0;
+    let scaleY = 1.0;
+    let offsetX = 0.0;
+    let offsetY = 0.0;
+
+    if (canvasAspect < imgAspect) {
+      // Canvas is narrower than image: cover full height, center-crop width
+      scaleX = canvasAspect / imgAspect;
+      offsetX = (1.0 - scaleX) * 0.5;
+    } else if (canvasAspect > imgAspect) {
+      // Canvas is wider than image: cover full width, align top
+      scaleY = imgAspect / canvasAspect;
+      offsetY = 0.0;
+    }
+
+    this.gl.useProgram(this.program);
+    this.gl.uniform2f(this.uUvScaleLoc, scaleX, scaleY);
+    this.gl.uniform2f(this.uUvOffsetLoc, offsetX, offsetY);
   }
 
   private compileShader(type: number, source: string): WebGLShader | null {
@@ -328,8 +378,15 @@ export class HoloCardEngine {
 
     if (this.gl) {
       this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      this.updateUvTransform();
+      this.render();
     }
   };
+
+  private startLoop(): void {
+    if (this.destroyed || this.rafId !== null) return;
+    this.rafId = requestAnimationFrame(this.tick);
+  }
 
   private handleMouseMove = (e: MouseEvent): void => {
     const target = this.targetEl || this.container;
@@ -339,11 +396,13 @@ export class HoloCardEngine {
     const height = rect.height || 1;
     this.targetX = Math.max(-1, Math.min(1, ((e.clientX - rect.left) / width) * 2 - 1));
     this.targetY = Math.max(-1, Math.min(1, ((e.clientY - rect.top) / height) * 2 - 1));
+    this.startLoop();
   };
 
   private handleMouseLeave = (): void => {
     this.targetX = 0;
     this.targetY = 0;
+    this.startLoop();
   };
 
   private handleTouchMove = (e: TouchEvent): void => {
@@ -356,15 +415,42 @@ export class HoloCardEngine {
     const height = rect.height || 1;
     this.targetX = Math.max(-1, Math.min(1, ((touch.clientX - rect.left) / width) * 2 - 1));
     this.targetY = Math.max(-1, Math.min(1, ((touch.clientY - rect.top) / height) * 2 - 1));
+    this.startLoop();
   };
 
   private handleTouchEnd = (): void => {
     this.targetX = 0;
     this.targetY = 0;
+    this.startLoop();
   };
+
+  private render(): void {
+    if (!this.gl || !this.program) return;
+    if (this.uPointerLoc) {
+      this.gl.uniform2f(this.uPointerLoc, this.currX, this.currY);
+    }
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP ?? GL_CONST.TRIANGLE_STRIP, 0, 4);
+  }
 
   private tick = (): void => {
     if (this.destroyed) return;
+
+    // Check if resting at neutral position
+    if (
+      this.targetX === 0 &&
+      this.targetY === 0 &&
+      Math.abs(this.currX) < 0.0005 &&
+      Math.abs(this.currY) < 0.0005
+    ) {
+      this.currX = 0;
+      this.currY = 0;
+      if (this.targetEl) {
+        this.targetEl.style.transform = '';
+      }
+      this.render();
+      this.rafId = null;
+      return;
+    }
 
     // Damped physics interpolation (lerp factor 0.1)
     this.currX += (this.targetX - this.currX) * 0.1;
@@ -372,27 +458,13 @@ export class HoloCardEngine {
 
     // Apply CSS 3D tilt if targetEl is provided
     if (this.targetEl) {
-      if (
-        Math.abs(this.currX) < 0.001 &&
-        Math.abs(this.currY) < 0.001 &&
-        this.targetX === 0 &&
-        this.targetY === 0
-      ) {
-        this.targetEl.style.transform = '';
-      } else {
-        const tiltX = this.currY * -this.maxTiltDeg;
-        const tiltY = this.currX * this.maxTiltDeg;
-        this.targetEl.style.transform = `perspective(900px) rotateX(${tiltX.toFixed(3)}deg) rotateY(${tiltY.toFixed(3)}deg) scale3d(1.03, 1.03, 1.03)`;
-      }
+      const tiltX = this.currY * -this.maxTiltDeg;
+      const tiltY = this.currX * this.maxTiltDeg;
+      this.targetEl.style.transform = `perspective(900px) rotateX(${tiltX.toFixed(3)}deg) rotateY(${tiltY.toFixed(3)}deg) scale3d(1.03, 1.03, 1.03)`;
     }
 
     // WebGL rendering pass
-    if (this.gl && this.program) {
-      if (this.uPointerLoc) {
-        this.gl.uniform2f(this.uPointerLoc, this.currX, this.currY);
-      }
-      this.gl.drawArrays(this.gl.TRIANGLE_STRIP ?? GL_CONST.TRIANGLE_STRIP, 0, 4);
-    }
+    this.render();
 
     this.rafId = requestAnimationFrame(this.tick);
   };
@@ -463,6 +535,7 @@ export class HoloCardEngine {
       this.canvas = null;
     }
 
+    this.imgElement = null;
     this.container = null;
   }
 }

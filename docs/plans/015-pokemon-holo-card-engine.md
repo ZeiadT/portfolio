@@ -275,3 +275,39 @@ Expected: Build succeeds with code 0 (`tsc && vite build`).
 git add docs/plans/015-pokemon-holo-card-engine.md
 git commit -m "docs: complete pokemon holo card engine plan"
 ```
+
+---
+
+### Task 5: Code Review Refinements (UV Aspect Ratio, Idle Loop Suspension, CSS Cleanup, Canvas Cleanup)
+
+**Files:**
+- Modify: `portfolio/src/engines/holo/HoloCardEngine.ts`
+- Modify: `portfolio/src/engines/holo/__tests__/HoloCardEngine.test.ts`
+- Modify: `portfolio/src/components/home/ProfileAvatar.ts`
+- Modify: `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts`
+
+**Issues to Resolve:**
+1. **Aspect Ratio UV Correction (`object-cover object-top`)**:
+   - Shaders currently sample `texture(u_image, v_uv)` directly, which distorts images whose aspect ratio differs from the canvas aspect ratio.
+   - Add `u_uvScale` (`vec2`) and `u_uvOffset` (`vec2`) uniforms to fragment shader.
+   - Texture lookup becomes `vec2 texUV = v_uv * u_uvScale + u_uvOffset; vec4 base = texture(u_image, texUV);`.
+   - Procedural etching and cosine rainbow math continue to operate on screen `v_uv` coordinates.
+   - Implement `updateUvTransform()` to compute `scaleX`, `scaleY`, `offsetX`, `offsetY` matching CSS `object-cover object-top`. Call it on image load and `resize()`.
+2. **CSS Transition Conflict on Avatar Card**:
+   - Remove `transition-transform duration-200 hover:scale-[1.02]` from `ProfileAvatar.ts` `data-avatar-card`.
+   - The rAF physics loop already smoothly interpolates 3D tilt and `scale3d(1.03, 1.03, 1.03)` with damped lerp; CSS transition causes stutter and frame fighting.
+3. **Idle Loop Suspension (Battery & GPU efficiency)**:
+   - Suspend rAF loop when card returns to neutral rest (`targetX === 0 && targetY === 0 && |currX| < 0.0005 && |currY| < 0.0005`).
+   - Reset transform to `''`, render final neutral frame, set `rafId = null`.
+   - Restart loop via `startLoop()` on pointer interaction.
+   - Render static frame on image load and resize if loop is suspended.
+4. **Orphaned Canvas Cleanup on Unsupported WebGL2**:
+   - In `HoloCardEngine.ts`: If `getContext('webgl2')` fails or returns null, or shader compilation fails, remove `<canvas>` from DOM and null reference (`this.canvas?.remove(); this.canvas = null;`).
+   - Clean portrait `<img>` remains completely unobstructed without a transparent canvas overlying it.
+
+- [x] **Step 1: Update unit tests for new behavior and edge cases**
+- [x] **Step 2: Run tests to verify expected failures**
+- [x] **Step 3: Implement engine and component refinements**
+- [x] **Step 4: Run all tests and verify PASS**
+- [x] **Step 5: Run production build and commit**
+

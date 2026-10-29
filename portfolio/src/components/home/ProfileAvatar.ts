@@ -61,7 +61,7 @@ export class ProfileAvatarComponent {
           role="button"
           tabindex="0"
           aria-label="Portrait photo"
-          class="relative w-full aspect-[4/5] rounded-2xl sm:rounded-3xl border border-white/15 bg-neutral-900/80 backdrop-blur-md overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.7)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4421] transition-transform duration-200 hover:scale-[1.02] active:scale-[0.99]"
+          class="relative w-full aspect-[4/5] rounded-2xl sm:rounded-3xl border border-white/15 bg-neutral-900/80 backdrop-blur-md overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.7)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4421] active:scale-[0.99]"
         >
           <!-- The Portrait Image (Pure & Un-obscured) -->
           <img
