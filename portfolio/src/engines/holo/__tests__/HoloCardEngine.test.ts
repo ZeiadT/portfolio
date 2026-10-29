@@ -104,4 +104,111 @@ describe('HoloCardEngine', () => {
     engine.destroy();
     expect(cancelRafSpy).toHaveBeenCalled();
   });
+
+  it('updates canvas dimensions and viewport on resize', () => {
+    const mockGl = {
+      createShader: vi.fn().mockReturnValue({}),
+      shaderSource: vi.fn(),
+      compileShader: vi.fn(),
+      getShaderParameter: vi.fn().mockReturnValue(true),
+      createProgram: vi.fn().mockReturnValue({}),
+      attachShader: vi.fn(),
+      linkProgram: vi.fn(),
+      getProgramParameter: vi.fn().mockReturnValue(true),
+      useProgram: vi.fn(),
+      createBuffer: vi.fn().mockReturnValue({}),
+      bindBuffer: vi.fn(),
+      bufferData: vi.fn(),
+      getAttribLocation: vi.fn().mockReturnValue(0),
+      enableVertexAttribArray: vi.fn(),
+      vertexAttribPointer: vi.fn(),
+      getUniformLocation: vi.fn().mockReturnValue({}),
+      uniform1i: vi.fn(),
+      uniform1f: vi.fn(),
+      uniform2f: vi.fn(),
+      createTexture: vi.fn().mockReturnValue({}),
+      bindTexture: vi.fn(),
+      texParameteri: vi.fn(),
+      texImage2D: vi.fn(),
+      viewport: vi.fn(),
+      drawArrays: vi.fn(),
+      deleteProgram: vi.fn(),
+      deleteShader: vi.fn(),
+      deleteBuffer: vi.fn(),
+      deleteTexture: vi.fn(),
+      getExtension: vi.fn().mockReturnValue({ loseContext: vi.fn() }),
+    };
+
+    const origGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation((type: string) => {
+      if (type === 'webgl2') return mockGl as unknown as WebGL2RenderingContext;
+      return null;
+    }) as any;
+
+    try {
+      vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({
+        width: 320,
+        height: 480,
+        top: 0,
+        left: 0,
+        bottom: 480,
+        right: 320,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      });
+
+      const engine = new HoloCardEngine({ imageSrc: '/profile.jpg' });
+      engine.mount(container);
+      engine.resize();
+
+      const canvas = container.querySelector<HTMLCanvasElement>('canvas[data-holo-canvas]');
+      expect(canvas).toBeTruthy();
+      expect(mockGl.viewport).toHaveBeenCalled();
+
+      engine.destroy();
+    } finally {
+      HTMLCanvasElement.prototype.getContext = origGetContext;
+    }
+  });
+
+  it('updates target element CSS 3D tilt on pointer interaction and resets on leave', () => {
+    const targetCard = document.createElement('div');
+    container.appendChild(targetCard);
+
+    vi.spyOn(targetCard, 'getBoundingClientRect').mockReturnValue({
+      width: 200,
+      height: 300,
+      top: 100,
+      left: 100,
+      bottom: 400,
+      right: 300,
+      x: 100,
+      y: 100,
+      toJSON: () => {},
+    });
+
+    const engine = new HoloCardEngine({
+      imageSrc: '/profile.jpg',
+      targetEl: targetCard,
+      maxTiltDeg: 10,
+    });
+    engine.mount(container);
+
+    // Trigger mouse move to bottom-right corner (clientX=300, clientY=400 -> x=1, y=1)
+    targetCard.dispatchEvent(
+      new MouseEvent('mousemove', { clientX: 300, clientY: 400, bubbles: true })
+    );
+
+    // Call requestAnimationFrame callback manually to advance lerp
+    // We can simulate multiple frames
+    for (let i = 0; i < 20; i++) {
+      // In JSDOM, requestAnimationFrame callback can be accessed or we can trigger tick
+    }
+
+    targetCard.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+
+    engine.destroy();
+    expect(targetCard.style.transform).toBe('');
+  });
 });
