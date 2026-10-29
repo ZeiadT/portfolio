@@ -132,6 +132,7 @@ export class HoloCardEngine {
 
   public mount(container: HTMLElement): void {
     if (this.destroyed) return;
+    if (this.canvas) return;
     this.container = container;
 
     // Create and configure WebGL canvas

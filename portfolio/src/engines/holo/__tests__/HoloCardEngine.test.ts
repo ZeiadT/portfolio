@@ -200,15 +200,37 @@ describe('HoloCardEngine', () => {
       new MouseEvent('mousemove', { clientX: 300, clientY: 400, bubbles: true })
     );
 
-    // Call requestAnimationFrame callback manually to advance lerp
-    // We can simulate multiple frames
+    // Call tick manually to advance damped lerp physics
     for (let i = 0; i < 20; i++) {
-      // In JSDOM, requestAnimationFrame callback can be accessed or we can trigger tick
+      (engine as any).tick();
     }
 
+    expect(targetCard.style.transform).toContain('perspective(900px)');
+    expect(targetCard.style.transform).toContain('rotateX(');
+    expect(targetCard.style.transform).toContain('rotateY(');
+    expect(targetCard.style.transform).toContain('scale3d(1.03, 1.03, 1.03)');
+
+    // Trigger mouse leave and advance lerp to reset threshold
     targetCard.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+
+    for (let i = 0; i < 80; i++) {
+      (engine as any).tick();
+    }
+
+    expect(targetCard.style.transform).toBe('');
 
     engine.destroy();
     expect(targetCard.style.transform).toBe('');
+  });
+
+  it('is idempotent when mount is called multiple times', () => {
+    const engine = new HoloCardEngine({ imageSrc: '/profile.jpg' });
+    engine.mount(container);
+    engine.mount(container);
+
+    const canvases = container.querySelectorAll('canvas[data-holo-canvas]');
+    expect(canvases.length).toBe(1);
+
+    engine.destroy();
   });
 });
