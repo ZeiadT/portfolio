@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Status:** Completed
+
 **Goal:** Implement an authentic "Secret Rare / Legendary Pokémon Card" etched holographic effect using WebGL2 (GLSL ES 3.00) that programmatically traces image contours, line art, edges, and specular highlights in real time, mounted into the portfolio portrait card.
 
 **Architecture:** A standalone, isolated WebGL2 engine (`src/engines/holo/HoloCardEngine.ts`) manages canvas creation, shader compilation, dynamic derivative contour detection, procedural micro-etching, cosine rainbow iridescence, lerped physics loop, and 3D perspective card tilt. `ProfileAvatarComponent` mounts this engine with seamless fallback to standard `<img>` in headless / unsupported environments.
@@ -42,7 +44,7 @@
   }
   ```
 
-- [ ] **Step 1: Write the unit tests for HoloCardEngine**
+- [x] **Step 1: Write the unit tests for HoloCardEngine**
 
 ```typescript
 // portfolio/src/engines/holo/__tests__/HoloCardEngine.test.ts
@@ -155,12 +157,12 @@ describe('HoloCardEngine', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm --prefix portfolio test -- HoloCardEngine`
 Expected: FAIL because `HoloCardEngine` does not exist yet.
 
-- [ ] **Step 3: Commit test file**
+- [x] **Step 3: Commit test file**
 
 ```bash
 git add portfolio/src/engines/holo/__tests__/HoloCardEngine.test.ts
@@ -178,7 +180,7 @@ git commit -m "test: add HoloCardEngine unit test specification"
 - Consumes: `HoloCardEngineOptions`
 - Produces: `HoloCardEngine` with full WebGL2 rendering pipeline, derivative contour tracing, micro-etching normal perturbation, spectral rainbow iridescence, additive glint, and lerped 3D tilt.
 
-- [ ] **Step 1: Write HoloCardEngine implementation**
+- [x] **Step 1: Write HoloCardEngine implementation**
 
 Implement `portfolio/src/engines/holo/HoloCardEngine.ts`:
 - Shaders:
@@ -193,12 +195,12 @@ Implement `portfolio/src/engines/holo/HoloCardEngine.ts`:
   - `resize()` handling `devicePixelRatio` buffer sizing.
   - `destroy()` releasing textures, buffers, program, rAF loop, event listeners, and loseContext extension.
 
-- [ ] **Step 2: Run test to verify it passes**
+- [x] **Step 2: Run test to verify it passes**
 
 Run: `npm --prefix portfolio test -- HoloCardEngine`
 Expected: PASS
 
-- [ ] **Step 3: Commit implementation**
+- [x] **Step 3: Commit implementation**
 
 ```bash
 git add portfolio/src/engines/holo/HoloCardEngine.ts
@@ -218,7 +220,7 @@ git commit -m "feat: implement WebGL2 Pokemon HoloCardEngine"
 - Maintains fallback `<img>` and monogram fallback if image fails to load.
 - Cleans up `HoloCardEngine` on `destroy()`.
 
-- [ ] **Step 1: Update ProfileAvatar tests for HoloCardEngine integration**
+- [x] **Step 1: Update ProfileAvatar tests for HoloCardEngine integration**
 
 Update `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts` to assert:
 - `data-holo-canvas` element is mounted inside card.
@@ -226,24 +228,24 @@ Update `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts` to assert
 - Edge-to-edge uppercase title `MOBILE DEVELOPER` remains intact.
 - Destroys HoloCardEngine on `avatar.destroy()`.
 
-- [ ] **Step 2: Run test to verify failure**
+- [x] **Step 2: Run test to verify failure**
 
 Run: `npm --prefix portfolio test -- ProfileAvatar`
 Expected: FAIL asserting canvas exists.
 
-- [ ] **Step 3: Update ProfileAvatar.ts implementation**
+- [x] **Step 3: Update ProfileAvatar.ts implementation**
 
 Integrate `HoloCardEngine` into `ProfileAvatarComponent`:
 - Import `HoloCardEngine`.
 - In `mount()`, instantiate `HoloCardEngine` with `imageSrc: this.config.src`, `targetEl: this.cardEl`, and mount it into `this.cardEl`.
 - In `destroy()`, call `this.holoEngine?.destroy()`.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `npm --prefix portfolio test -- ProfileAvatar`
 Expected: PASS
 
-- [ ] **Step 5: Commit integration**
+- [x] **Step 5: Commit integration**
 
 ```bash
 git add portfolio/src/components/home/ProfileAvatar.ts portfolio/src/components/home/__tests__/ProfileAvatar.test.ts
@@ -257,17 +259,17 @@ git commit -m "feat: integrate WebGL2 HoloCardEngine into ProfileAvatarComponent
 **Files:**
 - All touched files
 
-- [ ] **Step 1: Run all unit tests**
+- [x] **Step 1: Run all unit tests**
 
 Run: `npm --prefix portfolio test`
 Expected: PASS across all test suites (120+ tests).
 
-- [ ] **Step 2: Run Vite production build**
+- [x] **Step 2: Run Vite production build**
 
 Run: `npm --prefix portfolio run build`
 Expected: Build succeeds with code 0 (`tsc && vite build`).
 
-- [ ] **Step 3: Commit completed feature documentation**
+- [x] **Step 3: Commit completed feature documentation**
 
 ```bash
 git add docs/plans/015-pokemon-holo-card-engine.md

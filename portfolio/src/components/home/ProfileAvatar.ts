@@ -26,6 +26,7 @@ export class ProfileAvatarComponent {
 
   // Event handlers for clean disposal
   private clickHandler: (() => void) | null = null;
+  private keydownHandler: ((e: KeyboardEvent) => void) | null = null;
   private errorHandler: (() => void) | null = null;
 
   constructor(config: ProfileAvatarConfig, options: ProfileAvatarOptions = {}) {
@@ -113,12 +114,20 @@ export class ProfileAvatarComponent {
       this.imgEl.addEventListener('error', this.errorHandler);
     }
 
-    // Card click handler
+    // Card click and keydown handlers
     if (this.cardEl) {
       this.clickHandler = () => {
         this.options.onImageClick?.(this.config.src, this.config.alt);
       };
       this.cardEl.addEventListener('click', this.clickHandler);
+
+      this.keydownHandler = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.options.onImageClick?.(this.config.src, this.config.alt);
+        }
+      };
+      this.cardEl.addEventListener('keydown', this.keydownHandler);
     }
   }
 
@@ -127,9 +136,15 @@ export class ProfileAvatarComponent {
       this.holoEngine.destroy();
       this.holoEngine = null;
     }
-    if (this.cardEl && this.clickHandler) {
-      this.cardEl.removeEventListener('click', this.clickHandler);
-      this.clickHandler = null;
+    if (this.cardEl) {
+      if (this.clickHandler) {
+        this.cardEl.removeEventListener('click', this.clickHandler);
+        this.clickHandler = null;
+      }
+      if (this.keydownHandler) {
+        this.cardEl.removeEventListener('keydown', this.keydownHandler);
+        this.keydownHandler = null;
+      }
     }
     if (this.imgEl && this.errorHandler) {
       this.imgEl.removeEventListener('error', this.errorHandler);

@@ -6,14 +6,149 @@
     --text-primary: #f5f5f7;
     --text-secondary: #86868b;
     --accent: #3b82f6;
+    --brand-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   }
 
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--brand-font);
     overflow-x: hidden;
     margin: 0;
     padding: 0;
   }
+
+  ::selection {
+    background-color: rgba(255, 68, 33, 0.35);
+    color: #ffffff;
+  }
 }
+
+.boc-marquee-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  user-select: none;
+  font-family: var(--brand-font) !important;
+}
+
+.boc-marquee-track * {
+  font-family: var(--brand-font) !important;
+}
+
+.boc-marquee-track.is-scrolling {
+  will-change: transform;
+}
+
+/* Dual-mode Header Bar: Center Splash Marquee vs Docked Top Nav */
+#brand-bar {
+  --bar-h: clamp(3.25rem, 2.75rem + 1.2vw, 3.897rem);
+}
+
+/* When WebGL canvas is mirrored and active, DOM background is transparent and DOM track is hidden */
+[data-brand-bar][data-mirrored="true"] {
+  background-color: transparent !important;
+  overflow: visible !important;
+}
+
+[data-brand-bar][data-mirrored="true"] .boc-marquee-track {
+  visibility: hidden !important;
+}
+
+#brand-bar[data-bar-mode="landing"] {
+  height: var(--bar-h);
+}
+
+#brand-bar[data-bar-mode="nav"] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: rgba(255, 68, 33, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+  pointer-events: auto !important;
+}
+
+@media (min-width: 1024px) {
+  #brand-bar[data-bar-mode="nav"] {
+    height: 38px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  #brand-bar[data-bar-mode="nav"] {
+    height: 60px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+#brand-bar[data-bar-mode="nav"] .boc-marquee-track {
+  display: none !important;
+}
+
+/* Nav Micro-interactions */
+.nav-anchor a:hover {
+  opacity: 0.85;
+}
+
+.nav-anchor a:active,
+.nav-cluster a:active {
+  transform: scale(0.96);
+}
+
+.nav-cluster .nav-tab {
+  color: #0d0d0d;
+  transition: color 0.2s ease;
+}
+
+.nav-cluster .nav-tab:hover {
+  color: #ffffff;
+}
+
+.nav-cluster .nav-tab[data-selected="true"] {
+  color: #ffffff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 4s ease-in-out infinite;
+}
+
+
+

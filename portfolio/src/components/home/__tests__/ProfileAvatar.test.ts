@@ -77,6 +77,32 @@ describe('ProfileAvatarComponent', () => {
     avatar.destroy();
   });
 
+  it('triggers onImageClick when Enter or Space is pressed on card', () => {
+    const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+    avatar.mount(container);
+
+    const cardEl = container.querySelector<HTMLElement>('[data-avatar-card]');
+    expect(cardEl).toBeTruthy();
+
+    // Enter key
+    cardEl?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(mockOptions.onImageClick).toHaveBeenCalledWith(mockAvatar.src, mockAvatar.alt);
+
+    mockOptions.onImageClick.mockClear();
+
+    // Space key
+    cardEl?.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    expect(mockOptions.onImageClick).toHaveBeenCalledWith(mockAvatar.src, mockAvatar.alt);
+
+    mockOptions.onImageClick.mockClear();
+
+    // Other key (should not trigger)
+    cardEl?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(mockOptions.onImageClick).not.toHaveBeenCalled();
+
+    avatar.destroy();
+  });
+
   it('displays fallback monogram when portrait image fails to load', () => {
     const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
     avatar.mount(container);

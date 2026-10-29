@@ -28,6 +28,36 @@ export interface Project {
   accentColor?: string;
 }
 
+export interface ProfileLink {
+  label: string;
+  url: string;
+  icon: 'github' | 'codewars' | 'linkedin' | 'external';
+  ariaLabel?: string;
+}
+
+export interface ProfileContact {
+  phone: string;
+  phoneFormatted: string;
+  email: string;
+}
+
+export interface ProfileAvatarConfig {
+  src: string;
+  alt: string;
+  fallbackInitials: string;
+}
+
+export interface ProfileData {
+  title: string;
+  quote: string;
+  summary: string;
+  location: string;
+  contact: ProfileContact;
+  links: ProfileLink[];
+  avatar: ProfileAvatarConfig;
+  pillars?: string[];
+}
+
 /**
  * Standard lifecycle contract for any visual / interactive engine
  * (3D Carousel, Canvas Marquee Band, Glare Overlays, etc.)

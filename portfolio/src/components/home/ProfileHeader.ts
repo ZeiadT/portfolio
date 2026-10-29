@@ -1,0 +1,134 @@
+import type { ProfileData } from '@/domain/types';
+import { ProfileQuote } from './ProfileQuote';
+import { ProfileBio } from './ProfileBio';
+import { ProfileLinksComponent } from './ProfileLinks';
+import { ProfileContactComponent } from './ProfileContact';
+import { ProfileAvatarComponent } from './ProfileAvatar';
+
+/**
+ * ProfileHeader Component
+ * Implements the Curated Editorial Bento Grid architecture:
+ * - Hero Card 1 (Left 7 cols): Social badges + Cairo location chip,
+ *   centered personal quote, and direct contact buttons.
+ * - Hero Card 2 (Right 5 cols): Glowing 3D bending portrait card,
+ *   role title ("Software Developer"), and phone number with copy icon.
+ * - Bottom Bento Card (12 cols): Structured summary narrative (8 cols)
+ *   and core engineering pillars (4 cols).
+ */
+export class ProfileHeader {
+  private data: ProfileData;
+  private rootEl: HTMLElement | null = null;
+  private linksComponent: ProfileLinksComponent | null = null;
+  private quoteComponent: ProfileQuote | null = null;
+  private contactComponent: ProfileContactComponent | null = null;
+  private avatarComponent: ProfileAvatarComponent | null = null;
+  private bioComponent: ProfileBio | null = null;
+
+  constructor(data: ProfileData) {
+    this.data = data;
+  }
+
+  public mount(container: HTMLElement): void {
+    const root = document.createElement('div');
+    root.className =
+      'profile-header-root relative w-full flex flex-col pt-4 sm:pt-6 md:pt-8 pb-16 select-text';
+
+    // 1. Top Bento Row (Left: Hero Statement Card; Right: 3D Portrait Identity Card)
+    const topRow = document.createElement('div');
+    topRow.className =
+      'w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch';
+
+    // --- Hero Card 1: Left Column (7 cols) ---
+    const leftHeroCard = document.createElement('div');
+    leftHeroCard.setAttribute('data-bento-hero-left', 'true');
+    leftHeroCard.className =
+      'lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between gap-6 min-h-[380px]';
+
+    // Top Bar inside Card 1: Icons on left, Location chip on right
+    const card1TopBar = document.createElement('div');
+    card1TopBar.className = 'w-full flex items-center justify-between';
+
+    // Top-Left Links
+    this.linksComponent = new ProfileLinksComponent(this.data.links);
+    this.linksComponent.mount(card1TopBar);
+
+    // Location Chip
+    const locationChip = document.createElement('div');
+    locationChip.className =
+      'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-300 select-none';
+    locationChip.innerHTML = `
+      <svg class="w-3.5 h-3.5 text-[#ff4421] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 7.2c0 7.3-8 11.8-8 11.8z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+      <span>${this.data.location}</span>
+    `;
+    card1TopBar.appendChild(locationChip);
+    leftHeroCard.appendChild(card1TopBar);
+
+    // Center Quote inside Card 1
+    this.quoteComponent = new ProfileQuote(this.data.quote);
+    this.quoteComponent.mount(leftHeroCard);
+
+    // Bottom Contact Bar inside Card 1
+    const contactWrapper = document.createElement('div');
+    contactWrapper.className = 'w-full pt-2 border-t border-white/[0.06] flex items-center';
+    this.contactComponent = new ProfileContactComponent(this.data.contact);
+    this.contactComponent.mount(contactWrapper);
+    leftHeroCard.appendChild(contactWrapper);
+
+    // --- Hero Card 2: Right Column (5 cols) ---
+    const rightHeroCard = document.createElement('div');
+    rightHeroCard.setAttribute('data-bento-hero-right', 'true');
+    rightHeroCard.className =
+      'lg:col-span-5 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center justify-center';
+
+    this.avatarComponent = new ProfileAvatarComponent(this.data.avatar, {
+      title: this.data.title,
+      onImageClick: () => {},
+    });
+    this.avatarComponent.mount(rightHeroCard);
+
+    topRow.appendChild(leftHeroCard);
+    topRow.appendChild(rightHeroCard);
+    root.appendChild(topRow);
+
+    // 2. Bottom Row: Summary & Core Pillars Bento Card (Full 12 cols)
+    const bottomRow = document.createElement('div');
+    bottomRow.className = 'w-full mt-6';
+
+    this.bioComponent = new ProfileBio(this.data);
+    this.bioComponent.mount(bottomRow);
+    root.appendChild(bottomRow);
+
+    container.appendChild(root);
+    this.rootEl = root;
+  }
+
+  public destroy(): void {
+    if (this.avatarComponent) {
+      this.avatarComponent.destroy();
+      this.avatarComponent = null;
+    }
+    if (this.contactComponent) {
+      this.contactComponent.destroy();
+      this.contactComponent = null;
+    }
+    if (this.quoteComponent) {
+      this.quoteComponent.destroy();
+      this.quoteComponent = null;
+    }
+    if (this.linksComponent) {
+      this.linksComponent.destroy();
+      this.linksComponent = null;
+    }
+    if (this.bioComponent) {
+      this.bioComponent.destroy();
+      this.bioComponent = null;
+    }
+    if (this.rootEl && this.rootEl.parentElement) {
+      this.rootEl.parentElement.removeChild(this.rootEl);
+    }
+    this.rootEl = null;
+  }
+}

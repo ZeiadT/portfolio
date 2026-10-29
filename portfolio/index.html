@@ -6,32 +6,89 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zeiad Mohammed — Mobile & Systems Portfolio</title>
   </head>
-  <body class="bg-[#0a0a0c] text-neutral-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
-    <!-- BOC Elastic Splash Band Mount -->
-    <header id="band-container" class="sticky top-0 z-40 w-full h-16 border-b border-white/10 backdrop-blur-md bg-black/40 flex items-center px-6">
-      <div class="flex items-center justify-between w-full">
-        <span class="font-bold tracking-wider text-sm uppercase">Zeiad Mohammed</span>
-        <canvas id="marquee-canvas" class="hidden"></canvas>
-        <span class="text-xs text-neutral-400 font-mono">Mobile / KMP / Systems</span>
+  <body class="bg-[#09090b] text-neutral-100 min-h-screen flex flex-col selection:bg-[#ff4421]/30 selection:text-white overflow-hidden">
+    <!-- Fullscreen Shader / ASCII Canvas Mount (Underneath Curtain & Band) -->
+    <div
+      id="shader-background"
+      class="fixed inset-0 z-10 w-full h-full bg-[#09090b] opacity-0 pointer-events-auto overflow-hidden"
+    >
+      <canvas class="absolute inset-0 w-full h-full"></canvas>
+    </div>
+
+    <!-- Center Horizontal Elastic Marquee Band -->
+    <div id="band-container" class="fixed top-0 left-0 right-0 z-40 select-none pointer-events-none">
+      <div
+        id="brand-bar"
+        data-brand-bar="true"
+        data-bar-mode="landing"
+        class="relative w-full left-0 overflow-visible select-none h-[clamp(3.25rem,2.75rem+1.2vw,3.897rem)] flex items-center justify-between"
+        style="transform: translateY(calc((100svh - clamp(3.25rem, 2.75rem + 1.2vw, 3.897rem)) / 2)); background-color: rgba(255, 68, 33, 0.98);"
+      >
+        <div id="brand-track" class="boc-marquee-track h-full flex items-center whitespace-nowrap pointer-events-auto">
+          <!-- Populated dynamically by ElasticBandEngine -->
+        </div>
+        <!-- WebGL Elastic Rubber Band Canvas Overlay -->
+        <canvas id="marquee-canvas" class="absolute left-0 pointer-events-auto cursor-default z-50 transition-opacity duration-200"></canvas>
+      </div>
+    </div>
+
+    <!-- Editorial Statement (Positioned with 2:1 vertical spacing between band and screen bottom) -->
+    <header
+      id="hero-header"
+      class="fixed top-[calc(50svh+clamp(1.625rem,1.375rem+0.6vw,1.95rem))] bottom-0 left-0 right-0 z-30 px-4 flex flex-col items-center pointer-events-none opacity-0 select-none"
+    >
+      <!-- Upper spacing: 2 parts from bottom of band to hook -->
+      <div class="flex-[2] w-full min-h-4"></div>
+
+      <div class="relative inline-flex flex-col items-center justify-center max-w-2xl px-6 py-4 shrink-0 mb-6 sm:mb-8 md:mb-10">
+        <!-- Blurry seamless black oval backdrop to dim background (softened 10% for seamless blending) -->
+        <div
+          class="absolute -inset-x-16 sm:-inset-x-24 md:-inset-x-36 -inset-y-8 sm:-inset-y-12 md:-inset-y-16 rounded-[100%] pointer-events-none -z-10 blur-2xl md:blur-3xl"
+          style="background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(9, 9, 11, 0.88) 0%, rgba(9, 9, 11, 0.76) 30%, rgba(9, 9, 11, 0.36) 60%, rgba(9, 9, 11, 0) 80%);"
+          aria-hidden="true"
+        ></div>
+
+        <!-- 2-line catchy phrase: 6 words total, 2 on line 2, primary highlight -->
+        <h1 class="relative text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light tracking-tight text-neutral-100 text-center leading-[1.25]">
+          <span class="block">Designing digital spaces with</span>
+          <span class="block"><span class="text-[#ff4421] font-normal">kinetic</span> precision.</span>
+        </h1>
+      </div>
+
+      <!-- Lower spacing: 1 part from hook to bottom of screen with centered frosted glass pill -->
+      <div class="flex-[1] w-full min-h-4 flex items-center justify-center pointer-events-auto">
+        <button
+          id="enter-pill"
+          type="button"
+          class="enter-pill relative flex items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/[0.07] backdrop-blur-md shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] cursor-pointer select-none transition-[border-color,background-color] duration-300 hover:border-white/30 hover:bg-white/[0.12] active:scale-95"
+          style="width: 44px; height: 44px; opacity: 0;"
+          aria-label="Click to enter"
+        >
+          <span
+            id="enter-pill-text"
+            class="whitespace-nowrap text-xs font-semibold tracking-[0.2em] uppercase text-neutral-200 select-none px-6"
+            style="opacity: 0; filter: blur(8px);"
+          >
+            Click to enter
+          </span>
+        </button>
       </div>
     </header>
 
-    <!-- Main View Mount (Artemii 3D WebGL Carousel) -->
-    <main id="app" class="relative flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] p-6">
-      <div id="carousel-container" class="absolute inset-0 z-10 w-full h-full pointer-events-auto"></div>
+    <!-- The Vermilion Curtain Overlay (Collapses elastically into the band height) -->
+    <div
+      id="intro-curtain"
+      class="pointer-events-none fixed top-[50svh] left-0 right-0 -translate-y-1/2 z-30 overflow-hidden bg-[#ff4421]"
+      style="height: 100vh;"
+    ></div>
 
-      <!-- Hero Overlay Content -->
-      <div class="relative z-20 pointer-events-none text-center max-w-2xl px-4">
-        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-          Engineered for Motion & Scale.
-        </h1>
-        <p class="text-neutral-400 text-sm md:text-base leading-relaxed mb-6">
-          Native Android, Kotlin Multiplatform, and reactive full-stack solutions.
-        </p>
-        <div id="project-counter" class="text-xs font-mono text-neutral-500">
-          <!-- Populated by main.ts -->
-        </div>
-      </div>
+    <!-- Main View Mount (Home Screen & Profile Header) -->
+    <main id="app" class="relative flex-1 flex flex-col items-center justify-start min-h-screen opacity-0 pointer-events-none pt-12 sm:pt-16 pb-20 z-20 w-full overflow-x-hidden">
+      <!-- Home Profile Header Section (Aligned with Tab Bar Padding) -->
+      <section id="home-profile-section" class="w-full px-4 lg:px-6 relative z-20 flex-1 flex flex-col"></section>
+
+      <!-- 3D WebGL Carousel Mount Point (Reserved for next phase) -->
+      <div id="carousel-container" class="w-full relative z-10 pointer-events-auto hidden"></div>
     </main>
 
     <!-- Core-A Glare Wipe Overlay Mount -->
