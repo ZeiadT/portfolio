@@ -232,4 +232,103 @@ describe('ProfileAvatarComponent', () => {
       expect(killSpy).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('continuous animated card border', () => {
+    it('mounts data-avatar-border-track, data-avatar-border-beam, and data-avatar-border-glow elements inside card container', () => {
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      const trackEl = container.querySelector<HTMLElement>('[data-avatar-border-track]');
+      const beamEl = container.querySelector<HTMLElement>('[data-avatar-border-beam]');
+      const glowEl = container.querySelector<HTMLElement>('[data-avatar-border-glow]');
+
+      expect(trackEl).toBeTruthy();
+      expect(beamEl).toBeTruthy();
+      expect(glowEl).toBeTruthy();
+      expect(trackEl?.getAttribute('aria-hidden')).toBe('true');
+      expect(glowEl?.getAttribute('aria-hidden')).toBe('true');
+      expect(trackEl?.classList.contains('pointer-events-none')).toBe(true);
+      expect(glowEl?.classList.contains('pointer-events-none')).toBe(true);
+
+      avatar.destroy();
+    });
+
+    it('configures conic-gradient with vermilion #ff4421 and white hairline on border beam', () => {
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      const beamEl = container.querySelector<HTMLElement>('[data-avatar-border-beam]');
+      expect(beamEl).toBeTruthy();
+      expect(beamEl?.style.background).toContain('conic-gradient');
+      expect(beamEl?.style.background).toContain('#ff4421');
+      expect(beamEl?.style.background).toMatch(/0\.95|255,\s*255,\s*255/);
+
+      avatar.destroy();
+    });
+
+    it('initializes continuous 360 degree rotation tween on border beam elements using GSAP', () => {
+      const toSpy = vi.spyOn(gsap, 'to');
+
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      expect(toSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          rotation: 360,
+          duration: 7,
+          ease: 'none',
+          repeat: -1,
+        })
+      );
+
+      avatar.destroy();
+    });
+
+    it('suppresses border rotation tween when prefers-reduced-motion is active', () => {
+      vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      } as unknown as MediaQueryList));
+
+      const toSpy = vi.spyOn(gsap, 'to');
+
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      const borderCalls = toSpy.mock.calls.filter((call) => call[1]?.duration === 7);
+      expect(borderCalls.length).toBe(0);
+      expect(toSpy).not.toHaveBeenCalled();
+
+      avatar.destroy();
+    });
+
+    it('kills GSAP border rotation tween cleanly upon component destroy lifecycle', () => {
+      const toSpy = vi.spyOn(gsap, 'to');
+
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      expect(toSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          duration: 7,
+        })
+      );
+      const tweenInstance = toSpy.mock.results.find((r) => r.value?.kill)?.value as gsap.core.Tween;
+      expect(tweenInstance).toBeDefined();
+
+      const killSpy = vi.spyOn(tweenInstance, 'kill');
+
+      avatar.destroy();
+
+      expect(killSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });
