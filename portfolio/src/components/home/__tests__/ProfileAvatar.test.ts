@@ -145,8 +145,8 @@ describe('ProfileAvatarComponent', () => {
       expect(shineEl?.classList.contains('mix-blend-overlay')).toBe(false);
       expect(shineEl?.className).not.toContain('mix-blend-overlay');
       expect(shineEl?.style.background).toContain('linear-gradient');
-      expect(shineEl?.style.background).toContain('0.38');
-      expect(shineEl?.style.background).toContain('0.08');
+      expect(shineEl?.style.background).toContain('0.3');
+      expect(shineEl?.style.background).toContain('0.06');
 
       avatar.destroy();
     });

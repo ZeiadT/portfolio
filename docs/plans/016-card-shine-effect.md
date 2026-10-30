@@ -7,9 +7,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Calibrate the continuous diagonal glass sheen animation on the profile portrait card for higher luminosity (clearly noticeable without straining) and optical symmetry.
+**Goal:** Calibrate the continuous diagonal glass sheen animation on the profile portrait card for balanced luminosity (softened by 20% to 0.30 peak opacity) and optical symmetry.
 
-**Architecture:** Embed a `data-avatar-shine` overlay layer within `data-avatar-card` styled with standard alpha translucency (transparent → 8% → 38% → 8% → transparent, no overlay blend mode). Control its diagonal sweep via an isolated GSAP timeline (`repeat: -1, repeatDelay: 3.5, duration: 2.5`), with constant `opacity: 1` throughout the sweep to ensure symmetrical entry and exit.
+**Architecture:** Embed a `data-avatar-shine` overlay layer within `data-avatar-card` styled with standard alpha translucency (transparent → 6% → 30% → 6% → transparent, no overlay blend mode). Control its diagonal sweep via an isolated GSAP timeline (`repeat: -1, repeatDelay: 3.5, duration: 2.5`), with constant `opacity: 1` throughout the sweep to ensure symmetrical entry and exit.
 
 **Tech Stack:** Vanilla TypeScript, GSAP 3, Tailwind CSS v4, Vitest
 

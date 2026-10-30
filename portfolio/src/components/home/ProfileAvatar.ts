@@ -93,7 +93,7 @@ export class ProfileAvatarComponent {
             data-avatar-shine
             aria-hidden="true"
             class="pointer-events-none absolute -inset-full w-[300%] h-[300%] opacity-0 select-none"
-            style="background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.38) 50%, rgba(255, 255, 255, 0.08) 70%, transparent 100%);"
+            style="background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.06) 30%, rgba(255, 255, 255, 0.30) 50%, rgba(255, 255, 255, 0.06) 70%, transparent 100%);"
           ></div>
         </div>
       </div>

@@ -20,9 +20,9 @@ Add an ultra-clean, continuous diagonal glass sheen animation across the profile
   - Angle: `115deg`.
   - Color stops:
     - `0%`: `transparent`
-    - `30%`: `rgba(255, 255, 255, 0.08)`
-    - `50%`: `rgba(255, 255, 255, 0.38)` (luminous gloss highlight, clearly visible over dark & light portrait tones)
-    - `70%`: `rgba(255, 255, 255, 0.08)`
+    - `30%`: `rgba(255, 255, 255, 0.06)`
+    - `50%`: `rgba(255, 255, 255, 0.30)` (calibrated 20% softer luminous gloss highlight)
+    - `70%`: `rgba(255, 255, 255, 0.06)`
     - `100%`: `transparent`
   - Blend mode: Standard alpha blending (`mix-blend-mode: normal` / no overlay), producing an authentic glass reflection.
 
