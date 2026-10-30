@@ -92,8 +92,8 @@ export class ProfileAvatarComponent {
           <div
             data-avatar-shine
             aria-hidden="true"
-            class="pointer-events-none absolute -inset-full w-[300%] h-[300%] opacity-0 select-none mix-blend-overlay"
-            style="background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.03) 30%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 70%, transparent 100%);"
+            class="pointer-events-none absolute -inset-full w-[300%] h-[300%] opacity-0 select-none"
+            style="background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.38) 50%, rgba(255, 255, 255, 0.08) 70%, transparent 100%);"
           ></div>
         </div>
       </div>
@@ -145,7 +145,7 @@ export class ProfileAvatarComponent {
         });
         this.shineTimeline.fromTo(
           shineEl,
-          { xPercent: -100, yPercent: -100, opacity: 0 },
+          { xPercent: -100, yPercent: -100, opacity: 1 },
           {
             xPercent: 100,
             yPercent: 100,
