@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { gsap } from 'gsap';
 import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
 
 describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
@@ -237,5 +238,140 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       expect(() => engine.destroy()).not.toThrow();
       expect(() => engine.destroy()).not.toThrow();
     });
+  });
+});
+
+describe('Phase 2: 3D card ascent and rotation', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  it('renders 3D card stage [data-summon-card-stage] and card element [data-summon-card] inside the modal on open', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+    expect(modal).not.toBeNull();
+
+    const stage = modal?.querySelector<HTMLElement>('[data-summon-card-stage]');
+    expect(stage).not.toBeNull();
+
+    const card = stage?.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+  });
+
+  it('configures 3D perspective on stage and preserve-3d on card element', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const stage = document.querySelector<HTMLElement>('[data-summon-card-stage]');
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+
+    expect(stage).not.toBeNull();
+    expect(card).not.toBeNull();
+
+    const stagePerspective = stage?.style.perspective || stage?.className || '';
+    expect(
+      stagePerspective.includes('1200px') || stage?.style.perspective === '1200px'
+    ).toBe(true);
+
+    const cardTransformStyle = card?.style.transformStyle || card?.className || '';
+    expect(
+      cardTransformStyle.includes('preserve-3d') || card?.style.transformStyle === 'preserve-3d'
+    ).toBe(true);
+  });
+
+  it('animates card ascent with yPercent towards 0, 3D Y-rotation spin, and 12° Z-tilt deceleration', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+    expect(tl?.duration()).toBeGreaterThanOrEqual(0.6);
+
+    // Initial state at progress 0 / seek 0
+    tl?.seek(0);
+    const startYPercent = Number(gsap.getProperty(card, 'yPercent'));
+    const startRotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
+    const startRotZ = Math.abs(Number(gsap.getProperty(card, 'rotationZ')));
+
+    expect(startYPercent).toBeGreaterThan(50);
+    expect(startRotY).toBeGreaterThanOrEqual(720);
+    expect(startRotZ).toBeGreaterThanOrEqual(10);
+
+    // Resting state at progress 1
+    tl?.progress(1);
+    const endYPercent = Number(gsap.getProperty(card, 'yPercent'));
+    const endRotY = Number(gsap.getProperty(card, 'rotationY'));
+    const endRotZ = Number(gsap.getProperty(card, 'rotationZ'));
+
+    expect(endYPercent).toBe(0);
+    expect(endRotY).toBe(0);
+    expect(endRotZ).toBe(0);
+  });
+
+  it('bypasses rapid spinning and ascent animation when prefers-reduced-motion is active', () => {
+    const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+      matches: query.includes('prefers-reduced-motion: reduce'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    } as unknown as MediaQueryList));
+
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const yPercent = Number(gsap.getProperty(card, 'yPercent'));
+    const rotY = Number(gsap.getProperty(card, 'rotationY'));
+    const rotZ = Number(gsap.getProperty(card, 'rotationZ'));
+
+    expect(yPercent).toBe(0);
+    expect(rotY).toBe(0);
+    expect(rotZ).toBe(0);
+
+    matchMediaSpy.mockRestore();
+  });
+
+  it('removes card stage and card elements from DOM on close() and destroy()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    expect(document.querySelector('[data-summon-card-stage]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-card]')).not.toBeNull();
+
+    engine.close();
+    expect(document.querySelector('[data-summon-card-stage]')).toBeNull();
+    expect(document.querySelector('[data-summon-card]')).toBeNull();
+
+    // Re-open and verify destroy() cleanup
+    engine.open();
+    expect(document.querySelector('[data-summon-card-stage]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-card]')).not.toBeNull();
+
+    engine.destroy();
+    expect(document.querySelector('[data-summon-card-stage]')).toBeNull();
+    expect(document.querySelector('[data-summon-card]')).toBeNull();
   });
 });
