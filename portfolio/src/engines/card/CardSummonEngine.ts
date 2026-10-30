@@ -45,6 +45,8 @@ export class CardSummonEngine implements Engine {
   private modalEl: HTMLElement | null = null;
   private backdropEl: HTMLElement | null = null;
   private bottomGlowEl: HTMLElement | null = null;
+  private cardStageEl: HTMLElement | null = null;
+  private cardEl: HTMLElement | null = null;
   private closeBtnEl: HTMLButtonElement | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
@@ -164,11 +166,28 @@ export class CardSummonEngine implements Engine {
     `;
     modal.appendChild(bottomGlow);
 
+    // Card stage (3D perspective container)
+    const cardStage = document.createElement('div');
+    cardStage.setAttribute('data-summon-card-stage', '');
+    cardStage.className = 'absolute inset-0 flex items-center justify-center pointer-events-none [perspective:1200px]';
+    cardStage.style.perspective = '1200px';
+
+    // Card element (preserve-3d container)
+    const card = document.createElement('div');
+    card.setAttribute('data-summon-card', '');
+    card.className = 'pointer-events-auto relative w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7] rounded-3xl bg-neutral-900 border border-white/20 shadow-2xl overflow-hidden [transform-style:preserve-3d]';
+    card.style.transformStyle = 'preserve-3d';
+
+    cardStage.appendChild(card);
+    modal.appendChild(cardStage);
+
     targetContainer.appendChild(modal);
 
     this.modalEl = modal;
     this.backdropEl = backdrop;
     this.bottomGlowEl = bottomGlow;
+    this.cardStageEl = cardStage;
+    this.cardEl = card;
     this.closeBtnEl = closeBtn;
 
     // Attach listeners
@@ -200,6 +219,15 @@ export class CardSummonEngine implements Engine {
     if (prefersReducedMotion) {
       this.openTimeline.set(this.backdropEl, { autoAlpha: 1 });
       this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1 });
+      if (this.cardEl) {
+        this.openTimeline.set(this.cardEl, {
+          yPercent: 0,
+          rotationY: 0,
+          rotationZ: 0,
+          opacity: 1,
+          scale: 1,
+        });
+      }
     } else {
       this.openTimeline.fromTo(
         this.backdropEl,
@@ -213,6 +241,28 @@ export class CardSummonEngine implements Engine {
         { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1, duration: 0.4, ease: 'power3.out' },
         0
       );
+      if (this.cardEl) {
+        this.openTimeline.fromTo(
+          this.cardEl,
+          {
+            yPercent: 120,
+            rotationY: -1080,
+            rotationZ: 12,
+            opacity: 0,
+            scale: 0.6,
+          },
+          {
+            yPercent: 0,
+            rotationY: 0,
+            rotationZ: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 1.2,
+            ease: 'power2.out',
+          },
+          0.1
+        );
+      }
     }
 
     // Set accessible focus to close button
@@ -264,6 +314,14 @@ export class CardSummonEngine implements Engine {
     if (this.modalEl) {
       this.modalEl.remove();
       this.modalEl = null;
+    }
+    if (this.cardEl) {
+      this.cardEl.remove();
+      this.cardEl = null;
+    }
+    if (this.cardStageEl) {
+      this.cardStageEl.remove();
+      this.cardStageEl = null;
     }
     if (typeof document !== 'undefined' && document.body) {
       document.body.style.overflow = '';
