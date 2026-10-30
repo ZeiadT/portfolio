@@ -759,3 +759,246 @@ describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
   });
 });
 
+
+
+describe('Gacha Psychology & Motion Redesign', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  it('creates [data-summon-flash-veil] and [data-summon-shockwave] inside modal with aria-hidden="true" and pointer-events-none', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+    expect(modal).not.toBeNull();
+
+    const flashVeil = modal?.querySelector<HTMLElement>('[data-summon-flash-veil]');
+    const shockwave = modal?.querySelector<HTMLElement>('[data-summon-shockwave]');
+
+    expect(flashVeil).not.toBeNull();
+    expect(shockwave).not.toBeNull();
+
+    expect(flashVeil?.getAttribute('aria-hidden')).toBe('true');
+    expect(shockwave?.getAttribute('aria-hidden')).toBe('true');
+
+    expect(flashVeil?.className).toMatch(/\bpointer-events-none\b/);
+    expect(shockwave?.className).toMatch(/\bpointer-events-none\b/);
+  });
+
+  it('animates anticipatory inhale squash on bottom glow (scaleY < 0.9, scaleX > 1.05) prior to card launch', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const bottomGlow = document.querySelector<HTMLElement>('[data-summon-bottom-glow]');
+    expect(bottomGlow).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Sample scaleY and scaleX on bottom glow during early timeline (p ~ 0.12 - 0.20)
+    let minScaleY = 1.0;
+    let maxScaleX = 1.0;
+
+    for (let p = 0.12; p <= 0.20; p += 0.02) {
+      tl?.progress(p);
+      const sY = Number(gsap.getProperty(bottomGlow, 'scaleY'));
+      const sX = Number(gsap.getProperty(bottomGlow, 'scaleX'));
+      if (sY < minScaleY) minScaleY = sY;
+      if (sX > maxScaleX) maxScaleX = sX;
+    }
+
+    expect(minScaleY).toBeLessThan(0.9);
+    expect(maxScaleX).toBeGreaterThan(1.05);
+  });
+
+  it('implements the 150ms Fermata freeze locking spatial translation while subtly expanding scale at apex', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Sample card motion at start and end of the 150ms Fermata freeze window (p ~ 0.55 - 0.65)
+    tl?.progress(0.55);
+    const startX = Number(gsap.getProperty(card, 'x'));
+    const startRotY = Number(gsap.getProperty(card, 'rotationY'));
+    const startRotZ = Number(gsap.getProperty(card, 'rotationZ'));
+    const startScale = Number(gsap.getProperty(card, 'scale'));
+
+    tl?.progress(0.65);
+    const endX = Number(gsap.getProperty(card, 'x'));
+    const endRotY = Number(gsap.getProperty(card, 'rotationY'));
+    const endRotZ = Number(gsap.getProperty(card, 'rotationZ'));
+    const endScale = Number(gsap.getProperty(card, 'scale'));
+
+    // Spatial translation locked (zero vibration, locked at x: 0)
+    expect(startX).toBe(0);
+    expect(endX).toBe(0);
+
+    // Rotations are steady during fermata freeze
+    expect(Math.abs(endRotY - startRotY)).toBeLessThanOrEqual(1.0);
+    expect(Math.abs(endRotZ - startRotZ)).toBeLessThanOrEqual(0.5);
+
+    // Subtle tension scale expansion at apex (scale: 1.020 -> 1.025)
+    expect(startScale).toBeGreaterThanOrEqual(1.018);
+    expect(endScale).toBeGreaterThan(startScale);
+    expect(endScale).toBeLessThanOrEqual(1.030);
+  });
+
+  it('animates optical flash veil (peak opacity >= 0.9) and shockwave expansion (scale >= 2.0) at climax', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const flashVeil = document.querySelector<HTMLElement>('[data-summon-flash-veil]');
+    const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
+    expect(flashVeil).not.toBeNull();
+    expect(shockwave).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    let peakFlashOpacity = 0;
+    let maxShockwaveScale = 0;
+
+    for (let p = 0; p <= 1; p += 0.02) {
+      tl?.progress(p);
+      const flashOpacity = Number(gsap.getProperty(flashVeil, 'opacity'));
+      const swScale = Number(gsap.getProperty(shockwave, 'scale'));
+      if (flashOpacity > peakFlashOpacity) {
+        peakFlashOpacity = flashOpacity;
+      }
+      if (swScale > maxShockwaveScale) {
+        maxShockwaveScale = swScale;
+      }
+    }
+
+    expect(peakFlashOpacity).toBeGreaterThanOrEqual(0.9);
+    expect(maxShockwaveScale).toBeGreaterThanOrEqual(2.0);
+
+    // Dissipates to 0 (or opacity <= 0.05) when animation settles
+    tl?.progress(1);
+    expect(Number(gsap.getProperty(flashVeil, 'opacity'))).toBeLessThanOrEqual(0.05);
+    expect(Number(gsap.getProperty(shockwave, 'opacity'))).toBeLessThanOrEqual(0.05);
+  });
+
+  it('activates interactive 3D pointer parallax tilt on settled state and resets on pointer leave', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(modal).not.toBeNull();
+    expect(card).not.toBeNull();
+
+    // Mock modal bounds for deterministic parallax calculations
+    vi.spyOn(modal!, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      right: 1000,
+      bottom: 800,
+      width: 1000,
+      height: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Finish opening animation into settled state
+    tl?.progress(1);
+
+    // Initial settled rotations must be 0
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
+
+    // Dispatch pointermove away from center (bottom-right offset)
+    modal?.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 800,
+        clientY: 650,
+        bubbles: true,
+      })
+    );
+
+    // Resolve active GSAP tweens on card
+    gsap.getTweensOf(card).forEach((tween) => tween.progress(1));
+
+    const movedRotY = Number(gsap.getProperty(card, 'rotationY'));
+    const movedRotX = Number(gsap.getProperty(card, 'rotationX'));
+
+    // Should have non-zero rotation within [-15, 15] degrees
+    expect(movedRotY).not.toBe(0);
+    expect(Math.abs(movedRotY)).toBeLessThanOrEqual(15);
+    expect(movedRotX).not.toBe(0);
+    expect(Math.abs(movedRotX)).toBeLessThanOrEqual(15);
+
+    // Dispatch pointerleave on modal - restores card rotation back towards 0
+    modal?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+    gsap.getTweensOf(card).forEach((tween) => tween.progress(1));
+
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
+  });
+
+  it('removes flash veil, shockwave, and pointer listeners cleanly on close() and destroy()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+    expect(modal).not.toBeNull();
+    expect(document.querySelector('[data-summon-flash-veil]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    tl?.progress(1);
+
+    const removeEventListenerSpy = vi.spyOn(modal!, 'removeEventListener');
+
+    engine.close();
+
+    // DOM elements removed
+    expect(document.querySelector('[data-summon-flash-veil]')).toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
+
+    // Pointer listeners detached
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('pointermove', expect.any(Function));
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerleave', expect.any(Function));
+
+    // Re-open and verify destroy() teardown
+    engine.open();
+    const modal2 = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+    expect(modal2).not.toBeNull();
+    expect(document.querySelector('[data-summon-flash-veil]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).not.toBeNull();
+
+    const tl2 = engine.getTimeline();
+    tl2?.progress(1);
+
+    const removeEventListenerSpy2 = vi.spyOn(modal2!, 'removeEventListener');
+
+    engine.destroy();
+
+    expect(document.querySelector('[data-summon-flash-veil]')).toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
+    expect(removeEventListenerSpy2).toHaveBeenCalledWith('pointermove', expect.any(Function));
+    expect(removeEventListenerSpy2).toHaveBeenCalledWith('pointerleave', expect.any(Function));
+  });
+});
