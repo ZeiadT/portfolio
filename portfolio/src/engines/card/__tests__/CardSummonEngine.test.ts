@@ -431,7 +431,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     expect(endOpacity).toBeLessThanOrEqual(0.05);
   });
 
-  it('launches card with explosive 1440° spin and sustains slow-motion apex hover with negative yPercent before slam', () => {
+  it('launches card with 3 full spins (1080°) and sustains slow-motion apex hover with negative yPercent before graceful descent', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -441,14 +441,14 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // Initial state at progress 0 / seek 0: explosive launch with at least 1440° spin (4 full rotations)
+    // Initial state at progress 0 / seek 0: exactly 3 spins (1080°), not 1440°
     tl?.seek(0);
     const startRotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
-    expect(startRotY).toBeGreaterThanOrEqual(1440);
+    expect(startRotY).toBe(1080);
 
-    // During apex slow-motion hover (sampled between progress 0.65 and 0.85),
+    // During apex slow-motion hover (sampled between progress 0.65 and 0.80),
     // yPercent remains in negative overshoot (< 0) while rotationY has decelerated to <= 30°
-    for (let p = 0.65; p <= 0.85; p += 0.05) {
+    for (let p = 0.65; p <= 0.80; p += 0.05) {
       tl?.progress(p);
       const yPercent = Number(gsap.getProperty(card, 'yPercent'));
       const rotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
@@ -458,7 +458,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     }
   });
 
-  it('animates card through an apex overshoot past center (yPercent < 0) before settling to 0', () => {
+  it('animates card through a lowered apex overshoot past center (minYPercent between -3.5 and -2.0) before settling to 0', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -470,7 +470,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
 
     // Sample yPercent values across timeline progress to verify apex overshoot
     let minYPercent = 0;
-    for (let p = 0; p <= 1; p += 0.05) {
+    for (let p = 0; p <= 1; p += 0.02) {
       tl?.progress(p);
       const y = Number(gsap.getProperty(card, 'yPercent'));
       if (y < minYPercent) {
@@ -478,16 +478,16 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
       }
     }
 
-    // Must overshoot vertically past center into negative yPercent
-    expect(minYPercent).toBeLessThan(0);
-    expect(minYPercent).toBeGreaterThanOrEqual(-10);
+    // Must overshoot vertically past center into subtle negative yPercent between -3.5 and -2.0 (not -6.0)
+    expect(minYPercent).toBeLessThanOrEqual(-2.0);
+    expect(minYPercent).toBeGreaterThanOrEqual(-3.5);
 
     // Final settled state at completion must be precisely 0
     tl?.progress(1);
     expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
   });
 
-  it('animates momentary micro-compression (scaleY < 1.0) on slam impact before locking to scale 1.0 at completion', () => {
+  it('animates slower graceful fall into place lasting >= 0.4s without violent squash compression (scaleY >= 0.98)', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -497,23 +497,37 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // Sample scaleY around impact landing (progress between 0.85 and 0.98)
-    let minImpactScaleY = 1.0;
-    for (let p = 0.85; p < 1; p += 0.01) {
-      tl?.progress(p);
+    // Find the descent tween that transitions card into resting yPercent: 0
+    const descentTween = tl?.getChildren().find((child: any) => {
+      const isCard = typeof child.targets === 'function' ? child.targets().includes(card) : true;
+      return isCard && child.vars && child.vars.yPercent === 0;
+    }) as gsap.core.Tween | undefined;
+
+    expect(descentTween).toBeDefined();
+    const descentDuration = descentTween!.duration();
+
+    // Descent into resting position must take >= 0.4s (graceful fall, not violent snap)
+    expect(descentDuration).toBeGreaterThanOrEqual(0.4);
+
+    const descentStart = descentTween!.startTime();
+    const descentEnd = descentStart + descentDuration;
+
+    // Sample scaleY across the descent interval to verify no violent squash compression
+    let minDescentScaleY = 1.0;
+    for (let t = descentStart; t <= descentEnd; t += 0.01) {
+      tl?.seek(t);
       const sY = Number(gsap.getProperty(card, 'scaleY'));
-      if (sY < minImpactScaleY) {
-        minImpactScaleY = sY;
+      if (sY < minDescentScaleY) {
+        minDescentScaleY = sY;
       }
     }
+    expect(minDescentScaleY).toBeGreaterThanOrEqual(0.98);
 
-    // Must exhibit momentary micro-compression on slam impact
-    expect(minImpactScaleY).toBeLessThan(1.0);
-    expect(minImpactScaleY).toBeLessThanOrEqual(0.97);
-
-    // Final locking at completion
+    // Locks smoothly into resting state at progress(1)
     tl?.progress(1);
-    expect(Number(gsap.getProperty(card, 'scaleY'))).toBe(1);
+    expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationZ'))).toBe(0);
     expect(Number(gsap.getProperty(card, 'scale'))).toBe(1);
   });
 
@@ -538,7 +552,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     expect(Number(gsap.getProperty(card, 'opacity'))).toBe(1);
   });
 
-  it('animates perimeter aura to achieve shockwave flash (opacity >= 0.95, scale >= 1.2) near impact and dissipate to near-zero (<= 0.05) upon landing', () => {
+  it('animates perimeter aura to swell during apex and softly dissipate to <= 0.05 upon landing', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -548,26 +562,20 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // Sample aura opacity and scale across timeline progression
+    // Sample aura opacity across timeline progression
     let peakAuraOpacity = 0;
-    let peakAuraScale = 0;
     for (let p = 0; p <= 1; p += 0.02) {
       tl?.progress(p);
       const opacity = Number(gsap.getProperty(aura, 'opacity'));
-      const scale = Number(gsap.getProperty(aura, 'scale'));
       if (opacity > peakAuraOpacity) {
         peakAuraOpacity = opacity;
       }
-      if (scale > peakAuraScale) {
-        peakAuraScale = scale;
-      }
     }
 
-    // Aura should achieve shockwave flash near impact
-    expect(peakAuraOpacity).toBeGreaterThanOrEqual(0.95);
-    expect(peakAuraScale).toBeGreaterThanOrEqual(1.2);
+    // Aura swells during apex hover
+    expect(peakAuraOpacity).toBeGreaterThanOrEqual(0.8);
 
-    // Dissipate to near-zero at completion
+    // Softly fades out to <= 0.05 at completion / resting state
     tl?.progress(1);
     const finalAuraOpacity = Number(gsap.getProperty(aura, 'opacity'));
     expect(finalAuraOpacity).toBeLessThanOrEqual(0.05);
