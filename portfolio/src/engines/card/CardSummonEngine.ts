@@ -46,6 +46,7 @@ export class CardSummonEngine implements Engine {
   private backdropEl: HTMLElement | null = null;
   private bottomGlowEl: HTMLElement | null = null;
   private cardStageEl: HTMLElement | null = null;
+  private cardAuraEl: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
   private closeBtnEl: HTMLButtonElement | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
@@ -172,12 +173,22 @@ export class CardSummonEngine implements Engine {
     cardStage.className = 'absolute inset-0 flex items-center justify-center pointer-events-none [perspective:1200px]';
     cardStage.style.perspective = '1200px';
 
+    // Card aura glow element
+    const cardAura = document.createElement('div');
+    cardAura.setAttribute('data-summon-card-aura', '');
+    cardAura.setAttribute('aria-hidden', 'true');
+    cardAura.className = 'pointer-events-none absolute w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7] rounded-3xl blur-xl';
+    cardAura.style.opacity = '0';
+    cardAura.style.background = `radial-gradient(circle at center, ${coreColor} 0%, ${primaryColor} 60%, transparent 100%)`;
+    cardAura.style.boxShadow = `0 0 50px 10px ${primaryColor}80, 0 0 100px 30px ${primaryColor}40`;
+
     // Card element (preserve-3d container)
     const card = document.createElement('div');
     card.setAttribute('data-summon-card', '');
     card.className = 'pointer-events-auto relative w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7] rounded-3xl bg-neutral-900 border border-white/20 shadow-2xl overflow-hidden [transform-style:preserve-3d]';
     card.style.transformStyle = 'preserve-3d';
 
+    cardStage.appendChild(cardAura);
     cardStage.appendChild(card);
     modal.appendChild(cardStage);
 
@@ -187,6 +198,7 @@ export class CardSummonEngine implements Engine {
     this.backdropEl = backdrop;
     this.bottomGlowEl = bottomGlow;
     this.cardStageEl = cardStage;
+    this.cardAuraEl = cardAura;
     this.cardEl = card;
     this.closeBtnEl = closeBtn;
 
@@ -219,6 +231,9 @@ export class CardSummonEngine implements Engine {
     if (prefersReducedMotion) {
       this.openTimeline.set(this.backdropEl, { autoAlpha: 1 });
       this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1 });
+      if (this.cardAuraEl) {
+        this.openTimeline.set(this.cardAuraEl, { opacity: 0, scale: 1 });
+      }
       if (this.cardEl) {
         this.openTimeline.set(this.cardEl, {
           yPercent: 0,
@@ -241,6 +256,32 @@ export class CardSummonEngine implements Engine {
         { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1, duration: 0.4, ease: 'power3.out' },
         0
       );
+      if (this.cardAuraEl) {
+        this.openTimeline.fromTo(
+          this.cardAuraEl,
+          {
+            opacity: 0,
+            scale: 0.8,
+          },
+          {
+            opacity: 0.85,
+            scale: 1.12,
+            duration: 0.3,
+            ease: 'power2.out',
+          },
+          0.7
+        );
+        this.openTimeline.to(
+          this.cardAuraEl,
+          {
+            opacity: 0.1,
+            scale: 1.0,
+            duration: 0.25,
+            ease: 'power2.inOut',
+          },
+          1.0
+        );
+      }
       if (this.cardEl) {
         this.openTimeline.fromTo(
           this.cardEl,
@@ -252,15 +293,27 @@ export class CardSummonEngine implements Engine {
             scale: 0.6,
           },
           {
-            yPercent: 0,
-            rotationY: 0,
-            rotationZ: 0,
+            yPercent: -4,
+            rotationY: -25,
+            rotationZ: 2,
             opacity: 1,
-            scale: 1,
-            duration: 1.2,
+            scale: 1.03,
+            duration: 0.9,
             ease: 'power2.out',
           },
           0.1
+        );
+        this.openTimeline.to(
+          this.cardEl,
+          {
+            yPercent: 0,
+            rotationY: 0,
+            rotationZ: 0,
+            scale: 1,
+            duration: 0.25,
+            ease: 'power3.inOut',
+          },
+          1.0
         );
       }
     }
@@ -314,6 +367,10 @@ export class CardSummonEngine implements Engine {
     if (this.modalEl) {
       this.modalEl.remove();
       this.modalEl = null;
+    }
+    if (this.cardAuraEl) {
+      this.cardAuraEl.remove();
+      this.cardAuraEl = null;
     }
     if (this.cardEl) {
       this.cardEl.remove();
