@@ -36,6 +36,11 @@ export class ProfileAvatarComponent {
   }
 
   public mount(container: HTMLElement): void {
+    if (this.shineTimeline) {
+      this.shineTimeline.kill();
+      this.shineTimeline = null;
+    }
+
     const root = document.createElement('div');
     root.className =
       'profile-avatar relative flex flex-col items-start select-none w-full max-w-[220px] sm:max-w-[250px] md:max-w-[270px]';
