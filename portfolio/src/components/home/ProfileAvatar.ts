@@ -15,6 +15,7 @@ export interface ProfileAvatarOptions {
  * - Fallback monogram if image fails to load
  * - Edge-to-edge uppercase role title ("MOBILE DEVELOPER")
  * - Continuous subtle diagonal card shimmer animation via GSAP timeline
+ * - Continuous animated card border track with vermilion and white hairline beam
  * - Interactive click handling and clean lifecycle disposal
  */
 export class ProfileAvatarComponent {
@@ -24,6 +25,7 @@ export class ProfileAvatarComponent {
   private cardEl: HTMLElement | null = null;
   private imgEl: HTMLImageElement | null = null;
   private shineTimeline: gsap.core.Timeline | null = null;
+  private borderTween: gsap.core.Tween | null = null;
 
   // Event handlers for clean disposal
   private clickHandler: (() => void) | null = null;
@@ -39,6 +41,10 @@ export class ProfileAvatarComponent {
     if (this.shineTimeline) {
       this.shineTimeline.kill();
       this.shineTimeline = null;
+    }
+    if (this.borderTween) {
+      this.borderTween.kill();
+      this.borderTween = null;
     }
 
     const root = document.createElement('div');
@@ -61,6 +67,32 @@ export class ProfileAvatarComponent {
     root.innerHTML = `
       <!-- Clean Portrait Card Container -->
       <div class="relative w-full flex items-center justify-center">
+        <!-- Outer ambient bloom -->
+        <div
+          data-avatar-border-glow
+          aria-hidden="true"
+          class="pointer-events-none absolute -inset-[2px] rounded-2xl sm:rounded-3xl overflow-hidden blur-md opacity-25"
+        >
+          <div
+            data-avatar-border-glow-beam
+            class="w-[250%] h-[250%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style="background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #ff4421 335deg, rgba(255, 255, 255, 0.95) 360deg);"
+          ></div>
+        </div>
+
+        <!-- 1.5px Hairline track -->
+        <div
+          data-avatar-border-track
+          aria-hidden="true"
+          class="pointer-events-none absolute -inset-[1.5px] rounded-2xl sm:rounded-3xl overflow-hidden p-[1.5px]"
+        >
+          <div
+            data-avatar-border-beam
+            class="w-[250%] h-[250%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+            style="background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #ff4421 335deg, rgba(255, 255, 255, 0.95) 360deg);"
+          ></div>
+        </div>
+
         <!-- Portrait Card -->
         <div
           data-avatar-card
@@ -156,12 +188,29 @@ export class ProfileAvatarComponent {
         );
       }
     }
+
+    // Continuous animated card border beam rotation
+    const borderBeams = root.querySelectorAll<HTMLElement>(
+      '[data-avatar-border-beam], [data-avatar-border-glow-beam]'
+    );
+    if (borderBeams.length > 0 && !prefersReducedMotion) {
+      this.borderTween = gsap.to(borderBeams, {
+        rotation: 360,
+        duration: 7,
+        ease: 'none',
+        repeat: -1,
+      });
+    }
   }
 
   public destroy(): void {
     if (this.shineTimeline) {
       this.shineTimeline.kill();
       this.shineTimeline = null;
+    }
+    if (this.borderTween) {
+      this.borderTween.kill();
+      this.borderTween = null;
     }
     if (this.cardEl) {
       if (this.clickHandler) {
