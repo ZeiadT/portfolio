@@ -60,9 +60,9 @@
   3. Pre-impact aura swell, impact shockwave flash (`opacity: 1.0`, `scale: 1.25`), and smooth ~0.4s exponential dissipation (`power2.out` -> `opacity: 0`).
   4. Full `prefers-reduced-motion` bypass and zero-leak teardown.
 
-- [ ] **Step 1: Implement refined GSAP choreography and glow fading in `CardSummonEngine.ts`**
-- [ ] **Step 2: Run test suite to verify all tests pass (GREEN phase)**
-- [ ] **Step 3: Commit implementation**
+- [x] **Step 1: Implement refined GSAP choreography and glow fading in `CardSummonEngine.ts`**
+- [x] **Step 2: Run test suite to verify all tests pass (GREEN phase)**
+- [x] **Step 3: Commit implementation**
 
 ---
 

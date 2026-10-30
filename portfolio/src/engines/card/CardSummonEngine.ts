@@ -230,7 +230,7 @@ export class CardSummonEngine implements Engine {
 
     if (prefersReducedMotion) {
       this.openTimeline.set(this.backdropEl, { autoAlpha: 1 });
-      this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1 });
+      this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 0, scaleY: 1 });
       if (this.cardAuraEl) {
         this.openTimeline.set(this.cardAuraEl, { opacity: 0, scale: 1 });
       }
@@ -241,6 +241,8 @@ export class CardSummonEngine implements Engine {
           rotationZ: 0,
           opacity: 1,
           scale: 1,
+          scaleX: 1,
+          scaleY: 1,
         });
       }
     } else {
@@ -250,12 +252,21 @@ export class CardSummonEngine implements Engine {
         { autoAlpha: 1, duration: 0.25, ease: 'power2.out' },
         0
       );
+
+      // Bottom curved hill glow: initial emergence then recede downward as card ascends
       this.openTimeline.fromTo(
         this.bottomGlowEl,
         { xPercent: -50, yPercent: 100, opacity: 0, scaleY: 0, transformOrigin: 'bottom center' },
-        { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1, duration: 0.4, ease: 'power3.out' },
+        { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1, duration: 0.35, ease: 'power3.out' },
         0
       );
+      this.openTimeline.to(
+        this.bottomGlowEl,
+        { opacity: 0, scaleY: 0.2, duration: 0.65, ease: 'power2.inOut' },
+        0.35
+      );
+
+      // Card initial state and entrance choreography
       if (this.cardAuraEl) {
         this.openTimeline.fromTo(
           this.cardAuraEl,
@@ -264,56 +275,95 @@ export class CardSummonEngine implements Engine {
             scale: 0.8,
           },
           {
-            opacity: 0.85,
-            scale: 1.12,
-            duration: 0.3,
+            opacity: 0.95,
+            scale: 1.15,
+            duration: 0.43,
             ease: 'power2.out',
           },
-          0.7
+          1.10
         );
+
+        // Shockwave aura flash on slam impact (t = 1.62s to 1.67s)
         this.openTimeline.to(
           this.cardAuraEl,
-          {
-            opacity: 0.1,
-            scale: 1.0,
-            duration: 0.25,
-            ease: 'power2.inOut',
-          },
-          1.0
+          { opacity: 1.0, scale: 1.25, duration: 0.05, ease: 'power2.in' },
+          1.62
+        );
+
+        // Aura complete dissipation to zero (t = 1.67s to 1.80s)
+        this.openTimeline.to(
+          this.cardAuraEl,
+          { opacity: 0, scale: 1.35, duration: 0.13, ease: 'power2.out' },
+          1.67
         );
       }
+
       if (this.cardEl) {
+        // Explosive launch into apex climb (t = 0.1s to 0.90s, duration 0.80s)
         this.openTimeline.fromTo(
           this.cardEl,
           {
             yPercent: 120,
-            rotationY: -1080,
-            rotationZ: 12,
+            rotationY: -1440,
+            rotationZ: 14,
             opacity: 0,
-            scale: 0.6,
+            scale: 0.5,
+            scaleX: 1,
+            scaleY: 1,
           },
           {
-            yPercent: -4,
-            rotationY: -25,
+            yPercent: -6,
+            rotationY: -22,
             rotationZ: 2,
             opacity: 1,
             scale: 1.03,
-            duration: 0.9,
-            ease: 'power2.out',
+            duration: 0.80,
+            ease: 'power4.out',
           },
           0.1
         );
+
+        // Slow-motion apex suspension hover (t = 0.90s to 1.53s, duration 0.63s)
+        this.openTimeline.to(
+          this.cardEl,
+          {
+            yPercent: -5,
+            rotationY: -6,
+            rotationZ: 0.5,
+            scale: 1.04,
+            duration: 0.63,
+            ease: 'sine.inOut',
+          },
+          0.90
+        );
+
+        // Punchy mechanical slam from apex down to resting center with impact micro-compression (t = 1.53s to 1.67s, duration 0.14s)
         this.openTimeline.to(
           this.cardEl,
           {
             yPercent: 0,
             rotationY: 0,
             rotationZ: 0,
-            scale: 1,
-            duration: 0.25,
-            ease: 'power3.inOut',
+            scaleX: 1.03,
+            scaleY: 0.95,
+            scale: 1.0,
+            duration: 0.14,
+            ease: 'power4.in',
           },
-          1.0
+          1.53
+        );
+
+        // Micro-compression recovery / settle (t = 1.67s to 1.80s, duration 0.13s)
+        this.openTimeline.to(
+          this.cardEl,
+          {
+            scaleX: 1.0,
+            scaleY: 1.0,
+            scale: 1.0,
+            duration: 0.13,
+            ease: 'power2.out',
+          },
+          1.67
         );
       }
     }
