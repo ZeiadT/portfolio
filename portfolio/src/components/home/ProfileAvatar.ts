@@ -101,7 +101,7 @@ export class ProfileAvatarComponent {
         imageSrc: this.config.src,
         alt: this.config.alt,
         targetEl: this.cardEl,
-        holoIntensity: 0.4,
+        holoIntensity: 0.2,
       });
       this.holoEngine.mount(this.cardEl);
     }

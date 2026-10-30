@@ -2,7 +2,7 @@ export interface HoloCardEngineOptions {
   imageSrc: string;
   alt?: string;
   edgeSensitivity?: number; // default 12.0
-  holoIntensity?: number; // default 0.4 (light hint 20%)
+  holoIntensity?: number; // default 0.2 (light hint 10%)
   maxTiltDeg?: number; // default 12.0
   targetEl?: HTMLElement; // Element to apply 3D tilt CSS to
 }
@@ -25,9 +25,10 @@ out vec4 fragColor;
 uniform sampler2D u_image;
 uniform vec2 u_pointer; // Normalized [-1.0, 1.0]
 uniform float u_edgeSensitivity; // default 12.0
-uniform float u_holoIntensity;   // default 2.0
+uniform float u_holoIntensity;   // default 0.2
 uniform vec2 u_uvScale;
 uniform vec2 u_uvOffset;
+uniform vec2 u_resolution;
 
 void main() {
   vec2 texUV = v_uv * u_uvScale + u_uvOffset;
@@ -37,35 +38,47 @@ void main() {
     return;
   }
 
-  // 1. Luminance
-  float luma = dot(base.rgb, vec3(0.299, 0.587, 0.114));
+  // 1. Anti-aliased blurred luminance and continuous spatial gradients
+  // 4-point cross-sampling offset to eliminate 2x2 rasterizer derivative blockiness
+  vec2 delta = vec2(1.5) / max(u_resolution, vec2(1.0));
+  
+  float lumaL = dot(texture(u_image, texUV - vec2(delta.x, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
+  float lumaR = dot(texture(u_image, texUV + vec2(delta.x, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
+  float lumaB = dot(texture(u_image, texUV - vec2(0.0, delta.y)).rgb, vec3(0.299, 0.587, 0.114));
+  float lumaT = dot(texture(u_image, texUV + vec2(0.0, delta.y)).rgb, vec3(0.299, 0.587, 0.114));
+  float luma = (lumaL + lumaR + lumaB + lumaT) * 0.25;
 
-  // 2. Hardware derivatives
-  float dx = dFdx(luma);
-  float dy = dFdy(luma);
+  // Continuous central differences (Sobel-style gradients) - zero raster quad pixelation
+  float dx = (lumaR - lumaL) * 0.5;
+  float dy = (lumaT - lumaB) * 0.5;
 
-  // 3. Contour trace mask
-  float edge = clamp(length(vec2(dx, dy)) * u_edgeSensitivity, 0.0, 1.0);
-  float highPass = smoothstep(0.6, 0.92, luma);
+  // 2. Smooth anti-aliased contour trace mask
+  float rawEdge = length(vec2(dx, dy)) * u_edgeSensitivity;
+  float edge = smoothstep(0.02, 0.35, rawEdge);
+  float highPass = smoothstep(0.65, 0.95, luma);
   float traceMask = max(edge, highPass * 0.45);
 
-  // 4. Procedural micro-etching & 3D normals (operates on screen v_uv coordinates)
-  float etch = sin(v_uv.x * 320.0 + cos(v_uv.y * 320.0) * 5.0) * 0.15;
-  vec3 normal = normalize(vec3(-dx * 15.0 + etch, -dy * 15.0 + etch, 1.0));
+  // 3. Calm, smooth micro-etching & 3D normals (operates on screen v_uv coordinates)
+  // Low frequency (60.0 instead of 320.0) and gentle amplitude (0.04 instead of 0.15)
+  float etch = sin(v_uv.x * 60.0 + cos(v_uv.y * 60.0) * 3.0) * 0.04;
+  vec3 normal = normalize(vec3(-dx * 12.0 + etch, -dy * 12.0 + etch, 1.0));
 
-  // 5. Dynamic lighting & spectral iridescence
+  // 4. Dynamic lighting & spectral iridescence
   vec3 lightDir = normalize(vec3(u_pointer.x, u_pointer.y, 0.65));
-  float spec = max(dot(normal, lightDir), 0.0);
+  float spec = smoothstep(0.1, 0.9, max(dot(normal, lightDir), 0.0));
 
-  // Cosine spectral palette (operates on screen v_uv coordinates)
+  // Cosine spectral palette
   float t = dot(normal.xy, u_pointer) * 1.5 + (v_uv.x + v_uv.y) * 0.8 + luma;
   vec3 rainbow = 0.5 + 0.5 * cos(6.28318 * (t + vec3(0.0, 0.33, 0.67)));
 
-  // 6. Color-Dodge / Additive Compositing
-  vec3 holoReflection = rainbow * pow(spec, 2.5) * traceMask * u_holoIntensity;
-  vec3 goldGlint = vec3(1.0, 0.95, 0.8) * pow(spec, 8.0) * edge * (u_holoIntensity * 0.3);
+  // 5. Soft color-dodge & tone-blended compositing
+  // Calibrated to 10% opacity with smooth power curves to avoid pixelated pinpoints
+  vec3 holoReflection = rainbow * pow(spec, 2.0) * traceMask * u_holoIntensity;
+  vec3 goldGlint = vec3(1.0, 0.95, 0.8) * pow(spec, 4.0) * edge * (u_holoIntensity * 0.3);
 
-  vec3 finalColor = base.rgb + holoReflection + goldGlint;
+  // Blend harmoniously with image tones: preserves deep shadows & rich contrast
+  vec3 blendWeight = 0.5 + 0.5 * base.rgb;
+  vec3 finalColor = base.rgb + holoReflection * blendWeight + goldGlint * blendWeight;
   fragColor = vec4(finalColor, base.a);
 }
 `;
@@ -89,6 +102,7 @@ const GL_CONST = {
   RGBA: 0x1908,
   UNSIGNED_BYTE: 0x1401,
   TRIANGLE_STRIP: 0x0005,
+  LINEAR_MIPMAP_LINEAR: 0x2703,
 };
 
 export class HoloCardEngine {
@@ -109,6 +123,7 @@ export class HoloCardEngine {
   private uImageLoc: WebGLUniformLocation | null = null;
   private uUvScaleLoc: WebGLUniformLocation | null = null;
   private uUvOffsetLoc: WebGLUniformLocation | null = null;
+  private uResolutionLoc: WebGLUniformLocation | null = null;
 
   private supported: boolean = false;
   private destroyed: boolean = false;
@@ -127,7 +142,7 @@ export class HoloCardEngine {
   constructor(options: HoloCardEngineOptions) {
     this.options = options;
     this.edgeSensitivity = options.edgeSensitivity ?? 12.0;
-    this.holoIntensity = options.holoIntensity ?? 0.4;
+    this.holoIntensity = options.holoIntensity ?? 0.2;
     this.maxTiltDeg = options.maxTiltDeg ?? 12.0;
     this.targetEl = options.targetEl ?? null;
   }
@@ -249,6 +264,7 @@ export class HoloCardEngine {
     this.uImageLoc = gl.getUniformLocation(program, 'u_image');
     this.uUvScaleLoc = gl.getUniformLocation(program, 'u_uvScale');
     this.uUvOffsetLoc = gl.getUniformLocation(program, 'u_uvOffset');
+    this.uResolutionLoc = gl.getUniformLocation(program, 'u_resolution');
 
     if (this.uImageLoc) gl.uniform1i(this.uImageLoc, 0);
     if (this.uEdgeSensitivityLoc) gl.uniform1f(this.uEdgeSensitivityLoc, this.edgeSensitivity);
@@ -256,13 +272,20 @@ export class HoloCardEngine {
     if (this.uPointerLoc) gl.uniform2f(this.uPointerLoc, 0.0, 0.0);
     if (this.uUvScaleLoc) gl.uniform2f(this.uUvScaleLoc, 1.0, 1.0);
     if (this.uUvOffsetLoc) gl.uniform2f(this.uUvOffsetLoc, 0.0, 0.0);
+    if (this.uResolutionLoc) {
+      gl.uniform2f(
+        this.uResolutionLoc,
+        this.canvas?.width || 300,
+        this.canvas?.height || 400
+      );
+    }
 
     // Setup base texture
     this.texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D, this.texture);
     gl.texParameteri(gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D, gl.TEXTURE_WRAP_S ?? GL_CONST.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE ?? GL_CONST.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D, gl.TEXTURE_WRAP_T ?? GL_CONST.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE ?? GL_CONST.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D, gl.TEXTURE_MIN_FILTER ?? GL_CONST.TEXTURE_MIN_FILTER, gl.LINEAR ?? GL_CONST.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D, gl.TEXTURE_MIN_FILTER ?? GL_CONST.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR ?? GL_CONST.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D, gl.TEXTURE_MAG_FILTER ?? GL_CONST.TEXTURE_MAG_FILTER, gl.LINEAR ?? GL_CONST.LINEAR);
 
     // Initial 1x1 placeholder texture
@@ -293,6 +316,14 @@ export class HoloCardEngine {
         this.gl.UNSIGNED_BYTE ?? GL_CONST.UNSIGNED_BYTE,
         image
       );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D,
+        this.gl.TEXTURE_MIN_FILTER ?? GL_CONST.TEXTURE_MIN_FILTER,
+        this.gl.LINEAR_MIPMAP_LINEAR ?? GL_CONST.LINEAR_MIPMAP_LINEAR
+      );
+      if (typeof this.gl.generateMipmap === 'function') {
+        this.gl.generateMipmap(this.gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D);
+      }
       this.updateUvTransform();
       this.render();
     };
@@ -307,6 +338,14 @@ export class HoloCardEngine {
         this.gl.UNSIGNED_BYTE ?? GL_CONST.UNSIGNED_BYTE,
         image
       );
+      this.gl.texParameteri(
+        this.gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D,
+        this.gl.TEXTURE_MIN_FILTER ?? GL_CONST.TEXTURE_MIN_FILTER,
+        this.gl.LINEAR_MIPMAP_LINEAR ?? GL_CONST.LINEAR_MIPMAP_LINEAR
+      );
+      if (typeof this.gl.generateMipmap === 'function') {
+        this.gl.generateMipmap(this.gl.TEXTURE_2D ?? GL_CONST.TEXTURE_2D);
+      }
       this.updateUvTransform();
     }
   }
@@ -378,6 +417,9 @@ export class HoloCardEngine {
 
     if (this.gl) {
       this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      if (this.uResolutionLoc) {
+        this.gl.uniform2f(this.uResolutionLoc, this.canvas.width, this.canvas.height);
+      }
       this.updateUvTransform();
       this.render();
     }

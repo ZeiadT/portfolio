@@ -347,4 +347,43 @@ git commit -m "docs: complete pokemon holo card engine plan"
 - [x] **Step 5: Run full test suite and Vite build**
 - [x] **Step 6: Commit changes**
 
+---
+
+### Task 7: Anti-Aliased Blended Holographic Sheen (10% Opacity)
+
+**Goal:** Reduce holographic effect opacity to 10% (`holoIntensity = 0.2`), eliminate sharpness/pixelation/aliasing with multi-tap smooth gradient anti-aliasing and mipmapping, soften the micro-etch frequency, and seamlessly blend the sheen with image tones.
+
+**Files:**
+- Modify: `portfolio/src/engines/holo/HoloCardEngine.ts`
+- Modify: `portfolio/src/engines/holo/__tests__/HoloCardEngine.test.ts`
+- Modify: `portfolio/src/components/home/ProfileAvatar.ts`
+- Modify: `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts`
+
+**Specifications:**
+1. **Reduce Opacity to 10%**:
+   - Set default `holoIntensity` in `HoloCardEngineOptions` and constructor to `0.2` (10% of base 2.0).
+   - In `ProfileAvatarComponent`: pass `holoIntensity: 0.2`.
+2. **Multi-Tap Anti-Aliased Gradient & Edge Detection**:
+   - Add `uniform vec2 u_resolution;` to the shader.
+   - Use multi-tap 4-point central difference sampling (`texel = 1.5 / u_resolution`) to compute continuous, anti-aliased spatial gradients `dx` and `dy` without 2x2 rasterizer blockiness.
+   - Soften edge contour mask with `smoothstep(0.04, 0.25, length(vec2(dx, dy)) * u_edgeSensitivity)`.
+3. **Calm Micro-Etch Frequency & Anti-Aliased Specular**:
+   - Lower micro-etch frequency from 320.0 to 60.0 and amplitude from 0.15 to 0.04 to eliminate high-frequency sparkling noise.
+   - Soften specular glint curve from `pow(spec, 8.0)` to `pow(spec, 4.0)` with `smoothstep` falloff.
+4. **Harmonious Tone Blending**:
+   - Modulate holographic reflection with `(0.6 + 0.4 * base.rgb)` to prevent harsh white clipping and preserve shadow depth.
+5. **Texture Mipmaps**:
+   - Generate mipmaps (`gl.generateMipmap(gl.TEXTURE_2D)`) with `gl.LINEAR_MIPMAP_LINEAR` to prevent downscaling texture aliasing.
+6. **Testing**:
+   - Update tests in `HoloCardEngine.test.ts` to assert default `u_holoIntensity = 0.2` and query for `u_resolution`.
+   - Update `ProfileAvatar.test.ts` to assert `holoIntensity = 0.2`.
+
+- [x] **Step 1: Write failing tests in `HoloCardEngine.test.ts` and `ProfileAvatar.test.ts`**
+- [x] **Step 2: Run test suite to observe RED failures**
+- [x] **Step 3: Implement anti-aliased shader and 10% opacity calibration**
+- [x] **Step 4: Run test suite to verify GREEN passes**
+- [x] **Step 5: Run full test suite and Vite build**
+- [x] **Step 6: Commit changes**
+
+
 

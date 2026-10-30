@@ -26,6 +26,7 @@ function createMockGl() {
     bindTexture: vi.fn(),
     texParameteri: vi.fn(),
     texImage2D: vi.fn(),
+    generateMipmap: vi.fn(),
     viewport: vi.fn(),
     drawArrays: vi.fn(),
     deleteProgram: vi.fn(),
@@ -106,9 +107,10 @@ describe('HoloCardEngine', () => {
       expect(mockGl.createShader).toHaveBeenCalledTimes(2);
       expect(mockGl.createProgram).toHaveBeenCalledTimes(1);
 
-      // Verify uniform location queries including UV scale and offset
+      // Verify uniform location queries including UV scale, offset, and resolution
       expect(mockGl.getUniformLocation).toHaveBeenCalledWith(expect.anything(), 'u_uvScale');
       expect(mockGl.getUniformLocation).toHaveBeenCalledWith(expect.anything(), 'u_uvOffset');
+      expect(mockGl.getUniformLocation).toHaveBeenCalledWith(expect.anything(), 'u_resolution');
 
       engine.destroy();
       expect(mockGl.deleteProgram).toHaveBeenCalled();
@@ -118,7 +120,7 @@ describe('HoloCardEngine', () => {
     }
   });
 
-  it('sets default u_holoIntensity uniform to 0.4 (20% light hint) and respects custom values', () => {
+  it('sets default u_holoIntensity uniform to 0.2 (10% light hint) and respects custom values', () => {
     const mockGl = createMockGl();
     const origGetContext = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation((type: string) => {
@@ -127,22 +129,22 @@ describe('HoloCardEngine', () => {
     }) as any;
 
     try {
-      // Default engine should upload 0.4
+      // Default engine should upload 0.2
       const defaultEngine = new HoloCardEngine({ imageSrc: '/profile.jpg' });
       defaultEngine.mount(container);
       expect(mockGl.uniform1f).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'u_holoIntensity' }),
-        0.4
+        0.2
       );
       defaultEngine.destroy();
 
       // Custom intensity engine
       mockGl.uniform1f.mockClear();
-      const customEngine = new HoloCardEngine({ imageSrc: '/profile.jpg', holoIntensity: 0.2 });
+      const customEngine = new HoloCardEngine({ imageSrc: '/profile.jpg', holoIntensity: 0.5 });
       customEngine.mount(container);
       expect(mockGl.uniform1f).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'u_holoIntensity' }),
-        0.2
+        0.5
       );
       customEngine.destroy();
     } finally {

@@ -28,6 +28,7 @@ function mockWebGL2() {
     bindTexture: vi.fn(),
     texParameteri: vi.fn(),
     texImage2D: vi.fn(),
+    generateMipmap: vi.fn(),
     viewport: vi.fn(),
     drawArrays: vi.fn(),
     deleteProgram: vi.fn(),
@@ -118,14 +119,14 @@ describe('ProfileAvatarComponent', () => {
     }
   });
 
-  it('configures HoloCardEngine with light hint holoIntensity (0.4)', () => {
+  it('configures HoloCardEngine with light hint holoIntensity (0.2)', () => {
     const unmock = mockWebGL2();
     try {
       const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
       avatar.mount(container);
 
       expect((avatar as any).holoEngine).toBeTruthy();
-      expect((avatar as any).holoEngine.holoIntensity).toBe(0.4);
+      expect((avatar as any).holoEngine.holoIntensity).toBe(0.2);
 
       avatar.destroy();
     } finally {
