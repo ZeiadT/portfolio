@@ -375,3 +375,169 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     expect(document.querySelector('[data-summon-card]')).toBeNull();
   });
 });
+
+describe('Phase 3: Card Slam Animation & Impact Aura', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  it('creates [data-summon-card-aura] positioned before [data-summon-card] within [data-summon-card-stage]', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const stage = document.querySelector<HTMLElement>('[data-summon-card-stage]');
+    expect(stage).not.toBeNull();
+
+    const aura = stage?.querySelector<HTMLElement>('[data-summon-card-aura]');
+    const card = stage?.querySelector<HTMLElement>('[data-summon-card]');
+
+    expect(aura).not.toBeNull();
+    expect(card).not.toBeNull();
+
+    // Verify DOM order: aura must precede card so that CSS stacking/DOM order renders aura behind card
+    const stageChildren = Array.from(stage?.children || []);
+    const auraIndex = stageChildren.indexOf(aura!);
+    const cardIndex = stageChildren.indexOf(card!);
+
+    expect(auraIndex).toBeGreaterThanOrEqual(0);
+    expect(cardIndex).toBeGreaterThan(auraIndex);
+  });
+
+  it('animates card through an apex overshoot past center (yPercent < 0) before settling to 0', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Sample yPercent values across timeline progress to verify apex overshoot
+    let minYPercent = 0;
+    for (let p = 0; p <= 1; p += 0.05) {
+      tl?.progress(p);
+      const y = Number(gsap.getProperty(card, 'yPercent'));
+      if (y < minYPercent) {
+        minYPercent = y;
+      }
+    }
+
+    // Must overshoot vertically past center into negative yPercent
+    expect(minYPercent).toBeLessThan(0);
+    expect(minYPercent).toBeGreaterThanOrEqual(-10);
+
+    // Final settled state at completion must be precisely 0
+    tl?.progress(1);
+    expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
+  });
+
+  it('synchronizes landing at timeline completion with yPercent 0, rotationY 0, and rotationZ 0', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    tl?.progress(1);
+
+    expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationZ'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'scale'))).toBe(1);
+    expect(Number(gsap.getProperty(card, 'opacity'))).toBe(1);
+  });
+
+  it('animates perimeter aura to flare up (peak opacity >= 0.7) during apex climb and fade out (<= 0.2) upon landing', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const aura = document.querySelector<HTMLElement>('[data-summon-card-aura]');
+    expect(aura).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Sample aura opacity across timeline progression
+    let peakAuraOpacity = 0;
+    for (let p = 0; p < 1; p += 0.05) {
+      tl?.progress(p);
+      const opacity = Number(gsap.getProperty(aura, 'opacity'));
+      if (opacity > peakAuraOpacity) {
+        peakAuraOpacity = opacity;
+      }
+    }
+
+    // Aura should flare up intensely prior to landing
+    expect(peakAuraOpacity).toBeGreaterThanOrEqual(0.7);
+
+    // Settle/dissolve upon landing
+    tl?.progress(1);
+    const finalAuraOpacity = Number(gsap.getProperty(aura, 'opacity'));
+    expect(finalAuraOpacity).toBeLessThanOrEqual(0.2);
+  });
+
+  it('bypasses card apex overshoot and aura flare when prefers-reduced-motion is active', () => {
+    const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+      matches: query.includes('prefers-reduced-motion: reduce'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    } as unknown as MediaQueryList));
+
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    const aura = document.querySelector<HTMLElement>('[data-summon-card-aura]');
+
+    expect(card).not.toBeNull();
+    expect(aura).not.toBeNull();
+
+    // In reduced motion mode, card must be immediately at resting state
+    expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationZ'))).toBe(0);
+
+    // Aura must not flare (opacity <= 0.2 or 0)
+    expect(Number(gsap.getProperty(aura, 'opacity'))).toBeLessThanOrEqual(0.2);
+
+    matchMediaSpy.mockRestore();
+  });
+
+  it('removes [data-summon-card-aura] from DOM on close() and destroy()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    expect(document.querySelector('[data-summon-card-aura]')).not.toBeNull();
+
+    engine.close();
+    expect(document.querySelector('[data-summon-card-aura]')).toBeNull();
+
+    // Re-open and verify destroy() cleanup
+    engine.open();
+    expect(document.querySelector('[data-summon-card-aura]')).not.toBeNull();
+
+    engine.destroy();
+    expect(document.querySelector('[data-summon-card-aura]')).toBeNull();
+  });
+});
