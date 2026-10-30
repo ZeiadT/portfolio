@@ -1,5 +1,4 @@
 import type { ProfileAvatarConfig } from '@/domain/types';
-import { HoloCardEngine } from '@/engines/holo/HoloCardEngine';
 
 export interface ProfileAvatarOptions {
   title?: string;
@@ -11,7 +10,7 @@ export interface ProfileAvatarOptions {
 /**
  * ProfileAvatarComponent
  * Renders the clean portrait card:
- * - Pure, crisp portrait image with WebGL2 holographic card engine
+ * - Pure, crisp portrait image (un-obscured)
  * - Fallback monogram if image fails to load
  * - Edge-to-edge uppercase role title ("MOBILE DEVELOPER")
  * - Interactive click handling and clean lifecycle disposal
@@ -22,7 +21,6 @@ export class ProfileAvatarComponent {
   private rootEl: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
   private imgEl: HTMLImageElement | null = null;
-  private holoEngine: HoloCardEngine | null = null;
 
   // Event handlers for clean disposal
   private clickHandler: (() => void) | null = null;
@@ -61,7 +59,7 @@ export class ProfileAvatarComponent {
           role="button"
           tabindex="0"
           aria-label="Portrait photo"
-          class="relative w-full aspect-[4/5] rounded-2xl sm:rounded-3xl border border-white/15 bg-neutral-900/80 backdrop-blur-md overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.7)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4421] active:scale-[0.99]"
+          class="relative w-full aspect-[4/5] rounded-2xl sm:rounded-3xl border border-white/15 bg-neutral-900/80 backdrop-blur-md overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.7)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4421] active:scale-[0.99] transition-transform duration-200 hover:scale-[1.01]"
         >
           <!-- The Portrait Image (Pure & Un-obscured) -->
           <img
@@ -95,17 +93,6 @@ export class ProfileAvatarComponent {
     this.imgEl = root.querySelector<HTMLImageElement>('img');
     const fallbackEl = root.querySelector<HTMLElement>('[data-avatar-fallback]');
 
-    // Initialize WebGL2 Holographic Engine
-    if (this.cardEl) {
-      this.holoEngine = new HoloCardEngine({
-        imageSrc: this.config.src,
-        alt: this.config.alt,
-        targetEl: this.cardEl,
-        holoIntensity: 0.2,
-      });
-      this.holoEngine.mount(this.cardEl);
-    }
-
     // Image error fallback
     if (this.imgEl && fallbackEl) {
       this.errorHandler = () => {
@@ -133,10 +120,6 @@ export class ProfileAvatarComponent {
   }
 
   public destroy(): void {
-    if (this.holoEngine) {
-      this.holoEngine.destroy();
-      this.holoEngine = null;
-    }
     if (this.cardEl) {
       if (this.clickHandler) {
         this.cardEl.removeEventListener('click', this.clickHandler);
