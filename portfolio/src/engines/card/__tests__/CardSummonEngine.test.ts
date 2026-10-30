@@ -630,3 +630,132 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     expect(document.querySelector('[data-summon-card-aura]')).toBeNull();
   });
 });
+
+describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  it('creates double-sided 3D card structure with [data-summon-card-back] and [data-summon-card-face]', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const cardBack = card?.querySelector<HTMLElement>('[data-summon-card-back]');
+    const cardFace = card?.querySelector<HTMLElement>('[data-summon-card-face]');
+
+    expect(cardBack).not.toBeNull();
+    expect(cardFace).not.toBeNull();
+
+    // Verify absolute inset-0 coverage
+    expect(cardBack?.className).toMatch(/\babsolute\b/);
+    expect(cardBack?.className).toMatch(/\binset-0\b/);
+    expect(cardFace?.className).toMatch(/\babsolute\b/);
+    expect(cardFace?.className).toMatch(/\binset-0\b/);
+
+    // Verify backface-visibility: hidden on both sides
+    const hasBackfaceHidden = (el: HTMLElement) =>
+      el.style.backfaceVisibility === 'hidden' ||
+      el.className.includes('backface-hidden') ||
+      el.className.includes('[backface-visibility:hidden]');
+
+    expect(hasBackfaceHidden(cardBack!)).toBe(true);
+    expect(hasBackfaceHidden(cardFace!)).toBe(true);
+
+    // Verify card face is rotated 180deg in Y axis for true double-sided 3D entity
+    const hasRotateY180 = (el: HTMLElement) =>
+      el.style.transform.includes('rotateY(180deg)') ||
+      el.className.includes('rotate-y-180') ||
+      el.className.includes('[transform:rotateY(180deg)]');
+
+    expect(hasRotateY180(cardFace!)).toBe(true);
+  });
+
+  it('renders Mystic Sigil SVG containing outer frame, 4 corner filigrees, halo rings, and Ace crest', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const cardBack = document.querySelector<HTMLElement>('[data-summon-card-back]');
+    expect(cardBack).not.toBeNull();
+
+    const svg = cardBack?.querySelector('svg');
+    expect(svg).not.toBeNull();
+
+    const frame = cardBack?.querySelector('[data-summon-card-back-frame]');
+    expect(frame).not.toBeNull();
+
+    const filigrees = cardBack?.querySelectorAll('[data-summon-card-filigree]');
+    expect(filigrees?.length).toBe(4);
+
+    const halo = cardBack?.querySelector('[data-summon-card-halo]');
+    expect(halo).not.toBeNull();
+
+    const crest = cardBack?.querySelector('[data-summon-card-crest]');
+    expect(crest).not.toBeNull();
+  });
+
+  it('renders default theme colors in the Mystic Sigil SVG definitions', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const cardBack = document.querySelector('[data-summon-card-back]');
+    expect(cardBack).not.toBeNull();
+    const svgHtml = cardBack?.innerHTML || '';
+
+    expect(svgHtml).toContain('#ff4421');
+    expect(svgHtml).toContain('#ffffff');
+  });
+
+  it('renders custom theme primaryColor and coreColor in the Mystic Sigil SVG definitions', () => {
+    engine = new CardSummonEngine({
+      theme: {
+        primaryColor: '#00ffcc',
+        coreColor: '#ffd700',
+      },
+    });
+    engine.open();
+
+    const cardBack = document.querySelector('[data-summon-card-back]');
+    expect(cardBack).not.toBeNull();
+    const svgHtml = cardBack?.innerHTML || '';
+
+    expect(svgHtml).toContain('#00ffcc');
+    expect(svgHtml).toContain('#ffd700');
+  });
+
+  it('removes card back and card face elements from DOM on close() and destroy()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    expect(document.querySelector('[data-summon-card-back]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-card-face]')).not.toBeNull();
+
+    engine.close();
+    expect(document.querySelector('[data-summon-card-back]')).toBeNull();
+    expect(document.querySelector('[data-summon-card-face]')).toBeNull();
+
+    // Re-open and verify destroy() cleanup
+    engine.open();
+    expect(document.querySelector('[data-summon-card-back]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-card-face]')).not.toBeNull();
+
+    engine.destroy();
+    expect(document.querySelector('[data-summon-card-back]')).toBeNull();
+    expect(document.querySelector('[data-summon-card-face]')).toBeNull();
+  });
+});
+
