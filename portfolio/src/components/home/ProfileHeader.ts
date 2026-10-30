@@ -86,6 +86,9 @@ export class ProfileHeader {
       'lg:col-span-5 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center justify-center';
 
     this.cardSummonEngine = new CardSummonEngine();
+    if (typeof document !== 'undefined' && document.body) {
+      this.cardSummonEngine.mount(document.body);
+    }
 
     this.avatarComponent = new ProfileAvatarComponent(this.data.avatar, {
       title: this.data.title,

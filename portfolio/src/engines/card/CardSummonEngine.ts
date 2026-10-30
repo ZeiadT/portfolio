@@ -51,6 +51,7 @@ export class CardSummonEngine implements Engine {
   private options: CardSummonOptions;
 
   private boundOnKeyDown: ((e: KeyboardEvent) => void) | null = null;
+  private previousActiveElement: HTMLElement | null = null;
   private boundOnBackdropClick: ((e: MouseEvent) => void) | null = null;
   private boundOnCloseClick: ((e: MouseEvent) => void) | null = null;
 
@@ -94,6 +95,12 @@ export class CardSummonEngine implements Engine {
     }
 
     this.isDialogOpen = true;
+    if (typeof document !== 'undefined') {
+      this.previousActiveElement = document.activeElement as HTMLElement | null;
+      if (document.body) {
+        document.body.style.overflow = 'hidden';
+      }
+    }
 
     // Resolve theme colors
     const primaryColor = this.options.theme?.primaryColor ?? '#ff4421';
@@ -111,6 +118,7 @@ export class CardSummonEngine implements Engine {
     // Backdrop element
     const backdrop = document.createElement('div');
     backdrop.setAttribute('data-summon-backdrop', '');
+    backdrop.setAttribute('aria-hidden', 'true');
     backdrop.className = 'absolute inset-0 bg-black/85 backdrop-blur-xl';
     modal.appendChild(backdrop);
 
@@ -131,7 +139,8 @@ export class CardSummonEngine implements Engine {
     // Bottom curved hill glow element
     const bottomGlow = document.createElement('div');
     bottomGlow.setAttribute('data-summon-bottom-glow', '');
-    bottomGlow.className = 'pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-end w-[640px] max-w-[100vw] h-[220px] overflow-hidden select-none';
+    bottomGlow.setAttribute('aria-hidden', 'true');
+    bottomGlow.className = 'pointer-events-none absolute bottom-0 left-1/2 flex flex-col items-center justify-end w-[640px] max-w-[100vw] h-[220px] overflow-hidden select-none';
     bottomGlow.innerHTML = `
       <svg viewBox="0 0 600 200" class="w-full h-full" preserveAspectRatio="none" aria-hidden="true">
         <defs>
@@ -183,14 +192,14 @@ export class CardSummonEngine implements Engine {
 
     // Check prefers-reduced-motion
     const prefersReducedMotion = typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
 
     // Build entrance timeline
     this.openTimeline = gsap.timeline();
 
     if (prefersReducedMotion) {
       this.openTimeline.set(this.backdropEl, { autoAlpha: 1 });
-      this.openTimeline.set(this.bottomGlowEl, { yPercent: 0, opacity: 1, scaleY: 1 });
+      this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1 });
     } else {
       this.openTimeline.fromTo(
         this.backdropEl,
@@ -200,11 +209,14 @@ export class CardSummonEngine implements Engine {
       );
       this.openTimeline.fromTo(
         this.bottomGlowEl,
-        { yPercent: 100, opacity: 0, scaleY: 0, transformOrigin: 'bottom center' },
-        { yPercent: 0, opacity: 1, scaleY: 1, duration: 0.4, ease: 'power3.out' },
+        { xPercent: -50, yPercent: 100, opacity: 0, scaleY: 0, transformOrigin: 'bottom center' },
+        { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1, duration: 0.4, ease: 'power3.out' },
         0
       );
     }
+
+    // Set accessible focus to close button
+    this.closeBtnEl?.focus();
   }
 
   /**
@@ -253,6 +265,11 @@ export class CardSummonEngine implements Engine {
       this.modalEl.remove();
       this.modalEl = null;
     }
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.style.overflow = '';
+    }
+    this.previousActiveElement?.focus();
+    this.previousActiveElement = null;
     this.backdropEl = null;
     this.bottomGlowEl = null;
     this.closeBtnEl = null;
