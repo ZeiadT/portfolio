@@ -1,3 +1,4 @@
+import { gsap } from 'gsap';
 import type { ProfileAvatarConfig } from '@/domain/types';
 
 export interface ProfileAvatarOptions {
@@ -13,6 +14,7 @@ export interface ProfileAvatarOptions {
  * - Pure, crisp portrait image (un-obscured)
  * - Fallback monogram if image fails to load
  * - Edge-to-edge uppercase role title ("MOBILE DEVELOPER")
+ * - Continuous subtle diagonal card shimmer animation via GSAP timeline
  * - Interactive click handling and clean lifecycle disposal
  */
 export class ProfileAvatarComponent {
@@ -21,6 +23,7 @@ export class ProfileAvatarComponent {
   private rootEl: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
   private imgEl: HTMLImageElement | null = null;
+  private shineTimeline: gsap.core.Timeline | null = null;
 
   // Event handlers for clean disposal
   private clickHandler: (() => void) | null = null;
@@ -79,6 +82,14 @@ export class ProfileAvatarComponent {
             </div>
             <span class="text-xs uppercase tracking-widest text-neutral-400 font-mono">Portrait</span>
           </div>
+
+          <!-- Shimmer Overlay -->
+          <div
+            data-avatar-shine
+            aria-hidden="true"
+            class="pointer-events-none absolute -inset-full w-[300%] h-[300%] opacity-0 select-none mix-blend-overlay"
+            style="background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.03) 30%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 70%, transparent 100%);"
+          ></div>
         </div>
       </div>
 
@@ -117,9 +128,36 @@ export class ProfileAvatarComponent {
       };
       this.cardEl.addEventListener('keydown', this.keydownHandler);
     }
+
+    // Continuous subtle shimmer animation
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    if (!prefersReducedMotion) {
+      const shineEl = root.querySelector<HTMLElement>('[data-avatar-shine]');
+      if (shineEl) {
+        this.shineTimeline = gsap.timeline({
+          repeat: -1,
+          repeatDelay: 3.5,
+        });
+        this.shineTimeline.fromTo(
+          shineEl,
+          { xPercent: -100, yPercent: -100, opacity: 0 },
+          {
+            xPercent: 100,
+            yPercent: 100,
+            opacity: 1,
+            duration: 2.5,
+            ease: 'power2.inOut',
+          }
+        );
+      }
+    }
   }
 
   public destroy(): void {
+    if (this.shineTimeline) {
+      this.shineTimeline.kill();
+      this.shineTimeline = null;
+    }
     if (this.cardEl) {
       if (this.clickHandler) {
         this.cardEl.removeEventListener('click', this.clickHandler);
