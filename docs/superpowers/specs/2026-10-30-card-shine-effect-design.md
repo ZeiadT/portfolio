@@ -20,11 +20,11 @@ Add an ultra-clean, continuous diagonal glass sheen animation across the profile
   - Angle: `115deg`.
   - Color stops:
     - `0%`: `transparent`
-    - `30%`: `rgba(255, 255, 255, 0.03)`
-    - `50%`: `rgba(255, 255, 255, 0.18)` (peak gentle highlight)
-    - `70%`: `rgba(255, 255, 255, 0.03)`
+    - `30%`: `rgba(255, 255, 255, 0.08)`
+    - `50%`: `rgba(255, 255, 255, 0.38)` (luminous gloss highlight, clearly visible over dark & light portrait tones)
+    - `70%`: `rgba(255, 255, 255, 0.08)`
     - `100%`: `transparent`
-  - Blend mode: `mix-blend-mode: overlay` (ensuring rich shadows and skin tones are preserved without blowing out contrast or causing milky washouts).
+  - Blend mode: Standard alpha blending (`mix-blend-mode: normal` / no overlay), producing an authentic glass reflection.
 
 ---
 
@@ -32,7 +32,7 @@ Add an ultra-clean, continuous diagonal glass sheen animation across the profile
 
 ### Kinetic Choreography
 - **Initial Setup**:
-  - The sheen overlay is sized `200%` width/height and positioned offscreen diagonally at top-left (`xPercent: -100, yPercent: -100`).
+  - The sheen overlay is sized `300%` width/height and positioned offscreen diagonally at top-left (`xPercent: -100, yPercent: -100`).
 - **Timeline Specs**:
   - Controlled via a dedicated GSAP timeline:
     ```typescript
@@ -42,7 +42,7 @@ Add an ultra-clean, continuous diagonal glass sheen animation across the profile
     });
     this.shineTimeline.fromTo(
       shineEl,
-      { xPercent: -100, yPercent: -100, opacity: 0 },
+      { xPercent: -100, yPercent: -100, opacity: 1 },
       {
         xPercent: 100,
         yPercent: 100,
@@ -52,6 +52,8 @@ Add an ultra-clean, continuous diagonal glass sheen animation across the profile
       }
     );
     ```
+- **Symmetry**:
+  - Opacity remains constant (`1.0`) throughout the diagonal travel, with natural optical feathering provided by the gradient's transparent stops (`0%` and `100%`).
 - **Cycle Timing**:
   - Sweep duration: `2.5s`
   - Rest delay between sweeps: `3.5s`
