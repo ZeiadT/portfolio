@@ -7,9 +7,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement an ultra-clean, continuous diagonal glass sheen animation on the profile portrait card that sweeps periodically with a calm pause using GSAP, with accessibility and lifecycle safety.
+**Goal:** Calibrate the continuous diagonal glass sheen animation on the profile portrait card for higher luminosity (clearly noticeable without straining) and optical symmetry.
 
-**Architecture:** Embed a `data-avatar-shine` overlay layer within `data-avatar-card` styled with `mix-blend-mode: overlay` and a 115° monochrome gradient. Control its diagonal sweep via an isolated GSAP timeline (`repeat: -1, repeatDelay: 3.5, duration: 2.5`), pausing when `prefers-reduced-motion` is active and killing the timeline in `destroy()`.
+**Architecture:** Embed a `data-avatar-shine` overlay layer within `data-avatar-card` styled with standard alpha translucency (transparent → 8% → 38% → 8% → transparent, no overlay blend mode). Control its diagonal sweep via an isolated GSAP timeline (`repeat: -1, repeatDelay: 3.5, duration: 2.5`), with constant `opacity: 1` throughout the sweep to ensure symmetrical entry and exit.
 
 **Tech Stack:** Vanilla TypeScript, GSAP 3, Tailwind CSS v4, Vitest
 
@@ -20,90 +20,59 @@
 
 ---
 
-### Task 1: Write Unit Tests for Shimmer Animation in `ProfileAvatar.test.ts`
+### Task 1: Update Unit Tests for Luminous Shimmer in `ProfileAvatar.test.ts`
 
 **Files:**
 - Modify: `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts`
 
 **Interfaces:**
 - Consumes: `ProfileAvatarComponent` from `@/components/home/ProfileAvatar`
-- Produces: Failing test assertions for `data-avatar-shine` DOM element, GSAP timeline creation, `prefers-reduced-motion` handling, and `destroy()` cleanup.
+- Produces: Failing test assertions for updated gradient (0.38 peak), normal blend mode (absence of `mix-blend-overlay`), and symmetrical `fromTo` opacity (opacity: 1).
 
 - [x] **Step 1: Write the failing tests**
 
-Update `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts` to include:
-1. Verification of `data-avatar-shine` element within `[data-avatar-card]` with pointer-events-none and absolute positioning.
-2. Verification that GSAP timeline is instantiated with `{ repeat: -1, repeatDelay: 3.5 }`.
-3. Verification that when `matchMedia('(prefers-reduced-motion: reduce)')` is true, the timeline is not run.
-4. Verification that `avatar.destroy()` kills the GSAP timeline.
+Update `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts` to:
+1. Assert `data-avatar-shine` does NOT have class `mix-blend-overlay` (uses standard clean alpha blending).
+2. Assert background style contains `rgba(255, 255, 255, 0.38)` and `0.08`.
+3. Assert GSAP `fromTo` sets `{ xPercent: -100, yPercent: -100, opacity: 1 }` to `{ xPercent: 100, yPercent: 100, opacity: 1 }`.
 
 - [x] **Step 2: Run test to verify it fails**
 
 Run: `npx --prefix portfolio vitest run src/components/home/__tests__/ProfileAvatar.test.ts`
-Expected: FAIL (assertion for `[data-avatar-shine]` or timeline fails because it is not yet implemented)
+Expected: FAIL (RED phase)
 
 ---
 
-### Task 2: Implement Shimmer Element & GSAP Timeline in `ProfileAvatar.ts`
+### Task 2: Implement Luminous Shimmer in `ProfileAvatar.ts`
 
 **Files:**
 - Modify: `portfolio/src/components/home/ProfileAvatar.ts`
 
 **Interfaces:**
 - Consumes: `gsap` from `gsap`, `ProfileAvatarConfig`, `ProfileAvatarOptions`
-- Produces: `ProfileAvatarComponent` mounting `data-avatar-shine` with continuous periodic GSAP diagonal sweep and cleanup.
+- Produces: `ProfileAvatarComponent` mounting luminous shimmer with normal blend mode and symmetrical GSAP sweep.
 
 - [x] **Step 1: Update `ProfileAvatar.ts`**
 
-1. Import `gsap` from `'gsap'`.
-2. Add private field: `private shineTimeline: gsap.core.Timeline | null = null;`.
-3. In `mount()`:
-   - Inside `[data-avatar-card]`, append the shimmer overlay HTML:
-     ```html
-     <div
-       data-avatar-shine
-       aria-hidden="true"
-       class="pointer-events-none absolute -inset-full w-[300%] h-[300%] opacity-0 select-none mix-blend-overlay"
-       style="background: linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.03) 30%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.03) 70%, transparent 100%);"
-     ></div>
-     ```
-   - Check `window.matchMedia('(prefers-reduced-motion: reduce)').matches`.
-   - If false, create the GSAP timeline:
-     ```typescript
-     const shineEl = root.querySelector<HTMLElement>('[data-avatar-shine]');
-     if (shineEl) {
-       this.shineTimeline = gsap.timeline({
-         repeat: -1,
-         repeatDelay: 3.5,
-       });
-       this.shineTimeline.fromTo(
-         shineEl,
-         { xPercent: -100, yPercent: -100, opacity: 0 },
-         {
-           xPercent: 100,
-           yPercent: 100,
-           opacity: 1,
-           duration: 2.5,
-           ease: 'power2.inOut',
-         }
-       );
-     }
-     ```
-4. In `destroy()`:
-   - Call `this.shineTimeline?.kill();` and set `this.shineTimeline = null;`.
+1. Remove `mix-blend-overlay` from `data-avatar-shine` class.
+2. Update gradient style:
+   `linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.08) 30%, rgba(255, 255, 255, 0.38) 50%, rgba(255, 255, 255, 0.08) 70%, transparent 100%)`
+3. Update `shineTimeline.fromTo`:
+   Start: `{ xPercent: -100, yPercent: -100, opacity: 1 }`
+   End: `{ xPercent: 100, yPercent: 100, opacity: 1, duration: 2.5, ease: 'power2.inOut' }`
 
 - [x] **Step 2: Run test to verify it passes**
 
 Run: `npx --prefix portfolio vitest run src/components/home/__tests__/ProfileAvatar.test.ts`
-Expected: PASS (all tests in `ProfileAvatar.test.ts` pass)
+Expected: PASS (GREEN phase)
 
 ---
 
 ### Task 3: Comprehensive Test Suite & Production Build Verification
 
 **Files:**
-- Test: All vitest suites
-- Build: Vite production build
+- Test: All vitest suites in `portfolio/src/`
+- Build: Vite production build (`portfolio/`)
 
 - [x] **Step 1: Run complete test suite**
 
