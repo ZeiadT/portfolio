@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CardSummonEngine, type CardSummonOptions } from '@/engines/card/CardSummonEngine';
-import gsap from 'gsap';
+import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
 
 describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
   let engine: CardSummonEngine;
