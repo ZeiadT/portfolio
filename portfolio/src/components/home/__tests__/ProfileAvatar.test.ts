@@ -142,8 +142,11 @@ describe('ProfileAvatarComponent', () => {
       expect(shineEl?.getAttribute('aria-hidden')).toBe('true');
       expect(shineEl?.classList.contains('pointer-events-none')).toBe(true);
       expect(shineEl?.classList.contains('absolute')).toBe(true);
-      expect(shineEl?.classList.contains('mix-blend-overlay')).toBe(true);
+      expect(shineEl?.classList.contains('mix-blend-overlay')).toBe(false);
+      expect(shineEl?.className).not.toContain('mix-blend-overlay');
       expect(shineEl?.style.background).toContain('linear-gradient');
+      expect(shineEl?.style.background).toContain('0.38');
+      expect(shineEl?.style.background).toContain('0.08');
 
       avatar.destroy();
     });
@@ -171,7 +174,7 @@ describe('ProfileAvatarComponent', () => {
         expect.objectContaining({
           xPercent: -100,
           yPercent: -100,
-          opacity: 0,
+          opacity: 1,
         }),
         expect.objectContaining({
           xPercent: 100,
