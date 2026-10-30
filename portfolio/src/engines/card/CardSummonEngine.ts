@@ -46,6 +46,8 @@ export class CardSummonEngine implements Engine {
   private backdropEl: HTMLElement | null = null;
   private bottomGlowEl: HTMLElement | null = null;
   private cardStageEl: HTMLElement | null = null;
+  private flashVeilEl: HTMLElement | null = null;
+  private shockwaveEl: HTMLElement | null = null;
   private cardAuraEl: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
   private cardBackEl: HTMLElement | null = null;
@@ -53,12 +55,15 @@ export class CardSummonEngine implements Engine {
   private closeBtnEl: HTMLButtonElement | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
+  private isSettled: boolean = false;
   private options: CardSummonOptions;
 
   private boundOnKeyDown: ((e: KeyboardEvent) => void) | null = null;
   private previousActiveElement: HTMLElement | null = null;
   private boundOnBackdropClick: ((e: MouseEvent) => void) | null = null;
   private boundOnCloseClick: ((e: MouseEvent) => void) | null = null;
+  private boundOnPointerMove: ((e: PointerEvent) => void) | null = null;
+  private boundOnPointerLeave: (() => void) | null = null;
 
   constructor(options: CardSummonOptions = {}) {
     this.options = options;
@@ -127,6 +132,13 @@ export class CardSummonEngine implements Engine {
     backdrop.className = 'absolute inset-0 bg-black/85 backdrop-blur-xl';
     modal.appendChild(backdrop);
 
+    // Fullscreen optical flash veil element
+    const flashVeil = document.createElement('div');
+    flashVeil.setAttribute('data-summon-flash-veil', '');
+    flashVeil.setAttribute('aria-hidden', 'true');
+    flashVeil.className = 'pointer-events-none fixed inset-0 z-30 bg-white opacity-0 select-none';
+    modal.appendChild(flashVeil);
+
     // Close button
     const closeBtn = document.createElement('button');
     closeBtn.setAttribute('type', 'button');
@@ -183,6 +195,12 @@ export class CardSummonEngine implements Engine {
     cardAura.style.opacity = '0';
     cardAura.style.background = `radial-gradient(circle at center, ${coreColor} 0%, ${primaryColor} 60%, transparent 100%)`;
     cardAura.style.boxShadow = `0 0 50px 10px ${primaryColor}80, 0 0 100px 30px ${primaryColor}40`;
+
+    // Radial shockwave ring element
+    const shockwave = document.createElement('div');
+    shockwave.setAttribute('data-summon-shockwave', '');
+    shockwave.setAttribute('aria-hidden', 'true');
+    shockwave.className = 'pointer-events-none absolute w-[280px] h-[280px] rounded-full border-2 border-white/80 opacity-0 select-none';
 
     // Card element (preserve-3d container)
     const card = document.createElement('div');
@@ -285,6 +303,7 @@ export class CardSummonEngine implements Engine {
     card.appendChild(cardFace);
 
     cardStage.appendChild(cardAura);
+    cardStage.appendChild(shockwave);
     cardStage.appendChild(card);
     modal.appendChild(cardStage);
 
@@ -292,6 +311,8 @@ export class CardSummonEngine implements Engine {
 
     this.modalEl = modal;
     this.backdropEl = backdrop;
+    this.flashVeilEl = flashVeil;
+    this.shockwaveEl = shockwave;
     this.bottomGlowEl = bottomGlow;
     this.cardStageEl = cardStage;
     this.cardAuraEl = cardAura;
@@ -299,6 +320,7 @@ export class CardSummonEngine implements Engine {
     this.cardBackEl = cardBack;
     this.cardFaceEl = cardFace;
     this.closeBtnEl = closeBtn;
+    this.isSettled = false;
 
     // Attach listeners
     this.boundOnBackdropClick = () => {
@@ -319,16 +341,66 @@ export class CardSummonEngine implements Engine {
     };
     window.addEventListener('keydown', this.boundOnKeyDown);
 
+    // Attach 3D parallax tilt listeners to modal
+    this.boundOnPointerMove = (e: PointerEvent) => {
+      if (!this.isSettled) {
+        if (this.openTimeline && this.openTimeline.progress() >= 1) {
+          this.isSettled = true;
+        } else {
+          return;
+        }
+      }
+      if (!this.cardEl || !this.modalEl) return;
+      const rect = this.modalEl.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      const maxTilt = 12;
+      const targetRotY = x * (maxTilt * 2);
+      const targetRotX = -y * (maxTilt * 2);
+      gsap.to(this.cardEl, {
+        rotationY: targetRotY,
+        rotationX: targetRotX,
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      });
+    };
+    modal.addEventListener('pointermove', this.boundOnPointerMove);
+
+    this.boundOnPointerLeave = () => {
+      if (!this.cardEl) return;
+      gsap.to(this.cardEl, {
+        rotationY: 0,
+        rotationX: 0,
+        duration: 0.5,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      });
+    };
+    modal.addEventListener('pointerleave', this.boundOnPointerLeave);
+
     // Check prefers-reduced-motion
     const prefersReducedMotion = typeof window !== 'undefined' &&
       (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
 
     // Build entrance timeline
-    this.openTimeline = gsap.timeline();
+    this.openTimeline = gsap.timeline({
+      onComplete: () => {
+        this.isSettled = true;
+      },
+    });
 
     if (prefersReducedMotion) {
+      this.isSettled = true;
       this.openTimeline.set(this.backdropEl, { autoAlpha: 1 });
-      this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 0, scaleY: 1 });
+      this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 0, scaleY: 1, scaleX: 1 });
+      if (this.flashVeilEl) {
+        this.openTimeline.set(this.flashVeilEl, { opacity: 0 });
+      }
+      if (this.shockwaveEl) {
+        this.openTimeline.set(this.shockwaveEl, { opacity: 0, scale: 1 });
+      }
       if (this.cardAuraEl) {
         this.openTimeline.set(this.cardAuraEl, { opacity: 0, scale: 1 });
       }
@@ -336,11 +408,13 @@ export class CardSummonEngine implements Engine {
         this.openTimeline.set(this.cardEl, {
           yPercent: 0,
           rotationY: 0,
+          rotationX: 0,
           rotationZ: 0,
           opacity: 1,
           scale: 1,
           scaleX: 1,
           scaleY: 1,
+          x: 0,
         });
       }
     } else {
@@ -351,95 +425,81 @@ export class CardSummonEngine implements Engine {
         0
       );
 
-      // Bottom curved hill glow: initial emergence then recede downward as card ascends
+      // Bottom curved hill glow: initial emergence (0s to 0.25s)
       this.openTimeline.fromTo(
         this.bottomGlowEl,
-        { xPercent: -50, yPercent: 100, opacity: 0, scaleY: 0, transformOrigin: 'bottom center' },
-        { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1, duration: 0.35, ease: 'power3.out' },
+        { xPercent: -50, yPercent: 100, opacity: 0, scaleY: 0, scaleX: 1, transformOrigin: 'bottom center' },
+        { xPercent: -50, yPercent: 0, opacity: 1, scaleY: 1, scaleX: 1, duration: 0.25, ease: 'power3.out' },
         0
       );
+
+      // Inhale squash on bottom glow (0.25s to 0.35s)
       this.openTimeline.to(
         this.bottomGlowEl,
-        { opacity: 0, scaleY: 0.2, duration: 0.65, ease: 'power2.inOut' },
+        { scaleY: 0.70, scaleX: 1.15, duration: 0.10, ease: 'power1.in' },
+        0.25
+      );
+
+      // Bottom glow recedes downward & fades (0.35s to 0.95s)
+      this.openTimeline.to(
+        this.bottomGlowEl,
+        { opacity: 0, scaleY: 0.2, scaleX: 1.0, duration: 0.60, ease: 'power2.inOut' },
         0.35
       );
 
-      // Card initial state and entrance choreography
-      if (this.cardAuraEl) {
-        this.openTimeline.set(
-          this.cardAuraEl,
-          {
-            opacity: 0,
-            scale: 0.8,
-          },
-          0.1
-        );
-
-        // Swells during apex hover (1.00s to 1.45s, duration 0.45s)
-        this.openTimeline.to(
-          this.cardAuraEl,
-          {
-            opacity: 0.90,
-            scale: 1.15,
-            duration: 0.45,
-            ease: 'power2.out',
-          },
-          1.00
-        );
-
-        // Soft dissipation during graceful descent (1.45s to 1.95s, duration 0.50s)
-        this.openTimeline.to(
-          this.cardAuraEl,
-          {
-            opacity: 0,
-            scale: 1.25,
-            duration: 0.50,
-            ease: 'power2.out',
-          },
-          1.45
-        );
-      }
-
       if (this.cardEl) {
-        // Initial state and ascent (0.10s to 0.90s, duration 0.80s)
+        // Card ascent (0.35s to 1.10s, duration 0.75s)
         this.openTimeline.fromTo(
           this.cardEl,
           {
             yPercent: 120,
             rotationY: -1080,
+            rotationX: 0,
             rotationZ: 12,
             opacity: 0,
             scale: 0.55,
             scaleX: 1,
             scaleY: 1,
+            x: 0,
           },
           {
             yPercent: -3,
-            rotationY: -18,
-            rotationZ: 2,
+            rotationY: 0,
+            rotationZ: 0,
             opacity: 1,
-            scale: 1.02,
-            duration: 0.80,
+            scale: 1.020,
+            duration: 0.75,
             ease: 'power3.out',
           },
-          0.1
+          0.35
         );
 
-        // Apex suspension hover (0.90s to 1.45s, duration 0.55s)
+        // Pre-fermata 20Hz vibration (0.75s to 1.10s)
         this.openTimeline.to(
           this.cardEl,
           {
-            yPercent: -2.8,
-            rotationY: -5,
-            rotationZ: 0.5,
-            scale: 1.02,
-            duration: 0.55,
+            x: 2.5,
+            duration: 0.025,
+            repeat: 13,
+            yoyo: true,
             ease: 'sine.inOut',
           },
-          0.90
+          0.75
         );
 
-        // Graceful falling descent into resting center (1.45s to 1.95s, duration 0.50s)
+        // The 150ms Fermata Freeze (1.10s to 1.25s)
+        this.openTimeline.set(this.cardEl, { x: 0 }, 1.10);
+        this.openTimeline.to(
+          this.cardEl,
+          {
+            scale: 1.025,
+            duration: 0.15,
+            ease: 'none',
+          },
+          1.10
+        );
+
+        // Card graceful descent to center (1.45s to 1.95s, duration 0.50s)
         this.openTimeline.to(
           this.cardEl,
           {
@@ -455,6 +515,64 @@ export class CardSummonEngine implements Engine {
           1.45
         );
       }
+
+      // Aura swell and dissipation
+      if (this.cardAuraEl) {
+        this.openTimeline.set(
+          this.cardAuraEl,
+          {
+            opacity: 0,
+            scale: 0.8,
+          },
+          0
+        );
+
+        // Aura swell (0.70s to 1.10s)
+        this.openTimeline.fromTo(
+          this.cardAuraEl,
+          { opacity: 0, scale: 0.8 },
+          { opacity: 0.95, scale: 1.15, duration: 0.40, ease: 'power2.out' },
+          0.70
+        );
+
+        // Aura soft dissipation during graceful descent (1.45s to 1.95s)
+        this.openTimeline.to(
+          this.cardAuraEl,
+          {
+            opacity: 0,
+            scale: 1.25,
+            duration: 0.50,
+            ease: 'power2.out',
+          },
+          1.45
+        );
+      }
+
+      // Climax optical flash veil & shockwave (1.25s)
+      if (this.flashVeilEl) {
+        this.openTimeline.to(
+          this.flashVeilEl,
+          { opacity: 0.95, duration: 0.03, ease: 'power2.out' },
+          1.25
+        );
+        this.openTimeline.to(
+          this.flashVeilEl,
+          { opacity: 0, duration: 0.17, ease: 'power2.out' },
+          1.28
+        );
+      }
+
+      if (this.shockwaveEl) {
+        this.openTimeline.fromTo(
+          this.shockwaveEl,
+          { scale: 0.2, opacity: 1 },
+          { scale: 2.8, opacity: 0, duration: 0.22, ease: 'power4.out' },
+          1.25
+        );
+      }
+
+      // Pad timeline total duration to 2.0s
+      this.openTimeline.set({}, {}, 2.0);
     }
 
     // Set accessible focus to close button
@@ -499,9 +617,26 @@ export class CardSummonEngine implements Engine {
       this.closeBtnEl.removeEventListener('click', this.boundOnCloseClick);
       this.boundOnCloseClick = null;
     }
+    if (this.modalEl && this.boundOnPointerMove) {
+      this.modalEl.removeEventListener('pointermove', this.boundOnPointerMove);
+      this.boundOnPointerMove = null;
+    }
+    if (this.modalEl && this.boundOnPointerLeave) {
+      this.modalEl.removeEventListener('pointerleave', this.boundOnPointerLeave);
+      this.boundOnPointerLeave = null;
+    }
+    this.isSettled = false;
     if (this.openTimeline) {
       this.openTimeline.kill();
       this.openTimeline = null;
+    }
+    if (this.flashVeilEl) {
+      this.flashVeilEl.remove();
+      this.flashVeilEl = null;
+    }
+    if (this.shockwaveEl) {
+      this.shockwaveEl.remove();
+      this.shockwaveEl = null;
     }
     if (this.modalEl) {
       this.modalEl.remove();
