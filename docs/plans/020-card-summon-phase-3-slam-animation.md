@@ -1,6 +1,6 @@
 # Card Summon - Phase 3: Slam Animation & Impact Aura Implementation Plan
 
-- **Status**: In Progress (Refining to 3 Spins, Lower Overshoot, & Graceful Fall in Place)
+- **Status**: Completed
 - **Created**: 2026-10-30
 - **Last Updated**: 2026-10-30
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Tailwind CSS v4, Vitest
@@ -69,6 +69,6 @@
 - Build: Vite production build (`portfolio/`)
 - Docs: `docs/plans/020-card-summon-phase-3-slam-animation.md`
 
-- [ ] **Step 1: Run complete test suite (`npm --prefix portfolio test`)**
-- [ ] **Step 2: Run Vite production build (`npm --prefix portfolio run build`)**
-- [ ] **Step 3: Mark documentation plan Completed and commit**
+- [x] **Step 1: Run complete test suite (`npm --prefix portfolio test`)**
+- [x] **Step 2: Run Vite production build (`npm --prefix portfolio run build`)**
+- [x] **Step 3: Mark documentation plan Completed and commit**
