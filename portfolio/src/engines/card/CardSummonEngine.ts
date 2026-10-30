@@ -48,6 +48,8 @@ export class CardSummonEngine implements Engine {
   private cardStageEl: HTMLElement | null = null;
   private cardAuraEl: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
+  private cardBackEl: HTMLElement | null = null;
+  private cardFaceEl: HTMLElement | null = null;
   private closeBtnEl: HTMLButtonElement | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
@@ -185,8 +187,102 @@ export class CardSummonEngine implements Engine {
     // Card element (preserve-3d container)
     const card = document.createElement('div');
     card.setAttribute('data-summon-card', '');
-    card.className = 'pointer-events-auto relative w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7] rounded-3xl bg-neutral-900 border border-white/20 shadow-2xl overflow-hidden [transform-style:preserve-3d]';
+    card.className = 'pointer-events-auto relative w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7] rounded-3xl shadow-2xl [transform-style:preserve-3d]';
     card.style.transformStyle = 'preserve-3d';
+
+    const sigilId = `sigil-${Math.random().toString(36).slice(2, 9)}`;
+
+    // Double-sided 3D card faces
+    const cardBack = document.createElement('div');
+    cardBack.setAttribute('data-summon-card-back', '');
+    cardBack.className = 'absolute inset-0 rounded-3xl overflow-hidden pointer-events-none select-none [backface-visibility:hidden]';
+    cardBack.style.backfaceVisibility = 'hidden';
+    cardBack.innerHTML = `
+      <svg viewBox="0 0 350 490" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="${sigilId}-bg" cx="50%" cy="50%" r="75%">
+            <stop offset="0%" stop-color="#141419" />
+            <stop offset="60%" stop-color="#0a0a0d" />
+            <stop offset="100%" stop-color="#050507" />
+          </radialGradient>
+          <linearGradient id="${sigilId}-energy" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${primaryColor}" stop-opacity="0.9" />
+            <stop offset="50%" stop-color="${coreColor}" stop-opacity="1" />
+            <stop offset="100%" stop-color="${primaryColor}" stop-opacity="0.8" />
+          </linearGradient>
+          <radialGradient id="${sigilId}-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="${coreColor}" stop-opacity="0.9" />
+            <stop offset="40%" stop-color="${primaryColor}" stop-opacity="0.6" />
+            <stop offset="100%" stop-color="${primaryColor}" stop-opacity="0" />
+          </radialGradient>
+          <linearGradient id="${sigilId}-border" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="${coreColor}" stop-opacity="0.6" />
+            <stop offset="50%" stop-color="${primaryColor}" stop-opacity="0.4" />
+            <stop offset="100%" stop-color="${coreColor}" stop-opacity="0.2" />
+          </linearGradient>
+        </defs>
+
+        <!-- Obsidian Glass Surface -->
+        <rect width="350" height="490" rx="24" fill="url(#${sigilId}-bg)" />
+
+        <!-- Outer Obsidian & Metallic Frame -->
+        <g data-summon-card-back-frame>
+          <rect x="12" y="12" width="326" height="466" rx="16" fill="none" stroke="url(#${sigilId}-border)" stroke-width="1.5" />
+          <rect x="18" y="18" width="314" height="454" rx="12" fill="none" stroke="${primaryColor}" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="6 4" />
+        </g>
+
+        <!-- 4 Symmetrical Corner Filigrees -->
+        <g data-summon-card-filigree transform="translate(24, 24)">
+          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
+          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
+          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
+        </g>
+        <g data-summon-card-filigree transform="translate(326, 24) scale(-1, 1)">
+          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
+          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
+          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
+        </g>
+        <g data-summon-card-filigree transform="translate(24, 466) scale(1, -1)">
+          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
+          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
+          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
+        </g>
+        <g data-summon-card-filigree transform="translate(326, 466) scale(-1, -1)">
+          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
+          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
+          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
+        </g>
+
+        <!-- Concentric Halo Rings & Radiating Celestial Notches -->
+        <g data-summon-card-halo transform="translate(175, 245)">
+          <circle cx="0" cy="0" r="95" fill="none" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 6" />
+          <circle cx="0" cy="0" r="82" fill="none" stroke="${coreColor}" stroke-opacity="0.5" stroke-width="1.2" />
+          <circle cx="0" cy="0" r="68" fill="none" stroke="${primaryColor}" stroke-opacity="0.6" stroke-width="1" stroke-dasharray="12 4 4 4" />
+          <circle cx="0" cy="0" r="52" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="1" />
+          <path d="M 0 -98 L 0 -88 M 0 88 L 0 98 M -98 0 L -88 0 M 88 0 L 98 0" stroke="${coreColor}" stroke-width="1.5" stroke-linecap="round" />
+          <path d="M -69 -69 L -62 -62 M 62 62 L 69 69 M 69 -69 L 62 -62 M -62 62 L -69 69" stroke="${primaryColor}" stroke-width="1.2" stroke-linecap="round" />
+        </g>
+
+        <!-- Central Glowing Ace Crest -->
+        <g data-summon-card-crest transform="translate(175, 245)">
+          <circle cx="0" cy="0" r="44" fill="url(#${sigilId}-glow)" />
+          <polygon points="0,-42 28,0 0,42 -28,0" fill="none" stroke="url(#${sigilId}-energy)" stroke-width="1.5" />
+          <polygon points="0,-32 20,0 0,32 -20,0" fill="${primaryColor}" fill-opacity="0.15" stroke="${coreColor}" stroke-width="1" />
+          <path d="M 0 -24 L 6 -6 L 24 0 L 6 6 L 0 24 L -6 6 L -24 0 L -6 -6 Z" fill="${coreColor}" fill-opacity="0.9" />
+          <circle cx="0" cy="0" r="3.5" fill="${coreColor}" />
+        </g>
+      </svg>
+    `;
+
+    // Card Face placeholder (rotated 180deg on Y axis)
+    const cardFace = document.createElement('div');
+    cardFace.setAttribute('data-summon-card-face', '');
+    cardFace.className = 'absolute inset-0 rounded-3xl overflow-hidden pointer-events-none select-none bg-neutral-900 border border-white/20 [backface-visibility:hidden] [transform:rotateY(180deg)]';
+    cardFace.style.backfaceVisibility = 'hidden';
+    cardFace.style.transform = 'rotateY(180deg)';
+
+    card.appendChild(cardBack);
+    card.appendChild(cardFace);
 
     cardStage.appendChild(cardAura);
     cardStage.appendChild(card);
@@ -200,6 +296,8 @@ export class CardSummonEngine implements Engine {
     this.cardStageEl = cardStage;
     this.cardAuraEl = cardAura;
     this.cardEl = card;
+    this.cardBackEl = cardBack;
+    this.cardFaceEl = cardFace;
     this.closeBtnEl = closeBtn;
 
     // Attach listeners
@@ -412,6 +510,14 @@ export class CardSummonEngine implements Engine {
     if (this.cardAuraEl) {
       this.cardAuraEl.remove();
       this.cardAuraEl = null;
+    }
+    if (this.cardBackEl) {
+      this.cardBackEl.remove();
+      this.cardBackEl = null;
+    }
+    if (this.cardFaceEl) {
+      this.cardFaceEl.remove();
+      this.cardFaceEl = null;
     }
     if (this.cardEl) {
       this.cardEl.remove();
