@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { gsap } from 'gsap';
 import { ProfileAvatarComponent } from '../ProfileAvatar';
 import type { ProfileAvatarConfig } from '@/domain/types';
 
@@ -126,5 +127,106 @@ describe('ProfileAvatarComponent', () => {
 
     avatar.destroy();
     expect(container.children.length).toBe(0);
+  });
+
+  describe('continuous card shimmer animation', () => {
+    it('mounts data-avatar-shine overlay inside card with non-blocking blend mode and diagonal gradient', () => {
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      const cardEl = container.querySelector<HTMLElement>('[data-avatar-card]');
+      expect(cardEl).toBeTruthy();
+
+      const shineEl = cardEl?.querySelector<HTMLElement>('[data-avatar-shine]');
+      expect(shineEl).toBeTruthy();
+      expect(shineEl?.getAttribute('aria-hidden')).toBe('true');
+      expect(shineEl?.classList.contains('pointer-events-none')).toBe(true);
+      expect(shineEl?.classList.contains('absolute')).toBe(true);
+      expect(shineEl?.classList.contains('mix-blend-overlay')).toBe(true);
+      expect(shineEl?.style.background).toContain('linear-gradient');
+
+      avatar.destroy();
+    });
+
+    it('initializes continuous GSAP shimmer timeline with periodic repeat interval and diagonal sweep', () => {
+      const timelineSpy = vi.spyOn(gsap, 'timeline');
+      const fromToSpy = vi.spyOn(gsap.core.Timeline.prototype, 'fromTo');
+
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      expect(timelineSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repeat: -1,
+          repeatDelay: 3.5,
+        })
+      );
+
+      const cardEl = container.querySelector<HTMLElement>('[data-avatar-card]');
+      const shineEl = cardEl?.querySelector<HTMLElement>('[data-avatar-shine]');
+      expect(shineEl).toBeTruthy();
+
+      expect(fromToSpy).toHaveBeenCalledWith(
+        shineEl,
+        expect.objectContaining({
+          xPercent: -100,
+          yPercent: -100,
+          opacity: 0,
+        }),
+        expect.objectContaining({
+          xPercent: 100,
+          yPercent: 100,
+          opacity: 1,
+          duration: 2.5,
+          ease: 'power2.inOut',
+        })
+      );
+
+      avatar.destroy();
+    });
+
+    it('suppresses shimmer GSAP animation when prefers-reduced-motion is active', () => {
+      vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      } as unknown as MediaQueryList));
+
+      const timelineSpy = vi.spyOn(gsap, 'timeline');
+
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      expect(timelineSpy).not.toHaveBeenCalled();
+
+      const cardEl = container.querySelector<HTMLElement>('[data-avatar-card]');
+      const shineEl = cardEl?.querySelector<HTMLElement>('[data-avatar-shine]');
+      expect(shineEl).toBeTruthy();
+      expect(shineEl?.classList.contains('opacity-0')).toBe(true);
+
+      avatar.destroy();
+    });
+
+    it('kills GSAP shimmer timeline cleanly upon component destroy lifecycle', () => {
+      const timelineSpy = vi.spyOn(gsap, 'timeline');
+
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      expect(timelineSpy).toHaveBeenCalled();
+      const tlInstance = timelineSpy.mock.results[0]?.value as gsap.core.Timeline;
+      expect(tlInstance).toBeDefined();
+
+      const killSpy = vi.spyOn(tlInstance, 'kill');
+
+      avatar.destroy();
+
+      expect(killSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });
