@@ -67,40 +67,41 @@ export class ProfileAvatarComponent {
     root.innerHTML = `
       <!-- Clean Portrait Card Container -->
       <div class="relative w-full flex items-center justify-center">
-        <!-- Outer ambient bloom -->
-        <div
-          data-avatar-border-glow
-          aria-hidden="true"
-          class="pointer-events-none absolute -inset-[2px] rounded-2xl sm:rounded-3xl overflow-hidden blur-md opacity-25"
-        >
+        <div class="relative w-full aspect-[4/5] transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99]">
+          <!-- Outer ambient bloom -->
           <div
-            data-avatar-border-glow-beam
-            class="w-[250%] h-[250%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            style="background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #ff4421 335deg, rgba(255, 255, 255, 0.95) 360deg);"
-          ></div>
-        </div>
+            data-avatar-border-glow
+            aria-hidden="true"
+            class="pointer-events-none absolute -inset-[2px] rounded-2xl sm:rounded-3xl overflow-hidden blur-md opacity-25"
+          >
+            <div
+              data-avatar-border-glow-beam
+              class="w-[250%] h-[250%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              style="background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #ff4421 335deg, rgba(255, 255, 255, 0.95) 360deg);"
+            ></div>
+          </div>
 
-        <!-- 1.5px Hairline track -->
-        <div
-          data-avatar-border-track
-          aria-hidden="true"
-          class="pointer-events-none absolute -inset-[1.5px] rounded-2xl sm:rounded-3xl overflow-hidden p-[1.5px]"
-        >
+          <!-- 1.5px Hairline track -->
           <div
-            data-avatar-border-beam
-            class="w-[250%] h-[250%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-            style="background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #ff4421 335deg, rgba(255, 255, 255, 0.95) 360deg);"
-          ></div>
-        </div>
+            data-avatar-border-track
+            aria-hidden="true"
+            class="pointer-events-none absolute -inset-[1.5px] rounded-2xl sm:rounded-3xl overflow-hidden"
+          >
+            <div
+              data-avatar-border-beam
+              class="w-[250%] h-[250%] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              style="background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, #ff4421 335deg, rgba(255, 255, 255, 0.95) 360deg);"
+            ></div>
+          </div>
 
-        <!-- Portrait Card -->
-        <div
-          data-avatar-card
-          role="button"
-          tabindex="0"
-          aria-label="Portrait photo"
-          class="relative w-full aspect-[4/5] rounded-2xl sm:rounded-3xl border border-white/15 bg-neutral-900/80 backdrop-blur-md overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.7)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4421] active:scale-[0.99] transition-transform duration-200 hover:scale-[1.01]"
-        >
+          <!-- Portrait Card -->
+          <div
+            data-avatar-card
+            role="button"
+            tabindex="0"
+            aria-label="Portrait photo"
+            class="relative z-10 w-full h-full rounded-2xl sm:rounded-3xl border border-white/10 bg-neutral-900/90 backdrop-blur-md overflow-hidden shadow-[0_16px_50px_rgba(0,0,0,0.7)] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4421]"
+          >
           <!-- The Portrait Image (Pure & Un-obscured) -->
           <img
             src="${this.config.src}"
@@ -127,6 +128,7 @@ export class ProfileAvatarComponent {
             class="pointer-events-none absolute -inset-full w-[300%] h-[300%] opacity-0 select-none"
             style="background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.06) 30%, rgba(255, 255, 255, 0.30) 50%, rgba(255, 255, 255, 0.06) 70%, transparent 100%);"
           ></div>
+        </div>
         </div>
       </div>
 
