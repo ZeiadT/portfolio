@@ -2,7 +2,7 @@ export interface HoloCardEngineOptions {
   imageSrc: string;
   alt?: string;
   edgeSensitivity?: number; // default 12.0
-  holoIntensity?: number; // default 2.0
+  holoIntensity?: number; // default 0.4 (light hint 20%)
   maxTiltDeg?: number; // default 12.0
   targetEl?: HTMLElement; // Element to apply 3D tilt CSS to
 }
@@ -63,7 +63,7 @@ void main() {
 
   // 6. Color-Dodge / Additive Compositing
   vec3 holoReflection = rainbow * pow(spec, 2.5) * traceMask * u_holoIntensity;
-  vec3 goldGlint = vec3(1.0, 0.95, 0.8) * pow(spec, 8.0) * edge * 0.6;
+  vec3 goldGlint = vec3(1.0, 0.95, 0.8) * pow(spec, 8.0) * edge * (u_holoIntensity * 0.3);
 
   vec3 finalColor = base.rgb + holoReflection + goldGlint;
   fragColor = vec4(finalColor, base.a);
@@ -127,7 +127,7 @@ export class HoloCardEngine {
   constructor(options: HoloCardEngineOptions) {
     this.options = options;
     this.edgeSensitivity = options.edgeSensitivity ?? 12.0;
-    this.holoIntensity = options.holoIntensity ?? 2.0;
+    this.holoIntensity = options.holoIntensity ?? 0.4;
     this.maxTiltDeg = options.maxTiltDeg ?? 12.0;
     this.targetEl = options.targetEl ?? null;
   }

@@ -118,6 +118,21 @@ describe('ProfileAvatarComponent', () => {
     }
   });
 
+  it('configures HoloCardEngine with light hint holoIntensity (0.4)', () => {
+    const unmock = mockWebGL2();
+    try {
+      const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
+      avatar.mount(container);
+
+      expect((avatar as any).holoEngine).toBeTruthy();
+      expect((avatar as any).holoEngine.holoIntensity).toBe(0.4);
+
+      avatar.destroy();
+    } finally {
+      unmock();
+    }
+  });
+
   it('removes canvas leaving pure portrait img when WebGL2 is unsupported', () => {
     const avatar = new ProfileAvatarComponent(mockAvatar, mockOptions);
     avatar.mount(container);

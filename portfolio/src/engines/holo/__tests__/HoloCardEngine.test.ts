@@ -118,6 +118,38 @@ describe('HoloCardEngine', () => {
     }
   });
 
+  it('sets default u_holoIntensity uniform to 0.4 (20% light hint) and respects custom values', () => {
+    const mockGl = createMockGl();
+    const origGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = vi.fn().mockImplementation((type: string) => {
+      if (type === 'webgl2') return mockGl as unknown as WebGL2RenderingContext;
+      return null;
+    }) as any;
+
+    try {
+      // Default engine should upload 0.4
+      const defaultEngine = new HoloCardEngine({ imageSrc: '/profile.jpg' });
+      defaultEngine.mount(container);
+      expect(mockGl.uniform1f).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'u_holoIntensity' }),
+        0.4
+      );
+      defaultEngine.destroy();
+
+      // Custom intensity engine
+      mockGl.uniform1f.mockClear();
+      const customEngine = new HoloCardEngine({ imageSrc: '/profile.jpg', holoIntensity: 0.2 });
+      customEngine.mount(container);
+      expect(mockGl.uniform1f).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'u_holoIntensity' }),
+        0.2
+      );
+      customEngine.destroy();
+    } finally {
+      HTMLCanvasElement.prototype.getContext = origGetContext;
+    }
+  });
+
   it('updates canvas dimensions, viewport, and UV transform on resize', () => {
     const mockGl = createMockGl();
     const origGetContext = HTMLCanvasElement.prototype.getContext;

@@ -311,3 +311,40 @@ git commit -m "docs: complete pokemon holo card engine plan"
 - [x] **Step 4: Run all tests and verify PASS**
 - [x] **Step 5: Run production build and commit**
 
+---
+
+### Task 6: Calibrate Holographic Effect Intensity to Light Hint (20% Opacity)
+
+**Goal:** Lower the opacity and intensity of the holographic shader effect to display as an elegant, subtle light hint (~20% strength) across the portrait artwork contours.
+
+**Files:**
+- Modify: `portfolio/src/engines/holo/HoloCardEngine.ts`
+- Modify: `portfolio/src/engines/holo/__tests__/HoloCardEngine.test.ts`
+- Modify: `portfolio/src/components/home/ProfileAvatar.ts`
+- Modify: `portfolio/src/components/home/__tests__/ProfileAvatar.test.ts`
+
+**Specifications:**
+1. **Shader Compositing & Proportionate Glint Scaling**:
+   - In `FRAGMENT_SHADER`:
+     `vec3 holoReflection = rainbow * pow(spec, 2.5) * traceMask * u_holoIntensity;`
+     `vec3 goldGlint = vec3(1.0, 0.95, 0.8) * pow(spec, 8.0) * edge * (u_holoIntensity * 0.3);`
+   - Previously `goldGlint` was hardcoded to `* 0.6`. By scaling with `u_holoIntensity * 0.3`, both the rainbow sheen and the specular glint scale in lockstep. At `u_holoIntensity = 0.4` (20% of 2.0), `holoReflection` is 20% strength and `goldGlint` is `0.4 * 0.3 = 0.12` (20% of 0.6).
+2. **Default Holo Intensity**:
+   - In `HoloCardEngineOptions` and `HoloCardEngine` constructor: change default `holoIntensity` from `2.0` to `0.4`.
+3. **ProfileAvatar Component Calibration**:
+   - In `ProfileAvatarComponent`: pass `holoIntensity: 0.4` when instantiating `HoloCardEngine`.
+4. **Test Specifications**:
+   - `HoloCardEngine.test.ts`:
+     - Assert `u_holoIntensity` uniform is set to `0.4` by default.
+     - Assert custom `holoIntensity` option (e.g. `0.2`) is passed to uniform.
+   - `ProfileAvatar.test.ts`:
+     - Assert `ProfileAvatarComponent` configures `HoloCardEngine` with `holoIntensity: 0.4`.
+
+- [x] **Step 1: Write failing tests in `HoloCardEngine.test.ts` and `ProfileAvatar.test.ts`**
+- [x] **Step 2: Run test suite to observe RED failures**
+- [x] **Step 3: Implement shader and intensity calibration in `HoloCardEngine.ts` and `ProfileAvatar.ts`**
+- [x] **Step 4: Run test suite to verify GREEN passes**
+- [x] **Step 5: Run full test suite and Vite build**
+- [x] **Step 6: Commit changes**
+
+
