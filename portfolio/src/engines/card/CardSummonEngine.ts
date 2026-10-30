@@ -247,6 +247,7 @@ export class CardSummonEngine implements Engine {
     }
     if (this.openTimeline) {
       this.openTimeline.kill();
+      this.openTimeline = null;
     }
     if (this.modalEl) {
       this.modalEl.remove();
