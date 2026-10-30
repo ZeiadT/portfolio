@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProfileHeader } from '../ProfileHeader';
+import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
 import type { ProfileData } from '@/domain/types';
 
 describe('ProfileHeader Component', () => {
@@ -96,5 +97,29 @@ describe('ProfileHeader Component', () => {
 
     header.destroy();
     expect(container.children.length).toBe(0);
+  });
+
+  it('opens CardSummonEngine when avatar card is clicked and cleans it up on destroy', () => {
+    const openSpy = vi.spyOn(CardSummonEngine.prototype, 'open');
+    const destroySpy = vi.spyOn(CardSummonEngine.prototype, 'destroy');
+
+    const header = new ProfileHeader(mockData);
+    header.mount(container);
+
+    const avatarCard = container.querySelector<HTMLElement>('[data-avatar-card]');
+    expect(avatarCard).toBeTruthy();
+
+    avatarCard?.click();
+
+    expect(openSpy).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('[data-card-summon-modal]')).toBeTruthy();
+
+    header.destroy();
+
+    expect(destroySpy).toHaveBeenCalled();
+    expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
+
+    openSpy.mockRestore();
+    destroySpy.mockRestore();
   });
 });
