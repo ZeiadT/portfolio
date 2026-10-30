@@ -958,6 +958,62 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
   });
 
+  it('leaves rotationY and rotationX strictly at 0 when pointermove is dispatched under prefers-reduced-motion: reduce', () => {
+    const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+      matches: query.includes('prefers-reduced-motion: reduce'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(modal).not.toBeNull();
+    expect(card).not.toBeNull();
+
+    vi.spyOn(modal!, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 800,
+      right: 1000,
+      bottom: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    const tl = engine.getTimeline();
+    tl?.progress(1);
+
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
+
+    // Dispatch pointermove away from center
+    modal?.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 800,
+        clientY: 650,
+        bubbles: true,
+      })
+    );
+
+    // Resolve any active GSAP tweens on card
+    gsap.getTweensOf(card).forEach((tween) => tween.progress(1));
+
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
+
+    matchMediaSpy.mockRestore();
+  });
+
   it('removes flash veil, shockwave, and pointer listeners cleanly on close() and destroy()', () => {
     engine = new CardSummonEngine();
     engine.open();

@@ -343,6 +343,9 @@ export class CardSummonEngine implements Engine {
 
     // Attach 3D parallax tilt listeners to modal
     this.boundOnPointerMove = (e: PointerEvent) => {
+      if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
+        return;
+      }
       if (!this.isSettled) {
         if (this.openTimeline && this.openTimeline.progress() >= 1) {
           this.isSettled = true;
@@ -655,6 +658,7 @@ export class CardSummonEngine implements Engine {
       this.cardFaceEl = null;
     }
     if (this.cardEl) {
+      gsap.killTweensOf(this.cardEl);
       this.cardEl.remove();
       this.cardEl = null;
     }
