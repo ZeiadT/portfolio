@@ -150,3 +150,26 @@ portfolio/src/engines/card/
 - Test that backdrop element has \g-black/75\.
 - Test that \open()\ animates veil opacity from 1 down to 0 and ends in an unmasked state (\isMaskConcealed() === false\).
 - Test that shake vibration amplitude is calibrated ($\le 1.0\text{px}$) and resets to 0 at the fermata freeze.
+
+---
+
+## Revision 6 (2026-10-31): Distributed Studio Lighting (No Mirror Glare), Profile Image Loading, & Animated Stars / Progress Bars
+
+### Requirements & Alignment
+1. **Distributed Diffuse Lighting & Satin Card Material:**
+   - Eliminate flashlight-in-a-mirror specular hotspot on the front face by setting `frontMaterial` roughness to `0.88` and metalness to `0.0` (luxury matte/satin cardstock print).
+   - Rebalance lights: high ambient (1.4), angled top-right key light `[4, 6, 4]` (0.9), soft bounce fill `[-4, -3, 3]` (0.5), and dedicated gold rim light `[-5, 4, -5]` (1.6) for gilded edges. No light pointing straight into the camera lens.
+2. **Profile Image on Front Face:**
+   - Draw user photo from `/profile.jpg` (cover-fit inside rounded portrait container with subtle dark vignette).
+   - Fall back to clean architectural geometry if image not yet loaded or in non-browser environments.
+3. **Animated Stars & Progress Bars:**
+   - In `CardTextureGenerator`, support `starsProgress` and `barsProgress` [0, 1]:
+     - Stars at top illuminate sequentially with golden glow.
+     - Attribute tickers (PERF, ARCH, CODE) animate numbers counting up from 0 to target scores and progress bars expanding smoothly across their tracks.
+   - Wire into Phase 4 of `openTimeline` in `CardSummonEngine` (1.45s to 2.15s).
+
+### Test Specifications (TDD)
+- Test that `frontMaterial` has roughness >= 0.8 and metalness <= 0.1 (diffuse matte, no mirror hotspot).
+- Test that `CardTextureGenerator` renders with custom `starsProgress` and `barsProgress` and draws loaded images.
+- Test that `ThreeCardModel` exposes `setStatsAnimationProgress(stars, bars)` and updates front texture.
+- Test that `openTimeline` drives stats animation progress from 0 to 1 upon completion.

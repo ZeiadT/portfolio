@@ -718,6 +718,9 @@ export class CardSummonEngine implements Engine {
         this.isSettled = true;
         this.isFlipped = true;
         this.isMaskConcealedState = false;
+        if (this.threeCardModel) {
+          this.threeCardModel.setStatsAnimationProgress(1, 1);
+        }
         if (this.controlsEl) {
           this.controlsEl.style.opacity = '1';
         }
@@ -744,6 +747,7 @@ export class CardSummonEngine implements Engine {
         this.isMaskConcealedState = false;
         if (this.threeCardModel) {
           this.threeCardModel.setVeilOpacity(0);
+          this.threeCardModel.setStatsAnimationProgress(1, 1);
         }
       }
       if (this.cardEl) {
@@ -952,8 +956,32 @@ export class CardSummonEngine implements Engine {
         );
       }
 
-      // Pad timeline total duration to 2.0s
-      this.openTimeline.set({}, {}, 2.0);
+      // Phase 4: Attribute Stats & Star Entrance Animation (1.45s to 2.15s)
+      const statsAnimState = { stars: 0, bars: 0 };
+      this.openTimeline.fromTo(
+        statsAnimState,
+        { stars: 0, bars: 0 },
+        {
+          stars: 1,
+          bars: 1,
+          duration: 0.70,
+          ease: 'power2.out',
+          onUpdate: () => {
+            if (this.threeCardModel) {
+              this.threeCardModel.setStatsAnimationProgress(statsAnimState.stars, statsAnimState.bars);
+            }
+          },
+          onComplete: () => {
+            if (this.threeCardModel) {
+              this.threeCardModel.setStatsAnimationProgress(1, 1);
+            }
+          },
+        },
+        1.45
+      );
+
+      // Pad timeline total duration to 2.2s
+      this.openTimeline.set({}, {}, 2.2);
     }
 
     // Initial sync of ThreeCardModel state

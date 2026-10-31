@@ -42,6 +42,12 @@ function drawQuadCurve(
   }
 }
 
+export interface FrontCardTextureOptions {
+  imageElement?: HTMLImageElement | null;
+  starsProgress?: number;
+  barsProgress?: number;
+}
+
 /**
  * CardTextureGenerator
  *
@@ -469,16 +475,41 @@ export class CardTextureGenerator {
    */
   public static generateFrontCardTexture(
     data: CardSummonData,
-    theme: CardSummonTheme = {}
+    theme: CardSummonTheme = {},
+    options: FrontCardTextureOptions = {},
+    existingCanvas?: HTMLCanvasElement
   ): THREE.CanvasTexture {
-    const canvas = document.createElement('canvas');
-    canvas.width = CardTextureGenerator.TEXTURE_WIDTH;
-    canvas.height = CardTextureGenerator.TEXTURE_HEIGHT;
+    const canvas = existingCanvas ?? document.createElement('canvas');
+    if (!existingCanvas) {
+      canvas.width = CardTextureGenerator.TEXTURE_WIDTH;
+      canvas.height = CardTextureGenerator.TEXTURE_HEIGHT;
+    }
 
+    CardTextureGenerator.drawFrontCardContent(canvas, data, theme, options);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
+  /**
+   * Draws the front card content onto a 2D canvas context.
+   */
+  public static drawFrontCardContent(
+    canvas: HTMLCanvasElement,
+    data: CardSummonData,
+    theme: CardSummonTheme = {},
+    options: FrontCardTextureOptions = {}
+  ): void {
     const ctx = canvas.getContext('2d');
-    if (ctx) {
-      const primaryColor = theme.primaryColor ?? '#ff4421';
-      const coreColor = theme.coreColor ?? '#ffffff';
+    if (!ctx) return;
+
+    const primaryColor = theme.primaryColor ?? '#ff4421';
+    const coreColor = theme.coreColor ?? '#ffffff';
 
       const roleTitle = data.role || 'Mobile Developer';
       const candidateName = data.name || 'Anonymous Candidate';
@@ -532,11 +563,35 @@ export class CardTextureGenerator {
       ctx.fillStyle = '#fef08a'; // Amber-200 warm gold
       ctx.fillText(roleTitle.toUpperCase(), 76, 86);
 
-      // Right Stars
-      ctx.textAlign = 'right';
+      // Right Stars (with animated sequential illumination)
+      const starsProgress = Math.max(0, Math.min(1, options.starsProgress ?? 1.0));
+      const litCount = Math.min(starCount, Math.max(0, Math.round(starsProgress * starCount)));
+      const unlitCount = Math.max(0, starCount - litCount);
+
       ctx.font = '26px sans-serif';
-      ctx.fillStyle = '#fbbf24'; // Amber-400
-      ctx.fillText('★'.repeat(starCount), 992, 86);
+      ctx.textAlign = 'right';
+
+      if (unlitCount === 0) {
+        ctx.fillStyle = '#fbbf24'; // Amber-400
+        ctx.shadowColor = 'rgba(251, 191, 36, 0.6)';
+        ctx.shadowBlur = 8;
+        ctx.fillText('★'.repeat(starCount), 992, 86);
+        ctx.shadowBlur = 0;
+      } else {
+        const dimStr = '★'.repeat(unlitCount);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.shadowBlur = 0;
+        ctx.fillText(dimStr, 992, 86);
+
+        if (litCount > 0) {
+          const dimWidth = ctx.measureText(dimStr).width;
+          ctx.fillStyle = '#fbbf24';
+          ctx.shadowColor = 'rgba(251, 191, 36, 0.6)';
+          ctx.shadowBlur = 8;
+          ctx.fillText('★'.repeat(litCount), 992 - dimWidth, 86);
+          ctx.shadowBlur = 0;
+        }
+      }
 
       // Technical Coordinates Subheader
       ctx.font = '16px "JetBrains Mono", monospace';
@@ -565,24 +620,51 @@ export class CardTextureGenerator {
       ctx.fillStyle = portraitGrad;
       ctx.fillRect(portraitX, portraitY, portraitW, portraitH);
 
-      // Stylized Portrait Silhouette / Technical Geometry
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1.5;
-      for (let r = 60; r <= 220; r += 40) {
-        ctx.beginPath();
-        ctx.arc(portraitX + portraitW / 2, portraitY + portraitH / 2, r, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+      const img = options.imageElement;
+      if (img && img.complete && img.naturalWidth > 0) {
+        // Draw user photograph cover-fit inside portrait window
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const boxRatio = portraitW / portraitH;
+        let dw = portraitW;
+        let dh = portraitH;
+        let dx = portraitX;
+        let dy = portraitY;
+        if (imgRatio > boxRatio) {
+          dw = portraitH * imgRatio;
+          dx = portraitX + (portraitW - dw) / 2;
+        } else {
+          dh = portraitW / imgRatio;
+          dy = portraitY + (portraitH - dh) / 2;
+        }
+        ctx.drawImage(img, dx, dy, dw, dh);
 
-      // Central Architectural Diamond Node
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.beginPath();
-      ctx.moveTo(portraitX + portraitW / 2, portraitY + 120);
-      ctx.lineTo(portraitX + portraitW / 2 + 100, portraitY + portraitH / 2);
-      ctx.lineTo(portraitX + portraitW / 2, portraitY + portraitH - 120);
-      ctx.lineTo(portraitX + portraitW / 2 - 100, portraitY + portraitH / 2);
-      ctx.closePath();
-      ctx.fill();
+        // Soft dark vignette overlay
+        const vignette = ctx.createLinearGradient(0, portraitY, 0, portraitY + portraitH);
+        vignette.addColorStop(0, 'rgba(10, 10, 16, 0.2)');
+        vignette.addColorStop(0.7, 'rgba(10, 10, 16, 0.1)');
+        vignette.addColorStop(1, 'rgba(10, 10, 16, 0.6)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(portraitX, portraitY, portraitW, portraitH);
+      } else {
+        // Stylized Portrait Silhouette / Technical Geometry Fallback
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = 1.5;
+        for (let r = 60; r <= 220; r += 40) {
+          ctx.beginPath();
+          ctx.arc(portraitX + portraitW / 2, portraitY + portraitH / 2, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Central Architectural Diamond Node
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.beginPath();
+        ctx.moveTo(portraitX + portraitW / 2, portraitY + 120);
+        ctx.lineTo(portraitX + portraitW / 2 + 100, portraitY + portraitH / 2);
+        ctx.lineTo(portraitX + portraitW / 2, portraitY + portraitH - 120);
+        ctx.lineTo(portraitX + portraitW / 2 - 100, portraitY + portraitH / 2);
+        ctx.closePath();
+        ctx.fill();
+      }
 
       // Portrait Hairline Border & Vignette
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
@@ -708,6 +790,7 @@ export class CardTextureGenerator {
       });
 
       // 6. Monospace Attribute Stats Tickers
+      const barsProgress = Math.max(0, Math.min(1, options.barsProgress ?? 1.0));
       const statsY = 1104;
       const statColW = 302;
       const statColH = 196;
@@ -738,10 +821,11 @@ export class CardTextureGenerator {
         ctx.fillStyle = '#d4d4d8';
         ctx.fillText(stat.title, colX + statColW / 2, statsY + 38);
 
-        // Score
+        // Score (animated counting from 0 to target score)
+        const currentScore = Math.round(stat.score * barsProgress);
         ctx.font = 'bold 44px "JetBrains Mono", monospace';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(String(stat.score), colX + statColW / 2, statsY + 104);
+        ctx.fillText(String(currentScore), colX + statColW / 2, statsY + 104);
 
         // Progress Bar Track
         const barMargin = 28;
@@ -754,8 +838,8 @@ export class CardTextureGenerator {
         drawRoundedRect(ctx, barX, barY, barW, barH, 5);
         ctx.fill();
 
-        // Progress Bar Active Fill
-        const fillW = Math.max(0, Math.min(barW, (stat.score / 100) * barW));
+        // Progress Bar Active Fill (animated expanding width)
+        const fillW = Math.max(0, Math.min(barW, ((stat.score * barsProgress) / 100) * barW));
         if (fillW > 0) {
           ctx.fillStyle = '#fbbf24';
           drawRoundedRect(ctx, barX, barY, fillW, barH, 5);
@@ -782,14 +866,5 @@ export class CardTextureGenerator {
       );
 
       ctx.restore();
-    }
-
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.generateMipmaps = true;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.needsUpdate = true;
-    return texture;
   }
 }

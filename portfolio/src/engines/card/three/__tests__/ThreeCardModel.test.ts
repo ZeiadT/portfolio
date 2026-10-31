@@ -341,7 +341,17 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(sheenLight).toBeUndefined();
     });
 
-    it('sets up bright studio lighting (ambient >= 1.2 and frontal fill light)', () => {
+    it('uses a luxury satin/matte finish on frontMaterial (roughness >= 0.8, metalness <= 0.1) preventing mirror glare', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
+      const frontMat = (slabMesh.material as THREE.MeshStandardMaterial[])[1];
+
+      expect(frontMat).toBeDefined();
+      expect(frontMat.roughness).toBeGreaterThanOrEqual(0.8);
+      expect(frontMat.metalness).toBeLessThanOrEqual(0.1);
+    });
+
+    it('sets up distributed studio lighting (ambient >= 1.3) avoiding direct mirror hotspots', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
       model.mount(container);
 
@@ -350,14 +360,21 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
 
       const ambient = scene.children.find((c) => (c as THREE.AmbientLight).isAmbientLight) as THREE.AmbientLight;
       expect(ambient).toBeDefined();
-      expect(ambient.intensity).toBeGreaterThanOrEqual(1.2);
+      expect(ambient.intensity).toBeGreaterThanOrEqual(1.3);
 
       const directionalLights = scene.children.filter((c) => (c as THREE.DirectionalLight).isDirectionalLight) as THREE.DirectionalLight[];
-      // Should have key, rim, and front fill lights
+      // Has angled key, bounce, and rim lights
       expect(directionalLights.length).toBeGreaterThanOrEqual(3);
-      const frontFill = directionalLights.find((l) => l.position.z > 0 && Math.abs(l.position.x) < 2);
-      expect(frontFill).toBeDefined();
-      expect(frontFill?.intensity).toBeGreaterThanOrEqual(0.7);
+    });
+
+    it('setStatsAnimationProgress(stars, bars) updates star and stat bar progress', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+
+      model.setStatsAnimationProgress(0.5, 0.75);
+      expect(model.getStatsAnimationProgress()).toEqual({
+        starsProgress: 0.5,
+        barsProgress: 0.75,
+      });
     });
   });
 

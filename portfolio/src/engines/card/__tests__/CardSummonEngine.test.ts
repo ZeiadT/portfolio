@@ -1609,6 +1609,23 @@ describe('Three.js 3D Physical Card Model Integration', () => {
     expect(threeModel!.getVeilOpacity()).toBeCloseTo(0, 1);
   });
 
+  it('animates front stars and progress bars from 0 to 1 during reveal settlement', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const threeModel = engine.getThreeCardModel();
+    expect(threeModel).not.toBeNull();
+
+    // At start of summon timeline, stats animation is at 0
+    engine.getTimeline()?.seek(0.5);
+    expect(threeModel!.getStatsAnimationProgress().barsProgress).toBeCloseTo(0, 1);
+
+    // At completion of summon timeline, stats animation finishes at 1
+    engine.getTimeline()?.progress(1);
+    expect(threeModel!.getStatsAnimationProgress().barsProgress).toBeCloseTo(1, 1);
+    expect(threeModel!.getStatsAnimationProgress().starsProgress).toBeCloseTo(1, 1);
+  });
+
   it('destroys ThreeCardModel cleanly upon close() and destroy()', () => {
     engine = new CardSummonEngine();
     engine.open();

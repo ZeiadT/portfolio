@@ -12,7 +12,7 @@ const DEFAULT_CARD_DATA: CardSummonData = {
   rarity: 'Mythic Rare',
   stars: 5,
   role: 'Mobile Systems Architect',
-  imageSrc: '/assets/portrait.webp',
+  imageSrc: '/profile.jpg',
   imageAlt: 'Alex Rivera Portrait',
   skillName: 'Reactive Rendering Engine',
   skillDescription: 'High-performance real-time graphics and physics architecture',
@@ -83,7 +83,11 @@ export class ThreeCardModel {
   private frontTexture: THREE.CanvasTexture | null = null;
   private backTexture: THREE.CanvasTexture | null = null;
   private frontMaterial: THREE.MeshStandardMaterial | null = null;
+  private frontCanvas: HTMLCanvasElement | null = null;
+  private loadedImage: HTMLImageElement | null = null;
 
+  private starsProgress: number = 0;
+  private barsProgress: number = 0;
   private veilOpacity: number = 1.0;
   private sheenProgress: number = 0;
   private isDestroyed: boolean = false;
@@ -91,6 +95,20 @@ export class ThreeCardModel {
   constructor(options: ThreeCardModelOptions = {}) {
     this.cardData = { ...DEFAULT_CARD_DATA, ...options.cardData };
     this.theme = options.theme ?? {};
+
+    // Asynchronously preload portrait photograph
+    const imgSrc = this.cardData.imageSrc || '/profile.jpg';
+    if (typeof Image !== 'undefined') {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        if (!this.isDestroyed) {
+          this.loadedImage = img;
+          this.redrawFrontTexture();
+        }
+      };
+      img.src = imgSrc;
+    }
 
     this.buildCardAssembly();
   }
@@ -125,12 +143,25 @@ export class ThreeCardModel {
     });
 
     // 2. Faces drawn straight onto the slab caps: materials [gold edge, front, back]
-    this.frontTexture = CardTextureGenerator.generateFrontCardTexture(this.cardData, this.theme);
+    this.frontCanvas = document.createElement('canvas');
+    this.frontCanvas.width = CardTextureGenerator.TEXTURE_WIDTH;
+    this.frontCanvas.height = CardTextureGenerator.TEXTURE_HEIGHT;
+
+    this.frontTexture = CardTextureGenerator.generateFrontCardTexture(
+      this.cardData,
+      this.theme,
+      {
+        imageElement: this.loadedImage,
+        starsProgress: this.starsProgress,
+        barsProgress: this.barsProgress,
+      },
+      this.frontCanvas
+    );
     this.backTexture = CardTextureGenerator.generateGoldenCardBackTexture(this.theme);
     this.frontMaterial = new THREE.MeshStandardMaterial({
       map: this.frontTexture,
-      roughness: 0.35,
-      metalness: 0.1,
+      roughness: 0.88, // Luxury satin/matte print - zero mirror reflection or specular glare!
+      metalness: 0.0,
     });
     const backMaterial = new THREE.MeshStandardMaterial({
       map: this.backTexture,
@@ -189,20 +220,23 @@ export class ThreeCardModel {
     this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
     this.camera.position.set(0, 0, 8);
 
-    // Lighting setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
+    // Distributed studio lighting setup (soft diffuse front illumination, no direct flashlight hotspot)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     this.scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfff0dd, 1.2);
-    keyLight.position.set(5, 5, 5);
+    // Angled key light (top-right high angle)
+    const keyLight = new THREE.DirectionalLight(0xfff8ee, 0.9);
+    keyLight.position.set(4, 6, 4);
     this.scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    fillLight.position.set(0, 1, 6);
-    this.scene.add(fillLight);
+    // Soft bounce fill light (bottom-left)
+    const bounceLight = new THREE.DirectionalLight(0xeeefff, 0.5);
+    bounceLight.position.set(-4, -3, 3);
+    this.scene.add(bounceLight);
 
-    const rimLight = new THREE.DirectionalLight(0xffd700, 1.5);
-    rimLight.position.set(-5, 3, -5);
+    // Metallic rim specular light for gilded gold edges
+    const rimLight = new THREE.DirectionalLight(0xffd700, 1.6);
+    rimLight.position.set(-5, 4, -5);
     this.scene.add(rimLight);
 
     // Add card hierarchy to scene
@@ -339,6 +373,40 @@ export class ThreeCardModel {
   }
 
   /**
+   * Sets animated star illumination progress [0, 1] and progress bar fill progress [0, 1].
+   */
+  public setStatsAnimationProgress(starsProgress: number, barsProgress: number): void {
+    this.starsProgress = Math.max(0, Math.min(1, starsProgress));
+    this.barsProgress = Math.max(0, Math.min(1, barsProgress));
+    this.redrawFrontTexture();
+  }
+
+  public getStatsAnimationProgress(): { starsProgress: number; barsProgress: number } {
+    return {
+      starsProgress: this.starsProgress,
+      barsProgress: this.barsProgress,
+    };
+  }
+
+  /**
+   * Redraws the front card canvas with current animation states and photo.
+   */
+  private redrawFrontTexture(): void {
+    if (!this.frontCanvas || !this.frontTexture) return;
+    CardTextureGenerator.drawFrontCardContent(
+      this.frontCanvas,
+      this.cardData,
+      this.theme,
+      {
+        imageElement: this.loadedImage,
+        starsProgress: this.starsProgress,
+        barsProgress: this.barsProgress,
+      }
+    );
+    this.frontTexture.needsUpdate = true;
+  }
+
+  /**
    * Cleans up all DOM nodes, geometries, materials, textures, and renderer resources.
    * Completely idempotent.
    */
@@ -347,6 +415,9 @@ export class ThreeCardModel {
       return;
     }
     this.isDestroyed = true;
+
+    this.loadedImage = null;
+    this.frontCanvas = null;
 
     if (
       this.animationFrameId !== null &&

@@ -232,5 +232,40 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         expect(texture).toBeInstanceOf(THREE.CanvasTexture);
       }).not.toThrow();
     });
+
+    it('renders with custom starsProgress and barsProgress animation controls', () => {
+      const texture0 = CardTextureGenerator.generateFrontCardTexture(mockCardData, mockTheme, {
+        starsProgress: 0,
+        barsProgress: 0,
+      });
+      expect(texture0).toBeInstanceOf(THREE.CanvasTexture);
+
+      const textureHalf = CardTextureGenerator.generateFrontCardTexture(mockCardData, mockTheme, {
+        starsProgress: 0.5,
+        barsProgress: 0.5,
+      });
+      expect(textureHalf).toBeInstanceOf(THREE.CanvasTexture);
+
+      const textureFull = CardTextureGenerator.generateFrontCardTexture(mockCardData, mockTheme, {
+        starsProgress: 1.0,
+        barsProgress: 1.0,
+      });
+      expect(textureFull).toBeInstanceOf(THREE.CanvasTexture);
+    });
+
+    it('draws custom imageElement onto the canvas portrait window when supplied', () => {
+      const fakeImage = {
+        naturalWidth: 800,
+        naturalHeight: 600,
+        complete: true,
+      } as unknown as HTMLImageElement;
+
+      expect(() => {
+        const texture = CardTextureGenerator.generateFrontCardTexture(mockCardData, mockTheme, {
+          imageElement: fakeImage,
+        });
+        expect(texture).toBeInstanceOf(THREE.CanvasTexture);
+      }).not.toThrow();
+    });
   });
 });
