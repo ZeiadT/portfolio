@@ -1,10 +1,20 @@
 import type { Engine } from '@/domain/types';
 import { gsap } from 'gsap';
+import type { CardFaceRenderer } from './renderers/CardFaceRenderer';
+
+export type { CardFaceRenderer };
 
 export interface CardSummonTheme {
   primaryColor?: string; // default: '#ff4421'
   coreColor?: string;    // default: '#ffffff'
   accentColor?: string;  // default: '#ff7700'
+}
+
+export interface CardSummonStats {
+  perf?: number;
+  arch?: number;
+  code?: number;
+  [key: string]: number | undefined;
 }
 
 export interface CardSummonData {
@@ -16,13 +26,15 @@ export interface CardSummonData {
   imageAlt: string;
   skillName: string;
   skillDescription: string;
-  atk: number;
-  def: number;
+  atk?: number;
+  def?: number;
+  stats?: CardSummonStats;
 }
 
 export interface CardSummonOptions {
   theme?: CardSummonTheme;
   cardData?: CardSummonData;
+  faceRenderer?: CardFaceRenderer;
   onClose?: () => void;
 }
 
