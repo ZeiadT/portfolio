@@ -1,6 +1,6 @@
 # Debug Flip Card Button Implementation Plan
 
-- **Status**: Completed
+- **Status**: Retired (Superseded by 040 & 041: card click-to-flip enabled, debug button removed)
 - **Created**: 2026-10-31
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Three.js
 - **Branch**: `main`

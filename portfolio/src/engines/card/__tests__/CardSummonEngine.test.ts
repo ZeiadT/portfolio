@@ -258,12 +258,13 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
   });
 
   describe('Blur-Fade Dismissal Hint & Click-Anywhere-To-Close UX', () => {
-    it('does not render the old action controls button bar', () => {
+    it('does not render the old action controls button bar or debug flip button', () => {
       engine = new CardSummonEngine();
       engine.open();
 
       expect(document.querySelector('[data-summon-controls]')).toBeNull();
       expect(document.querySelector('[data-summon-flip-btn]')).toBeNull();
+      expect(document.querySelector('[data-summon-flip]')).toBeNull();
       expect(document.querySelector('[data-summon-mask-toggle]')).toBeNull();
     });
 
