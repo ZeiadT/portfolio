@@ -88,7 +88,6 @@ export class ProfileHeader {
 
     this.cardSummonEngine = new CardSummonEngine({
       faceRenderer: new EditorialCardFaceRenderer(),
-      autoFlipToFront: true,
       cardData: {
         name: 'Zeiad Mohammed',
         rarity: 'Rare Edition',

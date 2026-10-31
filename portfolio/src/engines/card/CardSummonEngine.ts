@@ -655,9 +655,6 @@ export class CardSummonEngine implements Engine {
             { opacity: 0.75, filter: 'blur(0px)', y: 0, duration: 0.7, ease: 'power2.out', delay: 1.2 }
           );
         }
-        if (this.options.autoFlipToFront && this.cardEl) {
-          this.flipCard();
-        }
       },
     });
 
@@ -855,23 +852,25 @@ export class CardSummonEngine implements Engine {
         );
       }
 
-      // Climax optical flash veil & shockwave (1.28s to 1.48s)
+      // Climax optical flash veil & shockwave (1.32s to 1.48s)
+      // Screen is blinded in white light as the card crosses -90deg edge-on,
+      // and when the light clears (1.40s - 1.45s), the card is ALREADY on the front face!
       if (this.flashVeilEl) {
         this.openTimeline.fromTo(
           this.flashVeilEl,
           { opacity: 0 },
           { opacity: 0.95, duration: 0.04, ease: 'power2.out' },
-          1.28
-        );
-        this.openTimeline.to(
-          this.flashVeilEl,
-          { opacity: 0.95, duration: 0.04, ease: 'none' },
           1.32
         );
         this.openTimeline.to(
           this.flashVeilEl,
-          { opacity: 0, duration: 0.12, ease: 'expo.out' },
+          { opacity: 0.95, duration: 0.04, ease: 'none' },
           1.36
+        );
+        this.openTimeline.to(
+          this.flashVeilEl,
+          { opacity: 0, duration: 0.08, ease: 'expo.out' },
+          1.40
         );
       }
 
@@ -880,7 +879,7 @@ export class CardSummonEngine implements Engine {
           this.shockwaveEl,
           { scale: 0.2, opacity: 1 },
           { scale: 2.8, opacity: 0, duration: 0.20, ease: 'power4.out' },
-          1.28
+          1.32
         );
       }
 

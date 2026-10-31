@@ -1313,7 +1313,7 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     }
   });
 
-  it('supports autoFlipToFront option to automatically rotate card to front face upon timeline completion', () => {
+  it('ensures card rests on revealed front face (rotationY 0) upon timeline completion', () => {
     engine = new CardSummonEngine({ autoFlipToFront: true });
     engine.open();
 
@@ -1326,8 +1326,9 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     // Trigger onComplete
     tl?.progress(1);
 
-    // Engine's isFlipped state should be true
-    expect(engine.isCardFlipped()).toBe(true);
+    // Card should firmly rest on revealed front face at rotationY 0
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(engine.isCardFlipped()).toBe(false);
   });
 
   it('supports interactive card flip and concealment mask toggle controls', () => {

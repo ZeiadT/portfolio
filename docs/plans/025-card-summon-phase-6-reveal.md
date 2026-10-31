@@ -101,7 +101,20 @@ Based on the interactive `/grill-me` alignment with the user, Phase 6 executes t
 - [x] Step 2: Run test suite to verify all tests pass (GREEN phase).
 - [x] Step 3: Git commit implementation.
 
-### Task 4: Full Verification & Live Review
+### Task 4: Climax Flash Synchronization & Reverse Flip Prevention Refinement
+- **Files:**
+  - `portfolio/src/components/home/ProfileHeader.ts`
+  - `portfolio/src/engines/card/CardSummonEngine.ts`
+  - `portfolio/src/engines/card/__tests__/CardSummonEngine.test.ts`
+- **Changes:**
+  1. Synchronized the climax optical flash veil (`data-summon-flash-veil`) and radial shockwave (`data-summon-shockwave`) to $1.32\text{s} - 1.48\text{s}$, peaking at $1.36\text{s} - 1.40\text{s}$ exactly as the card rotates through its $-90^\circ$ edge-on angle. As the flash clears ($1.40\text{s} - 1.45\text{s}$), the card is already on the front face ($0^\circ$).
+  2. Removed `autoFlipToFront: true` in `ProfileHeader.ts` and removed the automatic `flipCard()` in `onComplete` in `CardSummonEngine.ts` to prevent the spurious reverse flip back to the back sigil upon settle.
+  3. Updated test suite asserting that the card firmly rests at `rotationY === 0` and `isCardFlipped() === false` on timeline completion.
+- [x] Step 1: Update unit tests for flip settle state.
+- [x] Step 2: Implement timing synchronization and remove spurious reverse flip.
+- [x] Step 3: Verify all 207 tests passing and Vite build clean.
+
+### Task 5: Full Verification & Live Review
 - **Files:** All test suites in `portfolio/src/`, Vite build.
 - [x] Step 1: Run full test suite (`npm --prefix portfolio test`).
 - [x] Step 2: Run Vite production build (`npm --prefix portfolio run build`).
