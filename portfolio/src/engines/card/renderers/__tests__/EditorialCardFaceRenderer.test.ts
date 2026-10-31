@@ -84,13 +84,15 @@ describe('EditorialCardFaceRenderer', () => {
     expect(oldClassBadge).toBeNull();
   });
 
-  it('renders rectangular duotone portrait window [data-summon-face-portrait-window] with avatar and concentric radius, free of active cairo or kotlin/compose overlays', () => {
+  it('renders rectangular duotone portrait window [data-summon-face-portrait-window] with avatar, vertical space aspect-[4/3], and concentric radius, free of active cairo or kotlin/compose overlays', () => {
     renderer.render(container, mockData, mockTheme);
 
     const windowEl = container.querySelector<HTMLElement>('[data-summon-face-portrait-window]');
     expect(windowEl).not.toBeNull();
     // Concentric radius: outer (24px) - padding (16px) = 8px
     expect(windowEl?.className).toContain('rounded-[8px]');
+    // Expanded vertical space: aspect-[4/3]
+    expect(windowEl?.className).toContain('aspect-[4/3]');
 
     const avatar = windowEl?.querySelector<HTMLImageElement>('[data-summon-face-avatar]');
     expect(avatar).not.toBeNull();
@@ -103,48 +105,67 @@ describe('EditorialCardFaceRenderer', () => {
     expect(windowEl?.textContent).not.toContain('KOTLIN • COMPOSE • MVI');
   });
 
-  it('renders grid-aligned identity with Rare Edition badge next to candidate name', () => {
+  it('renders unified boxed container for candidate identity and skills with Rare Edition badge', () => {
     renderer.render(container, mockData, mockTheme);
 
-    const lore = container.querySelector<HTMLElement>('[data-summon-face-lore]');
-    expect(lore).not.toBeNull();
+    const loreBox = container.querySelector<HTMLElement>('[data-summon-face-lore]');
+    expect(loreBox).not.toBeNull();
+    // Boxed styling
+    expect(loreBox?.className).toContain('rounded-[8px]');
+    expect(loreBox?.className).toContain('border');
+    expect(loreBox?.className).toContain('bg-white/[0.03]');
 
-    const name = lore?.querySelector<HTMLElement>('[data-summon-face-name]');
+    const name = loreBox?.querySelector<HTMLElement>('[data-summon-face-name]');
     expect(name).not.toBeNull();
     expect(name?.textContent).toContain('Zeiad Mohammed');
 
-    const rarityBadge = lore?.querySelector<HTMLElement>('[data-summon-face-rarity-badge]');
+    const rarityBadge = loreBox?.querySelector<HTMLElement>('[data-summon-face-rarity-badge]');
     expect(rarityBadge).not.toBeNull();
     expect(rarityBadge?.textContent?.toUpperCase()).toContain('RARE EDITION');
 
     // Clean Reactive Architecture removed from next to name
-    expect(lore?.querySelector('[data-summon-face-skill-title]')).toBeNull();
+    expect(loreBox?.querySelector('[data-summon-face-skill-title]')).toBeNull();
+
+    // Skills are inside the unified box
+    const skills = loreBox?.querySelector<HTMLElement>('[data-summon-face-skills]');
+    expect(skills).not.toBeNull();
   });
 
-  it('renders creature-style unique skills related to mobile development and design [data-summon-face-skills]', () => {
+  it('renders skills with icons on single rows without descriptions or active/passive labels', () => {
     renderer.render(container, mockData, mockTheme);
 
     const skills = container.querySelector<HTMLElement>('[data-summon-face-skills]');
     expect(skills).not.toBeNull();
 
-    // Creature unique skills
-    expect(skills?.textContent).toContain('REACTIVE FLOW');
-    expect(skills?.textContent).toContain('[PASSIVE]');
-    expect(skills?.textContent).toContain('KMP SYNTHESIS');
-    expect(skills?.textContent).toContain('[ACTIVE]');
-    expect(skills?.textContent).toContain('KINETIC PRECISION');
-    expect(skills?.textContent).toContain('[ULTIMATE]');
+    // Check skills text
+    expect(skills?.textContent).toContain('Reactive State Flow');
+    expect(skills?.textContent).toContain('KMP Multiplatform Architecture');
+    expect(skills?.textContent).toContain('Kinetic 60FPS UI & Motion');
 
-    // Old summary description and generic tags must be removed
-    expect(container.querySelector('[data-summon-face-skill-desc]')).toBeNull();
-    expect(container.querySelector('[data-summon-face-pillars]')).toBeNull();
+    // Check each skill has an inline SVG icon
+    const svgs = skills?.querySelectorAll('svg');
+    expect(svgs?.length).toBe(3);
+
+    // No description text
+    expect(skills?.textContent).not.toContain('Streams unidirectional state');
+    expect(skills?.textContent).not.toContain('Transmutes multiplatform');
+
+    // No active/passive labels
+    expect(skills?.textContent).not.toContain('[PASSIVE]');
+    expect(skills?.textContent).not.toContain('[ACTIVE]');
+    expect(skills?.textContent).not.toContain('[ULTIMATE]');
   });
 
-  it('renders high-contrast monospace attribute stats tickers inside [data-summon-face-stats]', () => {
+  it('renders high-contrast monospace attribute stats tickers with increased title text size', () => {
     renderer.render(container, mockData, mockTheme);
 
     const stats = container.querySelector<HTMLElement>('[data-summon-face-stats]');
     expect(stats).not.toBeNull();
+
+    const titles = stats?.querySelectorAll<HTMLElement>('[data-summon-stat-title]');
+    expect(titles && titles.length === 3).toBe(true);
+    expect(titles?.[0].className).toContain('text-[9px]');
+    expect(titles?.[0].className).toContain('font-semibold');
 
     const perf = stats?.querySelector<HTMLElement>('[data-summon-stat-perf]');
     expect(perf).not.toBeNull();

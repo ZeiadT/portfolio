@@ -98,8 +98,8 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
         </div>
       </div>
 
-      <!-- Razor-sharp rectangular duotone portrait window with concentric radius: 24px - 16px = 8px -->
-      <div data-summon-face-portrait-window class="relative z-10 w-full aspect-[16/10] rounded-[8px] overflow-hidden border border-white/20 bg-neutral-950 shadow-2xl group my-1 sm:my-1.5">
+      <!-- Razor-sharp rectangular duotone portrait window with vertical space aspect-[4/3] and concentric radius: 24px - 16px = 8px -->
+      <div data-summon-face-portrait-window class="relative z-10 w-full aspect-[4/3] rounded-[8px] overflow-hidden border border-white/20 bg-neutral-950 shadow-2xl group my-1 sm:my-1.5">
         <!-- Avatar image with monochrome duotone treatment -->
         <img data-summon-face-avatar src="${escapeHtml(data.imageSrc)}" alt="${escapeHtml(data.imageAlt)}" class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-700 select-none relative z-10" />
 
@@ -113,87 +113,93 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
         </div>
       </div>
 
-      <!-- Grid-aligned identity with Rare Edition badge -->
-      <div data-summon-face-lore class="relative z-10 flex flex-col gap-1 w-full border-t border-b border-white/10 py-1.5">
-        <div class="h-[1px] w-full mb-0.5 opacity-50" style="background: linear-gradient(90deg, ${coreColor}40, ${primaryColor}60, transparent);" aria-hidden="true"></div>
-        <div class="flex items-center justify-between gap-2">
-          <h3 data-summon-face-name class="text-base sm:text-lg md:text-xl font-bold tracking-tight text-white font-sans truncate">
+      <!-- Unified Boxed Identity & Skills Container (concentric radius: 24px - 16px = 8px) -->
+      <div data-summon-face-lore class="relative z-10 flex flex-col gap-2 w-full rounded-[8px] p-2.5 sm:p-3 bg-white/[0.03] border border-white/10 backdrop-blur-sm shadow-inner my-1">
+        <!-- Top Row: Name + Rare Edition Badge -->
+        <div class="flex items-center justify-between gap-2 w-full">
+          <h3 data-summon-face-name class="text-sm sm:text-base md:text-lg font-bold tracking-tight text-white font-sans truncate">
             ${escapeHtml(data.name)}
           </h3>
-          <span data-summon-face-rarity-badge class="text-[9px] sm:text-[10px] font-mono tracking-wider text-amber-300 font-semibold uppercase px-2 py-0.5 rounded-[4px] border border-amber-400/30 bg-amber-400/10 backdrop-blur-sm shrink-0 select-none">
+          <span data-summon-face-rarity-badge class="text-[8px] sm:text-[9px] font-mono tracking-wider text-amber-300 font-semibold uppercase px-2 py-0.5 rounded-[4px] border border-amber-400/30 bg-amber-400/10 backdrop-blur-sm shrink-0 select-none">
             Rare Edition
           </span>
         </div>
 
-        <!-- Creature-Style Unique Skills (Development & Design) -->
-        <div data-summon-face-skills class="flex flex-col gap-1.5 w-full mt-1">
-          <!-- Skill 1: PASSIVE -->
-          <div class="flex flex-col gap-0.5 rounded-[6px] bg-white/[0.02] border border-white/5 p-1.5">
-            <div class="flex items-center justify-between font-mono">
-              <span class="text-[9px] sm:text-[10px] font-bold text-amber-200 tracking-wide flex items-center gap-1">
-                <span class="text-amber-400 text-[8px]">✦</span> REACTIVE FLOW
+        <!-- Subtle hairline separator -->
+        <div class="h-[1px] w-full opacity-40" style="background: linear-gradient(90deg, ${coreColor}30, ${primaryColor}50, transparent);" aria-hidden="true"></div>
+
+        <!-- Skills: Single rows with vector SVG icons, no description, no active/passive -->
+        <div data-summon-face-skills class="flex flex-col gap-1.5 w-full">
+          <!-- Skill 1: Reactive State Flow -->
+          <div class="flex items-center justify-between gap-2 py-0.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <svg class="w-3.5 h-3.5 text-amber-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12c2.5-4 5.5-4 8 0s5.5 4 8 0 5.5-4 8 0" />
+                <circle cx="12" cy="12" r="2" fill="currentColor" />
+              </svg>
+              <span class="text-[9px] sm:text-[10px] font-mono font-medium text-white/90 tracking-wide truncate">
+                Reactive State Flow
               </span>
-              <span class="text-[7.5px] sm:text-[8px] font-semibold text-emerald-400/90 tracking-wider uppercase bg-emerald-950/40 px-1 py-0.5 rounded-[3px] border border-emerald-500/20">[PASSIVE]</span>
             </div>
-            <p class="text-[8.5px] sm:text-[9.5px] text-white/70 leading-relaxed font-sans">
-              Streams unidirectional state via Kotlin Coroutines & Flow; renders zero-recomposition 60fps frames.
-            </p>
+            <span class="text-[7.5px] sm:text-[8px] font-mono text-amber-400/70 shrink-0">COROUTINES</span>
           </div>
 
-          <!-- Skill 2: ACTIVE -->
-          <div class="flex flex-col gap-0.5 rounded-[6px] bg-white/[0.02] border border-white/5 p-1.5">
-            <div class="flex items-center justify-between font-mono">
-              <span class="text-[9px] sm:text-[10px] font-bold text-amber-200 tracking-wide flex items-center gap-1">
-                <span class="text-amber-400 text-[8px]">⚡</span> KMP SYNTHESIS
+          <!-- Skill 2: KMP Multiplatform Architecture -->
+          <div class="flex items-center justify-between gap-2 py-0.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <svg class="w-3.5 h-3.5 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="7" width="9" height="10" rx="1.5" />
+                <rect x="13" y="7" width="9" height="10" rx="1.5" />
+                <path d="M7 7V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2" />
+              </svg>
+              <span class="text-[9px] sm:text-[10px] font-mono font-medium text-white/90 tracking-wide truncate">
+                KMP Multiplatform Architecture
               </span>
-              <span class="text-[7.5px] sm:text-[8px] font-semibold text-sky-400/90 tracking-wider uppercase bg-sky-950/40 px-1 py-0.5 rounded-[3px] border border-sky-500/20">[ACTIVE]</span>
             </div>
-            <p class="text-[8.5px] sm:text-[9.5px] text-white/70 leading-relaxed font-sans">
-              Transmutes multiplatform domain and data logic across Android and iOS targets with zero architectural leakage.
-            </p>
+            <span class="text-[7.5px] sm:text-[8px] font-mono text-sky-400/70 shrink-0">SHARED</span>
           </div>
 
-          <!-- Skill 3: ULTIMATE -->
-          <div class="flex flex-col gap-0.5 rounded-[6px] bg-white/[0.02] border border-white/5 p-1.5">
-            <div class="flex items-center justify-between font-mono">
-              <span class="text-[9px] sm:text-[10px] font-bold text-amber-200 tracking-wide flex items-center gap-1">
-                <span class="text-amber-400 text-[8px]">◈</span> KINETIC PRECISION
+          <!-- Skill 3: Kinetic 60FPS UI & Motion -->
+          <div class="flex items-center justify-between gap-2 py-0.5">
+            <div class="flex items-center gap-2 min-w-0">
+              <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <span class="text-[9px] sm:text-[10px] font-mono font-medium text-white/90 tracking-wide truncate">
+                Kinetic 60FPS UI & Motion
               </span>
-              <span class="text-[7.5px] sm:text-[8px] font-semibold text-amber-400/90 tracking-wider uppercase bg-amber-950/40 px-1 py-0.5 rounded-[3px] border border-amber-500/20">[ULTIMATE]</span>
             </div>
-            <p class="text-[8.5px] sm:text-[9.5px] text-white/70 leading-relaxed font-sans">
-              Choreographs hardware-accelerated shaders and interruptible micro-gestures with sub-millisecond tactile response.
-            </p>
+            <span class="text-[7.5px] sm:text-[8px] font-mono text-emerald-400/70 shrink-0">COMPOSE</span>
           </div>
         </div>
       </div>
 
-      <!-- High-contrast monospace attribute stats tickers with concentric rounded-[6px] -->
+      <!-- High-contrast monospace attribute stats tickers with concentric rounded-[6px] and increased title typography -->
       <div data-summon-face-stats class="relative z-10 grid grid-cols-3 gap-1.5 w-full font-mono text-center">
-        <div class="flex flex-col items-center justify-center p-1.5 rounded-[6px] bg-white/[0.02] border border-white/10">
-          <span class="text-[7px] sm:text-[8px] text-white/40 tracking-wider">PERF // 60FPS</span>
-          <span data-summon-stat-perf class="text-xs sm:text-sm font-semibold text-white tracking-tight mt-0.5">
+        <div class="flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-[6px] bg-white/[0.02] border border-white/10">
+          <span data-summon-stat-title class="text-[9px] sm:text-[10px] font-mono font-semibold text-neutral-300 tracking-wider">PERF // 60FPS</span>
+          <span data-summon-stat-perf class="text-sm sm:text-base font-bold text-white tracking-tight mt-1">
             ${escapeHtml(String(perf))}
           </span>
-          <div class="w-full bg-white/10 h-0.5 sm:h-1 rounded-full mt-1 overflow-hidden">
+          <div class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
             <div class="h-full bg-amber-400" style="width: ${Math.min(100, Math.max(0, perf))}%;"></div>
           </div>
         </div>
-        <div class="flex flex-col items-center justify-center p-1.5 rounded-[6px] bg-white/[0.02] border border-white/10">
-          <span class="text-[7px] sm:text-[8px] text-white/40 tracking-wider">ARCH // CLEAN</span>
-          <span data-summon-stat-arch class="text-xs sm:text-sm font-semibold text-white tracking-tight mt-0.5">
+        <div class="flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-[6px] bg-white/[0.02] border border-white/10">
+          <span data-summon-stat-title class="text-[9px] sm:text-[10px] font-mono font-semibold text-neutral-300 tracking-wider">ARCH // CLEAN</span>
+          <span data-summon-stat-arch class="text-sm sm:text-base font-bold text-white tracking-tight mt-1">
             ${escapeHtml(String(arch))}
           </span>
-          <div class="w-full bg-white/10 h-0.5 sm:h-1 rounded-full mt-1 overflow-hidden">
+          <div class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
             <div class="h-full bg-amber-400" style="width: ${Math.min(100, Math.max(0, arch))}%;"></div>
           </div>
         </div>
-        <div class="flex flex-col items-center justify-center p-1.5 rounded-[6px] bg-white/[0.02] border border-white/10">
-          <span class="text-[7px] sm:text-[8px] text-white/40 tracking-wider">CODE // KMP</span>
-          <span data-summon-stat-code class="text-xs sm:text-sm font-semibold text-white tracking-tight mt-0.5">
+        <div class="flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-[6px] bg-white/[0.02] border border-white/10">
+          <span data-summon-stat-title class="text-[9px] sm:text-[10px] font-mono font-semibold text-neutral-300 tracking-wider">CODE // KMP</span>
+          <span data-summon-stat-code class="text-sm sm:text-base font-bold text-white tracking-tight mt-1">
             ${escapeHtml(String(code))}
           </span>
-          <div class="w-full bg-white/10 h-0.5 sm:h-1 rounded-full mt-1 overflow-hidden">
+          <div class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
             <div class="h-full bg-amber-400" style="width: ${Math.min(100, Math.max(0, code))}%;"></div>
           </div>
         </div>

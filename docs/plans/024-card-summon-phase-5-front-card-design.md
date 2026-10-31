@@ -1,6 +1,6 @@
 # Card Summon - Phase 5: Front Card Design & Concealment Sheen Implementation Plan
 
-- **Status**: Completed (Task 10: Card Zoom, Concentric Radius & Creature Skills Redesign)
+- **Status**: Completed (Task 11: 10% Zoom Reduction, Boxed Identity & Icon Skills, Expanded Portrait & Numbers Typography)
 - **Created**: 2026-10-31
 - **Last Updated**: 2026-10-31
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Tailwind CSS v4, Inline SVG / HTML Vectors, Vitest
@@ -334,4 +334,49 @@
 - [x] **Step 2: Implement card zoom in `CardSummonEngine.ts`**
 - [x] **Step 3: Implement concentric radii and front data redesign in `EditorialCardFaceRenderer.ts` and `MythicCardFaceRenderer.ts`**
 - [x] **Step 4: Verify test suite and TypeScript production build**
+- [x] **Step 5: Visually inspect and commit with git**
+
+---
+
+### Task 11: Fine-Tune Zoom (-10%), Boxed Identity & Icon Skills, Expanded Portrait & Numbers Typography
+
+**Files:**
+- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
+- Modify: `portfolio/src/engines/card/renderers/EditorialCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/renderers/__tests__/EditorialCardFaceRenderer.test.ts`
+- Modify: `portfolio/src/engines/card/__tests__/CardSummonEngine.test.ts`
+
+**Requirements:**
+1. **Reduce Zoom Effect by 10% in `CardSummonEngine.ts`**:
+   - `cardEl` & `cardAuraEl`: `w-[290px] sm:w-[335px] md:w-[370px] lg:w-[396px] max-w-[90vw] max-h-[84vh] aspect-[5/7]`
+   - `shockwaveEl`: `w-[306px] sm:w-[360px] md:w-[405px] h-[306px] sm:h-[360px] md:h-[405px]`
+2. **Unified Boxed Container for Identity & Skills**:
+   - Wrap candidate name, `Rare Edition` badge, and skills into a sleek frosted box (`[data-summon-face-lore]`):
+     `rounded-[8px] p-2.5 sm:p-3 bg-white/[0.03] border border-white/10 backdrop-blur-sm shadow-inner`
+   - Top row of box: Candidate name (`[data-summon-face-name]`) on left, `Rare Edition` badge (`[data-summon-face-rarity-badge]`) on right.
+   - Divider: subtle hairline separator.
+   - Skills list (`[data-summon-face-skills]`):
+     - NO descriptions.
+     - NO active / passive labels.
+     - Each skill on a single row with a dedicated inline vector SVG icon:
+       1. Skill 1: Flow / Coroutine icon + `Reactive State Flow`
+       2. Skill 2: Cross-platform nexus / KMP icon + `KMP Multiplatform Architecture`
+       3. Skill 3: Kinetic motion / Shader lightning icon + `Kinetic 60FPS UI & Motion`
+3. **Expand Vertical Space for Portrait & Bottom Numbers Section**:
+   - Portrait window: increase vertical aspect ratio from `aspect-[16/10]` to `aspect-[4/3]` for commanding presence.
+   - Numbers bottom section (`[data-summon-face-stats]`):
+     - More vertical height & padding: `p-2 sm:p-2.5`.
+     - Increase number title text: from tiny `text-[7px]` to `text-[9px] sm:text-[10px] md:text-[11px] font-mono tracking-wider font-semibold text-neutral-300`.
+     - Stat scores: `text-sm sm:text-base md:text-lg font-bold text-white`.
+     - Progress bars: `h-1 sm:h-1.5`.
+4. **TDD Protocol**:
+   - Update tests in `EditorialCardFaceRenderer.test.ts` and `CardSummonEngine.test.ts` (RED phase).
+   - Implement code changes (GREEN phase).
+   - Verify Vitest and build.
+   - Commit with git.
+
+- [x] **Step 1: Update unit test specifications in `EditorialCardFaceRenderer.test.ts` and `CardSummonEngine.test.ts` (RED phase)**
+- [x] **Step 2: Update card dimensions in `CardSummonEngine.ts` to reduce zoom by 10%**
+- [x] **Step 3: Update `EditorialCardFaceRenderer.ts` with boxed identity, icon skills, expanded portrait, and increased stats title typography**
+- [x] **Step 4: Verify full test suite and TypeScript production build**
 - [x] **Step 5: Visually inspect and commit with git**
