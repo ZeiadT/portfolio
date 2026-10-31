@@ -823,11 +823,11 @@ export class CardTextureGenerator {
       ctx.lineTo(boxX + boxW - 28, boxY + 92);
       ctx.stroke();
 
-      // Skills List with Static 3/2/1 Golden Stars
+      // Skills List with Static Golden Stars (first skill 1, second 2, third 3)
       const skills = [
-        { name: 'Hard worker', stars: '★★★' },
+        { name: 'Hard worker', stars: '★' },
         { name: 'Passionate designer', stars: '★★' },
-        { name: 'Perfection seeker', stars: '★' },
+        { name: 'Perfection seeker', stars: '★★★' },
       ];
 
       skills.forEach((skill, index) => {
