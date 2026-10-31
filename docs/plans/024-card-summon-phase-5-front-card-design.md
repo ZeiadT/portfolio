@@ -146,6 +146,28 @@
 
 ---
 
+### Task 8: Restore Normal Dimensions with Preserved 5:7 Ratio & Swap to Mythic Design
+
+**Files:**
+- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
+- Modify: `portfolio/src/components/home/ProfileHeader.ts`
+- Modify: `portfolio/src/engines/card/renderers/MythicCardFaceRenderer.ts`
+
+**Requirements:**
+1. Revert card zoom to normal dimensions while strictly preserving the new $5:7$ aspect ratio:
+   - `cardEl` and `cardAuraEl`: `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`
+   - `shockwaveEl`: `w-[280px] h-[280px]`
+2. Swap active card face in `ProfileHeader.ts` back to Option 1: Mythic Rare (`MythicCardFaceRenderer`):
+   - Supply `faceRenderer: new MythicCardFaceRenderer()` (or default).
+   - Injected with authentic candidate credentials from CV (`Zeiad Mohammed`, `Android Application Developer`, `★★★★★`, `Clean Reactive Architecture`, `PERF: 99 / ARCH: 98 / CODE: 96`).
+3. Verify all 197 tests pass and build compiles cleanly.
+
+- [x] **Step 1: Revert dimensions in `CardSummonEngine.ts` to `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`**
+- [x] **Step 2: Swap `ProfileHeader.ts` to use `MythicCardFaceRenderer`**
+- [x] **Step 3: Run full workspace test suite and production build**
+
+---
+
 ### Task 6: Implement and Swap Option 3 (Minimalist Editorial Luxury) `EditorialCardFaceRenderer`
 
 **Files:**
@@ -200,3 +222,25 @@
 - [x] **Step 2: Update `CardSummonEngine.ts` dimensions**
 - [x] **Step 3: Enrich `EditorialCardFaceRenderer.ts` and `MythicCardFaceRenderer.ts`**
 - [x] **Step 4: Verify test suite and production build**
+
+---
+
+### Task 8: Restore Normal Dimensions with Preserved 5:7 Ratio & Swap to Mythic Design
+
+**Files:**
+- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
+- Modify: `portfolio/src/components/home/ProfileHeader.ts`
+- Modify: `portfolio/src/engines/card/renderers/MythicCardFaceRenderer.ts`
+
+**Requirements:**
+1. Revert card zoom to normal dimensions while strictly preserving the new $5:7$ aspect ratio:
+   - `cardEl` and `cardAuraEl`: `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`
+   - `shockwaveEl`: `w-[280px] h-[280px]`
+2. Swap active card face in `ProfileHeader.ts` back to Option 1: Mythic Rare (`MythicCardFaceRenderer`):
+   - Supply `faceRenderer: new MythicCardFaceRenderer()` (or default).
+   - Injected with authentic candidate credentials from CV (`Zeiad Mohammed`, `Android Application Developer`, `★★★★★`, `Clean Reactive Architecture`, `PERF: 99 / ARCH: 98 / CODE: 96`).
+3. Verify all 197 tests pass and build compiles cleanly.
+
+- [x] **Step 1: Revert dimensions in `CardSummonEngine.ts` to `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`**
+- [x] **Step 2: Swap `ProfileHeader.ts` to use `MythicCardFaceRenderer`**
+- [x] **Step 3: Run full workspace test suite and production build**
