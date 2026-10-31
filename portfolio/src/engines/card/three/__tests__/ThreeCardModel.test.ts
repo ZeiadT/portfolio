@@ -10,45 +10,51 @@ const originalGetContext = typeof HTMLCanvasElement !== 'undefined' ? HTMLCanvas
 if (typeof HTMLCanvasElement !== 'undefined') {
   HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, contextType: string, ...args: unknown[]) {
     if (contextType === '2d') {
-      return {
-        canvas: this,
-        fillStyle: '',
-        strokeStyle: '',
-        lineWidth: 1,
-        font: '',
-        textAlign: 'left',
-        textBaseline: 'alphabetic',
-        globalAlpha: 1,
-        fillRect: vi.fn(),
-        clearRect: vi.fn(),
-        strokeRect: vi.fn(),
-        fillText: vi.fn(),
-        strokeText: vi.fn(),
-        beginPath: vi.fn(),
-        closePath: vi.fn(),
-        moveTo: vi.fn(),
-        lineTo: vi.fn(),
-        arc: vi.fn(),
-        stroke: vi.fn(),
-        fill: vi.fn(),
-        save: vi.fn(),
-        restore: vi.fn(),
-        translate: vi.fn(),
-        rotate: vi.fn(),
-        scale: vi.fn(),
-        drawImage: vi.fn(),
-        createLinearGradient: vi.fn(() => ({
-          addColorStop: vi.fn(),
-        })),
-        createRadialGradient: vi.fn(() => ({
-          addColorStop: vi.fn(),
-        })),
-        measureText: vi.fn((text: string) => ({
-          width: text.length * 8,
-          actualBoundingBoxAscent: 10,
-          actualBoundingBoxDescent: 2,
-        })),
-      };
+      const self = this as unknown as { _mockCtx2d?: Record<string, unknown> };
+      if (!self._mockCtx2d) {
+        self._mockCtx2d = {
+          canvas: this,
+          fillStyle: '',
+          strokeStyle: '',
+          lineWidth: 1,
+          font: '',
+          textAlign: 'left',
+          textBaseline: 'alphabetic',
+          globalAlpha: 1,
+          fillRect: vi.fn(),
+          clearRect: vi.fn(),
+          strokeRect: vi.fn(),
+          rect: vi.fn(),
+          fillText: vi.fn(),
+          strokeText: vi.fn(),
+          beginPath: vi.fn(),
+          closePath: vi.fn(),
+          moveTo: vi.fn(),
+          lineTo: vi.fn(),
+          arc: vi.fn(),
+          stroke: vi.fn(),
+          fill: vi.fn(),
+          save: vi.fn(),
+          restore: vi.fn(),
+          translate: vi.fn(),
+          rotate: vi.fn(),
+          scale: vi.fn(),
+          drawImage: vi.fn(),
+          clip: vi.fn(),
+          createLinearGradient: vi.fn(() => ({
+            addColorStop: vi.fn(),
+          })),
+          createRadialGradient: vi.fn(() => ({
+            addColorStop: vi.fn(),
+          })),
+          measureText: vi.fn((text: string) => ({
+            width: text.length * 8,
+            actualBoundingBoxAscent: 10,
+            actualBoundingBoxDescent: 2,
+          })),
+        };
+      }
+      return self._mockCtx2d as unknown as CanvasRenderingContext2D;
     }
     return originalGetContext ? (originalGetContext as Function).apply(this, [contextType, ...args]) : null;
   };
@@ -309,6 +315,56 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
 
       model.setVeilOpacity(0);
       expect(front.color.getHex()).toBe(0xffffff);
+    });
+
+    it('setFoilWipeProgress(p) updates diagonal holographic foil wipe progress and clamps between 0 and 1', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+
+      model.setFoilWipeProgress(0.45);
+      expect(model.getFoilWipeProgress()).toBeCloseTo(0.45, 4);
+
+      model.setFoilWipeProgress(1.8);
+      expect(model.getFoilWipeProgress()).toBeLessThanOrEqual(1.0);
+
+      model.setFoilWipeProgress(-0.3);
+      expect(model.getFoilWipeProgress()).toBeGreaterThanOrEqual(0.0);
+    });
+
+    it('creates and attaches 48 3D celestial and sacred geometry particles orbiting in scene on mount', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      const scene = (model as unknown as { scene: THREE.Scene }).scene;
+      expect(scene).toBeDefined();
+
+      const particleGroup = scene.children.find(
+        (child) => child.name === 'celestial-particles'
+      ) as THREE.Group;
+
+      expect(particleGroup).toBeDefined();
+      expect(particleGroup.children).toHaveLength(48);
+    });
+
+    it('disposes all particle geometries and materials cleanly upon destroy()', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      const scene = (model as unknown as { scene: THREE.Scene }).scene;
+      const particleGroup = scene.children.find(
+        (child) => child.name === 'celestial-particles'
+      ) as THREE.Group;
+
+      expect(particleGroup).toBeDefined();
+
+      const firstMesh = particleGroup.children[0] as THREE.Mesh;
+      const geomSpy = vi.spyOn(firstMesh.geometry, 'dispose');
+      const matSpy = vi.spyOn(firstMesh.material as THREE.Material, 'dispose');
+
+      model.destroy();
+
+      expect(geomSpy).toHaveBeenCalled();
+      expect(matSpy).toHaveBeenCalled();
+      expect((model as unknown as { particleGroup: THREE.Group | null }).particleGroup).toBeNull();
     });
 
     it('setSheenProgress(p) updates holographic specular shimmer progress', () => {

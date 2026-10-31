@@ -51,6 +51,43 @@ function createRoundedRectShape(width: number, height: number, radius: number): 
   return shape;
 }
 
+interface ParticleOrbitData {
+  mesh: THREE.Mesh;
+  radiusX: number;
+  radiusY: number;
+  radiusZ: number;
+  speed: number;
+  phase: number;
+  rotSpeedX: number;
+  rotSpeedY: number;
+  rotSpeedZ: number;
+}
+
+function createStarShape(outerRadius: number, innerRadius: number, points: number = 8): THREE.Shape {
+  const shape = new THREE.Shape();
+  const step = Math.PI / points;
+  for (let i = 0; i < points * 2; i++) {
+    const r = i % 2 === 0 ? outerRadius : innerRadius;
+    const angle = i * step;
+    const x = Math.cos(angle) * r;
+    const y = Math.sin(angle) * r;
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  }
+  shape.closePath();
+  return shape;
+}
+
+function createDiamondShape(size: number): THREE.Shape {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, size);
+  shape.lineTo(size * 0.55, 0);
+  shape.lineTo(0, -size);
+  shape.lineTo(-size * 0.55, 0);
+  shape.closePath();
+  return shape;
+}
+
 /**
  * ThreeCardModel
  *
@@ -89,8 +126,12 @@ export class ThreeCardModel {
   private starsProgress: number = 0;
   private barsProgress: number = 0;
   private veilOpacity: number = 1.0;
+  private foilWipeProgress: number = 0.0;
   private sheenProgress: number = 0;
   private isDestroyed: boolean = false;
+
+  private particleGroup: THREE.Group | null = null;
+  private particleData: ParticleOrbitData[] = [];
 
   constructor(options: ThreeCardModelOptions = {}) {
     this.cardData = { ...DEFAULT_CARD_DATA, ...options.cardData };
@@ -154,6 +195,8 @@ export class ThreeCardModel {
         imageElement: this.loadedImage,
         starsProgress: this.starsProgress,
         barsProgress: this.barsProgress,
+        veilOpacity: this.veilOpacity,
+        foilWipeProgress: this.foilWipeProgress,
       },
       this.frontCanvas
     );
@@ -242,6 +285,9 @@ export class ThreeCardModel {
     // Add card hierarchy to scene
     this.scene.add(this.cardGroup);
 
+    // Initialize continuous orbiting 3D celestial and sacred geometry particle field
+    this.initCelestialParticleField();
+
     // Initialize WebGLRenderer with fallback for headless/non-WebGL environments
     const testCanvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
     const hasWebGL = Boolean(
@@ -296,6 +342,22 @@ export class ThreeCardModel {
 
   private renderLoop = (): void => {
     if (this.isDestroyed) return;
+
+    // Advance 3D celestial particle orbital paths
+    if (this.particleData.length > 0) {
+      const time = (typeof performance !== 'undefined' ? performance.now() : Date.now()) * 0.001;
+      for (let i = 0; i < this.particleData.length; i++) {
+        const p = this.particleData[i];
+        const angle = time * p.speed + p.phase;
+        p.mesh.position.x = Math.cos(angle) * p.radiusX;
+        p.mesh.position.y = Math.sin(angle) * p.radiusY;
+        p.mesh.position.z = Math.sin(angle * 2) * p.radiusZ;
+        p.mesh.rotation.x += p.rotSpeedX;
+        p.mesh.rotation.y += p.rotSpeedY;
+        p.mesh.rotation.z += p.rotSpeedZ;
+      }
+    }
+
     if (this.renderer && this.scene && this.camera) {
       this.renderer.render(this.scene, this.camera);
     }
@@ -355,10 +417,23 @@ export class ThreeCardModel {
     this.veilOpacity = Math.max(0, Math.min(1, o));
     // Veil is a tint on the front face itself, not a separate layer.
     this.frontMaterial?.color.setHex(0xffffff).lerp(VEIL_COLOR, this.veilOpacity * 0.75);
+    this.redrawFrontTexture();
   }
 
   public getVeilOpacity(): number {
     return this.veilOpacity;
+  }
+
+  /**
+   * Sets diagonal holographic foil wipe progress [0, 1].
+   */
+  public setFoilWipeProgress(p: number): void {
+    this.foilWipeProgress = Math.max(0, Math.min(1, p));
+    this.redrawFrontTexture();
+  }
+
+  public getFoilWipeProgress(): number {
+    return this.foilWipeProgress;
   }
 
   /**
@@ -389,6 +464,95 @@ export class ThreeCardModel {
   }
 
   /**
+   * Initializes the 48-particle continuous 3D celestial and sacred geometry orbital field.
+   */
+  private initCelestialParticleField(): void {
+    if (!this.scene) return;
+
+    this.particleGroup = new THREE.Group();
+    this.particleGroup.name = 'celestial-particles';
+    this.particleData = [];
+
+    // Reusable geometries and materials for optimal 60fps rendering
+    const starGeom = new THREE.ShapeGeometry(createStarShape(0.09, 0.035, 8));
+    const starMat = new THREE.MeshStandardMaterial({
+      color: 0xffd700,
+      metalness: 0.85,
+      roughness: 0.25,
+      side: THREE.DoubleSide,
+    });
+
+    const diamondGeom = new THREE.ShapeGeometry(createDiamondShape(0.07));
+    const diamondMat = new THREE.MeshStandardMaterial({
+      color: 0xfcd34d,
+      metalness: 0.7,
+      roughness: 0.3,
+      side: THREE.DoubleSide,
+    });
+
+    const moteGeom = new THREE.SphereGeometry(0.024, 6, 6);
+    const moteMat = new THREE.MeshBasicMaterial({
+      color: 0xfff3cc,
+    });
+
+    // 16 8-Pointed Golden Stars
+    for (let i = 0; i < 16; i++) {
+      const mesh = new THREE.Mesh(starGeom, starMat);
+      mesh.name = `starlet-${i}`;
+      this.particleGroup.add(mesh);
+      this.particleData.push({
+        mesh,
+        radiusX: 2.3 + (i % 4) * 0.45,
+        radiusY: 2.9 + (i % 5) * 0.4,
+        radiusZ: -1.2 + (i % 6) * 0.48,
+        speed: 0.35 + (i % 3) * 0.15,
+        phase: (i / 16) * Math.PI * 2,
+        rotSpeedX: 0.012,
+        rotSpeedY: 0.018,
+        rotSpeedZ: 0.015,
+      });
+    }
+
+    // 16 Micro Diamond Glyphs
+    for (let i = 0; i < 16; i++) {
+      const mesh = new THREE.Mesh(diamondGeom, diamondMat);
+      mesh.name = `diamond-${i}`;
+      this.particleGroup.add(mesh);
+      this.particleData.push({
+        mesh,
+        radiusX: 2.1 + (i % 5) * 0.4,
+        radiusY: 3.1 + (i % 4) * 0.42,
+        radiusZ: -1.0 + (i % 5) * 0.5,
+        speed: -0.32 - (i % 3) * 0.12,
+        phase: (i / 16) * Math.PI * 2 + 0.5,
+        rotSpeedX: -0.015,
+        rotSpeedY: 0.022,
+        rotSpeedZ: -0.018,
+      });
+    }
+
+    // 16 Glowing Dust Motes
+    for (let i = 0; i < 16; i++) {
+      const mesh = new THREE.Mesh(moteGeom, moteMat);
+      mesh.name = `mote-${i}`;
+      this.particleGroup.add(mesh);
+      this.particleData.push({
+        mesh,
+        radiusX: 2.5 + (i % 4) * 0.5,
+        radiusY: 2.7 + (i % 6) * 0.38,
+        radiusZ: -1.4 + (i % 7) * 0.45,
+        speed: 0.28 + (i % 4) * 0.1,
+        phase: (i / 16) * Math.PI * 2 + 1.2,
+        rotSpeedX: 0,
+        rotSpeedY: 0,
+        rotSpeedZ: 0,
+      });
+    }
+
+    this.scene.add(this.particleGroup);
+  }
+
+  /**
    * Redraws the front card canvas with current animation states and photo.
    */
   private redrawFrontTexture(): void {
@@ -401,6 +565,8 @@ export class ThreeCardModel {
         imageElement: this.loadedImage,
         starsProgress: this.starsProgress,
         barsProgress: this.barsProgress,
+        veilOpacity: this.veilOpacity,
+        foilWipeProgress: this.foilWipeProgress,
       }
     );
     this.frontTexture.needsUpdate = true;
@@ -448,6 +614,31 @@ export class ThreeCardModel {
         }
       }
     });
+
+    // Clean up celestial particle field
+    if (this.particleGroup) {
+      this.particleGroup.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          if (mesh.geometry) {
+            mesh.geometry.dispose();
+          }
+          if (mesh.material) {
+            if (Array.isArray(mesh.material)) {
+              mesh.material.forEach((mat) => mat.dispose());
+            } else {
+              mesh.material.dispose();
+            }
+          }
+        }
+      });
+      this.particleGroup.clear();
+      if (this.particleGroup.parent) {
+        this.particleGroup.parent.remove(this.particleGroup);
+      }
+      this.particleGroup = null;
+    }
+    this.particleData = [];
 
     // Dispose textures
     if (this.frontTexture) {

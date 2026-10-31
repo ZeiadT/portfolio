@@ -9,49 +9,55 @@ const originalGetContext = typeof HTMLCanvasElement !== 'undefined' ? HTMLCanvas
 if (typeof HTMLCanvasElement !== 'undefined') {
   HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, contextType: string, ...args: unknown[]) {
     if (contextType === '2d') {
-      return {
-        canvas: this,
-        fillStyle: '',
-        strokeStyle: '',
-        lineWidth: 1,
-        font: '',
-        textAlign: 'left',
-        textBaseline: 'alphabetic',
-        globalAlpha: 1,
-        shadowColor: '',
-        shadowBlur: 0,
-        shadowOffsetX: 0,
-        shadowOffsetY: 0,
-        fillRect: vi.fn(),
-        clearRect: vi.fn(),
-        strokeRect: vi.fn(),
-        fillText: vi.fn(),
-        strokeText: vi.fn(),
-        beginPath: vi.fn(),
-        closePath: vi.fn(),
-        moveTo: vi.fn(),
-        lineTo: vi.fn(),
-        arc: vi.fn(),
-        stroke: vi.fn(),
-        fill: vi.fn(),
-        save: vi.fn(),
-        restore: vi.fn(),
-        translate: vi.fn(),
-        rotate: vi.fn(),
-        scale: vi.fn(),
-        drawImage: vi.fn(),
-        createLinearGradient: vi.fn(() => ({
-          addColorStop: vi.fn(),
-        })),
-        createRadialGradient: vi.fn(() => ({
-          addColorStop: vi.fn(),
-        })),
-        measureText: vi.fn((text: string) => ({
-          width: text.length * 8,
-          actualBoundingBoxAscent: 10,
-          actualBoundingBoxDescent: 2,
-        })),
-      };
+      const self = this as unknown as { _mockCtx2d?: Record<string, unknown> };
+      if (!self._mockCtx2d) {
+        self._mockCtx2d = {
+          canvas: this,
+          fillStyle: '',
+          strokeStyle: '',
+          lineWidth: 1,
+          font: '',
+          textAlign: 'left',
+          textBaseline: 'alphabetic',
+          globalAlpha: 1,
+          shadowColor: '',
+          shadowBlur: 0,
+          shadowOffsetX: 0,
+          shadowOffsetY: 0,
+          fillRect: vi.fn(),
+          clearRect: vi.fn(),
+          strokeRect: vi.fn(),
+          rect: vi.fn(),
+          fillText: vi.fn(),
+          strokeText: vi.fn(),
+          beginPath: vi.fn(),
+          closePath: vi.fn(),
+          moveTo: vi.fn(),
+          lineTo: vi.fn(),
+          arc: vi.fn(),
+          stroke: vi.fn(),
+          fill: vi.fn(),
+          save: vi.fn(),
+          restore: vi.fn(),
+          translate: vi.fn(),
+          rotate: vi.fn(),
+          scale: vi.fn(),
+          drawImage: vi.fn(),
+          clip: vi.fn(),
+          createLinearGradient: vi.fn(() => ({
+            addColorStop: vi.fn(),
+          })),
+          createRadialGradient: vi.fn(() => ({
+            addColorStop: vi.fn(),
+          })),
+          measureText: vi.fn((text: string) => ({
+            width: text.length * 8,
+            actualBoundingBoxAscent: 10,
+            actualBoundingBoxDescent: 2,
+          })),
+        };
+      }
+      return self._mockCtx2d as unknown as CanvasRenderingContext2D;
     }
     return originalGetContext ? (originalGetContext as Function).apply(this, [contextType, ...args]) : null;
   };
@@ -251,6 +257,60 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         barsProgress: 1.0,
       });
       expect(textureFull).toBeInstanceOf(THREE.CanvasTexture);
+    });
+
+    it('renders frosted obsidian shroud and golden celestial seal when veilOpacity > 0', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1050;
+      canvas.height = 1470;
+      const ctx = canvas.getContext('2d');
+      const fillTextSpy = vi.spyOn(ctx!, 'fillText');
+
+      CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
+        veilOpacity: 1.0,
+        foilWipeProgress: 0.0,
+      });
+
+      // Golden seal micro-typography should be drawn on canvas
+      expect(fillTextSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/RESTRICTED ACCESS|CANDIDATE DOSSIER|CLASSIFIED/i),
+        expect.any(Number),
+        expect.any(Number)
+      );
+    });
+
+    it('renders diagonal holographic foil wipe when foilWipeProgress is active (0 < p < 1)', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1050;
+      canvas.height = 1470;
+      const ctx = canvas.getContext('2d');
+      const createLinearGradientSpy = vi.spyOn(ctx!, 'createLinearGradient');
+
+      CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
+        veilOpacity: 0.5,
+        foilWipeProgress: 0.5,
+      });
+
+      // Linear gradient for diagonal foil wipe should be constructed
+      expect(createLinearGradientSpy).toHaveBeenCalled();
+    });
+
+    it('does not render frosted obsidian shroud when veilOpacity is 0', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1050;
+      canvas.height = 1470;
+      const ctx = canvas.getContext('2d');
+      const fillTextSpy = vi.spyOn(ctx!, 'fillText');
+
+      CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
+        veilOpacity: 0.0,
+        foilWipeProgress: 1.0,
+      });
+
+      const restrictedCalls = fillTextSpy.mock.calls.filter((call) =>
+        /RESTRICTED ACCESS|CANDIDATE DOSSIER/i.test(String(call[0]))
+      );
+      expect(restrictedCalls).toHaveLength(0);
     });
 
     it('draws custom imageElement onto the canvas portrait window when supplied', () => {

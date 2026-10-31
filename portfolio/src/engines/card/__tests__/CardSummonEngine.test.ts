@@ -1609,6 +1609,22 @@ describe('Three.js 3D Physical Card Model Integration', () => {
     expect(threeModel!.getVeilOpacity()).toBeCloseTo(0, 1);
   });
 
+  it('animates ThreeCardModel foil wipe progress from 0 to 1 during Phase 4 reveal', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const threeModel = engine.getThreeCardModel();
+    expect(threeModel).not.toBeNull();
+
+    // At start of summon, foil wipe has not started
+    engine.getTimeline()?.seek(0.5);
+    expect(threeModel!.getFoilWipeProgress()).toBeCloseTo(0, 1);
+
+    // Fast-forward to completion: foil wipe completes (1.0)
+    engine.getTimeline()?.progress(1);
+    expect(threeModel!.getFoilWipeProgress()).toBeCloseTo(1, 1);
+  });
+
   it('animates front stars and progress bars from 0 to 1 during reveal settlement', () => {
     engine = new CardSummonEngine();
     engine.open();

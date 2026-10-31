@@ -168,25 +168,49 @@ export class CardSummonEngine implements Engine {
     if (!this.frontMaskEl && !this.threeCardModel) return;
     this.isMaskConcealedState = !this.isMaskConcealedState;
     const targetOpacity = this.isMaskConcealedState ? 1 : 0;
+    const targetFoilWipe = this.isMaskConcealedState ? 0 : 1;
 
     if (this.maskTween) {
       this.maskTween.kill();
     }
-    if (this.frontMaskEl) {
-      this.maskTween = gsap.to(this.frontMaskEl, {
-        opacity: targetOpacity,
-        duration: 0.4,
-        ease: 'power2.out',
-        overwrite: 'auto',
-        onUpdate: () => {
-          if (this.threeCardModel && this.frontMaskEl) {
-            const currentOpacity = Number(gsap.getProperty(this.frontMaskEl, 'opacity')) || 0;
-            this.threeCardModel.setVeilOpacity(currentOpacity);
-          }
-        },
-      });
-    }
 
+    const currentVeil = this.threeCardModel
+      ? this.threeCardModel.getVeilOpacity()
+      : (Number(gsap.getProperty(this.frontMaskEl, 'opacity')) || 0);
+    const currentWipe = this.threeCardModel
+      ? this.threeCardModel.getFoilWipeProgress()
+      : (1 - targetOpacity);
+
+    const animState = {
+      opacity: currentVeil,
+      foilWipe: currentWipe,
+    };
+
+    this.maskTween = gsap.to(animState, {
+      opacity: targetOpacity,
+      foilWipe: targetFoilWipe,
+      duration: 0.45,
+      ease: 'power2.out',
+      overwrite: 'auto',
+      onUpdate: () => {
+        if (this.frontMaskEl) {
+          gsap.set(this.frontMaskEl, { opacity: animState.opacity });
+        }
+        if (this.threeCardModel) {
+          this.threeCardModel.setVeilOpacity(animState.opacity);
+          this.threeCardModel.setFoilWipeProgress(animState.foilWipe);
+        }
+      },
+      onComplete: () => {
+        if (this.threeCardModel) {
+          this.threeCardModel.setVeilOpacity(targetOpacity);
+          this.threeCardModel.setFoilWipeProgress(targetFoilWipe);
+        }
+        if (this.frontMaskEl) {
+          gsap.set(this.frontMaskEl, { opacity: targetOpacity });
+        }
+      },
+    });
   }
 
   /**
@@ -747,6 +771,7 @@ export class CardSummonEngine implements Engine {
         this.isMaskConcealedState = false;
         if (this.threeCardModel) {
           this.threeCardModel.setVeilOpacity(0);
+          this.threeCardModel.setFoilWipeProgress(1);
           this.threeCardModel.setStatsAnimationProgress(1, 1);
         }
       }
@@ -929,32 +954,39 @@ export class CardSummonEngine implements Engine {
         );
       }
 
-      // Phase 4 Reveal & Dissolve: Frosted obsidian veil dissolves at apex (1.30s to 1.75s)
-      if (this.frontMaskEl) {
-        this.openTimeline.fromTo(
-          this.frontMaskEl,
-          { opacity: 1 },
-          {
-            opacity: 0,
-            duration: 0.45,
-            ease: 'power2.inOut',
-            onUpdate: () => {
-              if (this.threeCardModel && this.frontMaskEl) {
-                const currentOpacity = Number(gsap.getProperty(this.frontMaskEl, 'opacity')) || 0;
-                this.threeCardModel.setVeilOpacity(currentOpacity);
-                this.isMaskConcealedState = currentOpacity > 0.5;
-              }
-            },
-            onComplete: () => {
-              this.isMaskConcealedState = false;
-              if (this.threeCardModel) {
-                this.threeCardModel.setVeilOpacity(0);
-              }
-            },
+      // Phase 4 Reveal & Diagonal Foil Wipe: Frosted obsidian veil dissolves & holographic foil gleam sweeps (1.30s to 1.85s)
+      const revealAnimState = { foilWipe: 0, veil: 1 };
+      this.openTimeline.fromTo(
+        revealAnimState,
+        { foilWipe: 0, veil: 1 },
+        {
+          foilWipe: 1,
+          veil: 0,
+          duration: 0.55,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            if (this.threeCardModel) {
+              this.threeCardModel.setFoilWipeProgress(revealAnimState.foilWipe);
+              this.threeCardModel.setVeilOpacity(revealAnimState.veil);
+            }
+            if (this.frontMaskEl) {
+              gsap.set(this.frontMaskEl, { opacity: revealAnimState.veil });
+              this.isMaskConcealedState = revealAnimState.veil > 0.5;
+            }
           },
-          1.30
-        );
-      }
+          onComplete: () => {
+            this.isMaskConcealedState = false;
+            if (this.threeCardModel) {
+              this.threeCardModel.setFoilWipeProgress(1);
+              this.threeCardModel.setVeilOpacity(0);
+            }
+            if (this.frontMaskEl) {
+              gsap.set(this.frontMaskEl, { opacity: 0 });
+            }
+          },
+        },
+        1.30
+      );
 
       // Phase 4: Attribute Stats & Star Entrance Animation (1.45s to 2.15s)
       const statsAnimState = { stars: 0, bars: 0 };

@@ -173,3 +173,33 @@ portfolio/src/engines/card/
 - Test that `CardTextureGenerator` renders with custom `starsProgress` and `barsProgress` and draws loaded images.
 - Test that `ThreeCardModel` exposes `setStatsAnimationProgress(stars, bars)` and updates front texture.
 - Test that `openTimeline` drives stats animation progress from 0 to 1 upon completion.
+
+---
+
+## Revision 7 (2026-10-31): Phase 6 - Front Face Frosted Obsidian Shroud, Diagonal Foil Wipe & Continuous Celestial Particle Orbit
+
+### Requirements & Alignment
+1. **Frosted Obsidian Shroud with Golden Celestial Crest:**
+   - Complete pre-reveal concealment: An opaque frosted obsidian shroud (`#07070b`) with a gilded hairline border frame completely masks the front face before and during the initial summon.
+   - Golden Celestial Crest: Centered at (525, 735), an ornate celestial seal with radiating 8-pointed star, concentric dashed rings, and "RESTRICTED ACCESS // CANDIDATE DOSSIER" micro-typography builds tonic anticipation without leaking portrait or stats.
+2. **Diagonal Holographic Foil Wipe Reveal:**
+   - In Phase 4 of the reveal choreography (1.32s -> 1.95s), a high-salience diagonal (-35 deg) foil gleam sweeps smoothly from top-left to bottom-right across the card.
+   - The foil gleam features a multi-stop champagne-gold and brilliant white specular band with warm amber edge glow that dissolves the obsidian shroud in its wake, unveiling the crisp editorial face underneath.
+3. **Continuous 3D Celestial & Sacred Geometry Particle Field:**
+   - 48 lightweight 3D particles orbiting the card in the Three.js stage:
+     - 16 Rotating 8-pointed golden starlets (#ffd700)
+     - 16 Micro diamond glyphs (#fcd34d)
+     - 16 Glowing golden dust motes (#ffffff core with gold falloff)
+   - Orbit on dynamic 3D Lissajous paths with smooth tilt parallax responsiveness.
+   - Particles persist and continue idling indefinitely during Phase 5 (interactive inspection & tilt), giving permanent ambient depth to the collectible.
+4. **Strict Zero-Leak Lifecycle & Zero Z-Fighting:**
+   - Shroud and foil wipe are drawn dynamically onto the front cap canvas texture (zero coplanar z-fighting or extra meshes).
+   - Particle group, geometries, and materials are cleanly disposed in destroy().
+
+### Test Specifications (TDD)
+- Test that CardTextureGenerator draws frosted obsidian shroud and celestial seal when veilOpacity = 1.
+- Test that CardTextureGenerator renders diagonal holographic foil wipe when foilWipeProgress is between 0 and 1.
+- Test that ThreeCardModel exposes setFoilWipeProgress(p) and getFoilWipeProgress(), clamping input to [0, 1] and triggering front texture updates.
+- Test that ThreeCardModel creates a celestial particle field in mount() and updates particle positions over animation ticks.
+- Test that ThreeCardModel.destroy() disposes all particle geometries, materials, and clears the group.
+- Test that CardSummonEngine choreographs foilWipeProgress from 0 to 1 during Phase 4 of openTimeline and synchronizes with toggleConcealment().

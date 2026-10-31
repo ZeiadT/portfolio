@@ -46,6 +46,8 @@ export interface FrontCardTextureOptions {
   imageElement?: HTMLImageElement | null;
   starsProgress?: number;
   barsProgress?: number;
+  veilOpacity?: number;
+  foilWipeProgress?: number;
 }
 
 /**
@@ -864,6 +866,150 @@ export class CardTextureGenerator {
         525,
         1380
       );
+
+      // 8. Frosted Obsidian Shroud, Golden Celestial Seal & Diagonal Holographic Foil Wipe
+      const veilOpacity = Math.max(0, Math.min(1, options.veilOpacity ?? 0.0));
+      const foilWipeProgress = Math.max(0, Math.min(1, options.foilWipeProgress ?? 0.0));
+
+      if (veilOpacity > 0.001) {
+        ctx.save();
+
+        if (foilWipeProgress > 0 && foilWipeProgress < 1) {
+          // Diagonal wipe: angle -35 degrees
+          const rad = (-35 * Math.PI) / 180;
+          const cos = Math.cos(rad);
+          const sin = Math.sin(rad);
+
+          // Span of card projected onto the wipe axis
+          const p0 = 0;
+          const p1 = 1050 * cos;
+          const p2 = 1470 * sin;
+          const p3 = 1050 * cos + 1470 * sin;
+          const minP = Math.min(p0, p1, p2, p3);
+          const maxP = Math.max(p0, p1, p2, p3);
+          const currentP = minP + foilWipeProgress * (maxP - minP);
+
+          ctx.save();
+          ctx.translate(525, 735);
+          ctx.rotate(rad);
+          const centerP = 525 * cos + 735 * sin;
+          const localCut = currentP - centerP;
+
+          // Clip to unrevealed region (ahead of the wipe line)
+          ctx.beginPath();
+          if (typeof ctx.rect === 'function') {
+            ctx.rect(localCut, -1800, 3600, 3600);
+          } else {
+            ctx.moveTo(localCut, -1800);
+            ctx.lineTo(localCut + 3600, -1800);
+            ctx.lineTo(localCut + 3600, 1800);
+            ctx.lineTo(localCut, 1800);
+            ctx.closePath();
+          }
+          if (typeof ctx.clip === 'function') {
+            ctx.clip();
+          }
+
+          // Frosted obsidian base fill
+          ctx.fillStyle = `rgba(7, 7, 11, ${veilOpacity * 0.98})`;
+          ctx.fillRect(-2000, -2000, 4000, 4000);
+
+          ctx.restore();
+
+          // Diagonal Holographic Foil Gleam along the wipe boundary
+          ctx.save();
+          ctx.translate(525, 735);
+          ctx.rotate(rad);
+
+          const foilBandWidth = 240;
+          const grad = ctx.createLinearGradient(
+            localCut - foilBandWidth / 2,
+            0,
+            localCut + foilBandWidth / 2,
+            0
+          );
+          grad.addColorStop(0, 'rgba(255, 215, 0, 0)');
+          grad.addColorStop(0.2, `rgba(255, 215, 0, ${0.45 * veilOpacity})`);
+          grad.addColorStop(0.5, `rgba(255, 255, 255, ${0.98 * veilOpacity})`);
+          grad.addColorStop(0.8, `rgba(251, 191, 36, ${0.65 * veilOpacity})`);
+          grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+
+          ctx.fillStyle = grad;
+          ctx.fillRect(localCut - foilBandWidth / 2, -1800, foilBandWidth, 3600);
+
+          // Specular hairline on the leading cut
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * veilOpacity})`;
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.moveTo(localCut, -1800);
+          ctx.lineTo(localCut, 1800);
+          ctx.stroke();
+
+          ctx.restore();
+        } else if (foilWipeProgress <= 0) {
+          // Fully shrouded state (before wipe starts)
+          ctx.fillStyle = `rgba(7, 7, 11, ${veilOpacity * 0.98})`;
+          drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
+          ctx.fill();
+
+          // Golden hairline frame
+          ctx.strokeStyle = `rgba(255, 215, 0, ${0.35 * veilOpacity})`;
+          ctx.lineWidth = 2.5;
+          drawRoundedRect(ctx, 28, 28, 1050 - 56, 1470 - 56, 32);
+          ctx.stroke();
+
+          // Golden Celestial Seal in Center (525, 735)
+          const sealX = 525;
+          const sealY = 735;
+
+          // Outer dashed halo ring (R=190)
+          ctx.strokeStyle = `rgba(255, 215, 0, ${0.65 * veilOpacity})`;
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.arc(sealX, sealY, 190, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Inner halo ring (R=150)
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 * veilOpacity})`;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.arc(sealX, sealY, 150, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // 8-Pointed Radiant Golden Star in center
+          ctx.save();
+          ctx.translate(sealX, sealY);
+          ctx.fillStyle = `rgba(255, 215, 0, ${0.92 * veilOpacity})`;
+          for (let arm = 0; arm < 4; arm++) {
+            ctx.beginPath();
+            ctx.moveTo(0, -90);
+            ctx.lineTo(16, -20);
+            ctx.lineTo(90, 0);
+            ctx.lineTo(16, 20);
+            ctx.lineTo(0, 90);
+            ctx.lineTo(-16, 20);
+            ctx.lineTo(-90, 0);
+            ctx.lineTo(-16, -20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.rotate(Math.PI / 4);
+          }
+          ctx.restore();
+
+          // Seal Monospace Micro-Typography
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = 'bold 22px "JetBrains Mono", monospace';
+          ctx.fillStyle = `rgba(255, 215, 0, ${0.85 * veilOpacity})`;
+          ctx.fillText('RESTRICTED ACCESS // CANDIDATE DOSSIER', sealX, sealY + 240);
+
+          ctx.font = '16px "JetBrains Mono", monospace';
+          ctx.fillStyle = `rgba(255, 255, 255, ${0.45 * veilOpacity})`;
+          ctx.fillText('LEVEL 5 CLEARANCE REQUIRED', sealX, sealY + 275);
+        }
+
+        ctx.restore();
+      }
 
       ctx.restore();
   }
