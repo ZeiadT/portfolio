@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import type { CardFaceRenderer } from './renderers/CardFaceRenderer';
 import { MythicCardFaceRenderer } from './renderers/MythicCardFaceRenderer';
 import { EditorialCardFaceRenderer } from './renderers/EditorialCardFaceRenderer';
+import { ThreeCardModel } from './three/ThreeCardModel';
 
 export type { CardFaceRenderer };
 export { MythicCardFaceRenderer, EditorialCardFaceRenderer };
@@ -72,6 +73,7 @@ export class CardSummonEngine implements Engine {
   private sheenEl: HTMLElement | null = null;
   private sheenTween: gsap.core.Tween | null = null;
   private faceRenderer: CardFaceRenderer;
+  private threeCardModel: ThreeCardModel | null = null;
   private closeBtnEl: HTMLButtonElement | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
@@ -128,37 +130,63 @@ export class CardSummonEngine implements Engine {
   }
 
   /**
+   * Returns the underlying ThreeCardModel WebGL 3D card instance, if currently mounted.
+   */
+  public getThreeCardModel(): ThreeCardModel | null {
+    return this.threeCardModel;
+  }
+
+  /**
    * Smoothly flips the card between front face (180deg) and back sigil (0deg).
    */
   public flipCard(): void {
-    if (!this.cardEl) return;
+    if (!this.cardEl && !this.threeCardModel) return;
     this.isFlipped = !this.isFlipped;
+    const targetRotYDeg = this.isFlipped ? 180 : 0;
+
     if (this.flipTween) {
       this.flipTween.kill();
     }
-    this.flipTween = gsap.to(this.cardEl, {
-      rotationY: this.isFlipped ? 180 : 0,
-      duration: 0.7,
-      ease: 'power2.inOut',
-      overwrite: 'auto',
-    });
+    if (this.cardEl) {
+      this.flipTween = gsap.to(this.cardEl, {
+        rotationY: targetRotYDeg,
+        duration: 0.7,
+        ease: 'power2.inOut',
+        overwrite: 'auto',
+        onUpdate: () => {
+          this.syncThreeCardModel();
+        },
+      });
+    }
+
   }
 
   /**
    * Toggles the Frosted Obsidian Glass Concealment Veil on/off.
    */
   public toggleConcealment(): void {
-    if (!this.frontMaskEl) return;
+    if (!this.frontMaskEl && !this.threeCardModel) return;
     this.isMaskConcealedState = !this.isMaskConcealedState;
+    const targetOpacity = this.isMaskConcealedState ? 1 : 0;
+
     if (this.maskTween) {
       this.maskTween.kill();
     }
-    this.maskTween = gsap.to(this.frontMaskEl, {
-      opacity: this.isMaskConcealedState ? 1 : 0,
-      duration: 0.4,
-      ease: 'power2.out',
-      overwrite: 'auto',
-    });
+    if (this.frontMaskEl) {
+      this.maskTween = gsap.to(this.frontMaskEl, {
+        opacity: targetOpacity,
+        duration: 0.4,
+        ease: 'power2.out',
+        overwrite: 'auto',
+        onUpdate: () => {
+          if (this.threeCardModel && this.frontMaskEl) {
+            const currentOpacity = Number(gsap.getProperty(this.frontMaskEl, 'opacity')) || 0;
+            this.threeCardModel.setVeilOpacity(currentOpacity);
+          }
+        },
+      });
+    }
+
   }
 
   /**
@@ -530,6 +558,11 @@ export class CardSummonEngine implements Engine {
           duration: 3,
           ease: 'sine.inOut',
           repeat: -1,
+          onUpdate: () => {
+            if (this.threeCardModel && this.sheenTween) {
+              this.threeCardModel.setSheenProgress(this.sheenTween.progress());
+            }
+          },
         }
       );
     }
@@ -543,6 +576,14 @@ export class CardSummonEngine implements Engine {
     modal.appendChild(cardStage);
 
     targetContainer.appendChild(modal);
+
+    // Initialize & mount ThreeCardModel inside card stage
+    this.threeCardModel = new ThreeCardModel({ cardData, theme });
+    this.threeCardModel.mount(cardStage);
+
+    // Hide DOM card faces to eliminate compositor blur bleed in favor of WebGL 3D card
+    cardBack.style.opacity = '0';
+    cardFace.style.opacity = '0';
 
     this.modalEl = modal;
     this.backdropEl = backdrop;
@@ -603,6 +644,9 @@ export class CardSummonEngine implements Engine {
         duration: 0.3,
         ease: 'power2.out',
         overwrite: 'auto',
+        onUpdate: () => {
+          this.syncThreeCardModel();
+        },
       });
     };
     modal.addEventListener('pointermove', this.boundOnPointerMove);
@@ -615,6 +659,9 @@ export class CardSummonEngine implements Engine {
         duration: 0.5,
         ease: 'power2.out',
         overwrite: 'auto',
+        onUpdate: () => {
+          this.syncThreeCardModel();
+        },
       });
     };
     modal.addEventListener('pointerleave', this.boundOnPointerLeave);
@@ -669,12 +716,16 @@ export class CardSummonEngine implements Engine {
 
     // Build entrance timeline
     this.openTimeline = gsap.timeline({
+      onUpdate: () => {
+        this.syncThreeCardModel();
+      },
       onComplete: () => {
         this.isSettled = true;
         this.isFlipped = true;
         if (this.controlsEl) {
           this.controlsEl.style.opacity = '1';
         }
+        this.syncThreeCardModel();
       },
     });
 
@@ -875,6 +926,9 @@ export class CardSummonEngine implements Engine {
       this.openTimeline.set({}, {}, 2.0);
     }
 
+    // Initial sync of ThreeCardModel state
+    this.syncThreeCardModel();
+
     // Set accessible focus to close button
     this.closeBtnEl?.focus();
   }
@@ -1000,6 +1054,10 @@ export class CardSummonEngine implements Engine {
       this.cardStageEl.remove();
       this.cardStageEl = null;
     }
+    if (this.threeCardModel) {
+      this.threeCardModel.destroy();
+      this.threeCardModel = null;
+    }
     if (typeof document !== 'undefined' && document.body) {
       document.body.style.overflow = '';
     }
@@ -1008,5 +1066,26 @@ export class CardSummonEngine implements Engine {
     this.backdropEl = null;
     this.bottomGlowEl = null;
     this.closeBtnEl = null;
+  }
+
+  /**
+   * Synchronizes the 3D ThreeCardModel transforms and position with active GSAP cardEl properties.
+   */
+  private syncThreeCardModel(): void {
+    if (!this.cardEl || !this.threeCardModel) return;
+    const rotYDeg = (gsap.getProperty(this.cardEl, 'rotationY') as number) ?? 0;
+    const rotXDeg = (gsap.getProperty(this.cardEl, 'rotationX') as number) ?? 0;
+    const rotZDeg = (gsap.getProperty(this.cardEl, 'rotationZ') as number) ?? 0;
+    const scale = (gsap.getProperty(this.cardEl, 'scale') as number) ?? 1;
+    const yPercent = (gsap.getProperty(this.cardEl, 'yPercent') as number) ?? 0;
+    const x = (gsap.getProperty(this.cardEl, 'x') as number) ?? 0;
+
+    const degToRad = Math.PI / 180;
+    const posY = -(yPercent / 100) * 4.5;
+    const posX = x * 0.05;
+
+    this.threeCardModel.setRotation(rotXDeg * degToRad, rotYDeg * degToRad, rotZDeg * degToRad);
+    this.threeCardModel.setPosition(posX, posY, 0);
+    this.threeCardModel.setScale(scale);
   }
 }

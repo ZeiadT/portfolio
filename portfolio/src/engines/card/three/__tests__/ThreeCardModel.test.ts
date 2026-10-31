@@ -1,0 +1,390 @@
+import { describe, it, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
+import * as THREE from 'three';
+import type { CardSummonData, CardSummonTheme } from '@/engines/card/CardSummonEngine';
+import { ThreeCardModel } from '../ThreeCardModel';
+import { CardTextureGenerator } from '../CardTextureGenerator';
+
+// Polyfill Canvas 2D context for headless happy-dom environment
+const originalGetContext = typeof HTMLCanvasElement !== 'undefined' ? HTMLCanvasElement.prototype.getContext : undefined;
+
+if (typeof HTMLCanvasElement !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, contextType: string, ...args: unknown[]) {
+    if (contextType === '2d') {
+      return {
+        canvas: this,
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 1,
+        font: '',
+        textAlign: 'left',
+        textBaseline: 'alphabetic',
+        globalAlpha: 1,
+        fillRect: vi.fn(),
+        clearRect: vi.fn(),
+        strokeRect: vi.fn(),
+        fillText: vi.fn(),
+        strokeText: vi.fn(),
+        beginPath: vi.fn(),
+        closePath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        arc: vi.fn(),
+        stroke: vi.fn(),
+        fill: vi.fn(),
+        save: vi.fn(),
+        restore: vi.fn(),
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        scale: vi.fn(),
+        drawImage: vi.fn(),
+        createLinearGradient: vi.fn(() => ({
+          addColorStop: vi.fn(),
+        })),
+        createRadialGradient: vi.fn(() => ({
+          addColorStop: vi.fn(),
+        })),
+        measureText: vi.fn((text: string) => ({
+          width: text.length * 8,
+          actualBoundingBoxAscent: 10,
+          actualBoundingBoxDescent: 2,
+        })),
+      };
+    }
+    return originalGetContext ? (originalGetContext as Function).apply(this, [contextType, ...args]) : null;
+  };
+}
+
+describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () => {
+  let container: HTMLElement;
+  let model: ThreeCardModel | null = null;
+
+  const mockCardData: CardSummonData = {
+    name: 'Alex Rivera',
+    rarity: 'Mythic Rare',
+    stars: 5,
+    role: 'Mobile Systems Architect',
+    imageSrc: '/assets/portrait.webp',
+    imageAlt: 'Alex Rivera Portrait',
+    skillName: 'Reactive Rendering Engine',
+    skillDescription: 'High-performance real-time graphics and physics architecture',
+    atk: 99,
+    def: 98,
+    stats: {
+      perf: 99,
+      arch: 98,
+      code: 95,
+    },
+  };
+
+  const mockTheme: CardSummonTheme = {
+    primaryColor: '#ff4421',
+    coreColor: '#ffffff',
+    accentColor: '#ff7700',
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'three-card-container';
+    container.style.width = '600px';
+    container.style.height = '800px';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (model) {
+      model.destroy();
+      model = null;
+    }
+    vi.restoreAllMocks();
+    document.body.innerHTML = '';
+  });
+
+  afterAll(() => {
+    if (typeof HTMLCanvasElement !== 'undefined' && originalGetContext) {
+      HTMLCanvasElement.prototype.getContext = originalGetContext;
+    }
+  });
+
+  describe('1. Lifecycle Contract & Engine Interface', () => {
+    it('implements Engine lifecycle methods (mount, destroy, resize)', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      expect(typeof model.mount).toBe('function');
+      expect(typeof model.destroy).toBe('function');
+      expect(typeof model.resize).toBe('function');
+    });
+
+    it('creates and attaches WebGL canvas element to container upon mount', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      expect(container.querySelector('canvas')).toBeNull();
+
+      model.mount(container);
+
+      const canvas = container.querySelector('canvas');
+      expect(canvas).not.toBeNull();
+      expect(container.contains(canvas)).toBe(true);
+    });
+
+    it('updates camera aspect and renderer dimensions on resize(width, height)', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      expect(() => {
+        model!.resize(1024, 768);
+      }).not.toThrow();
+
+      // Negative or zero dimensions must be handled safely without NaN or crashes
+      expect(() => {
+        model!.resize(0, 0);
+      }).not.toThrow();
+    });
+
+    it('cleans up DOM and disposes geometries, textures, materials, and renderer on destroy()', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      const canvas = container.querySelector('canvas');
+      expect(canvas).not.toBeNull();
+
+      // Spy on geometry, material, texture, and renderer disposal
+      const slabMesh = model.cardGroup.children.find(
+        (child) => (child as THREE.Mesh).geometry && child.name === 'card-slab'
+      ) as THREE.Mesh;
+      const frontMesh = model.cardGroup.children.find(
+        (child) => (child as THREE.Mesh).geometry && child.name === 'card-front'
+      ) as THREE.Mesh;
+
+      expect(slabMesh).toBeDefined();
+      expect(frontMesh).toBeDefined();
+
+      const geomDisposeSpy = vi.spyOn(slabMesh.geometry, 'dispose');
+      const matDisposeSpy = vi.spyOn(
+        Array.isArray(slabMesh.material) ? slabMesh.material[0] : slabMesh.material,
+        'dispose'
+      );
+      const frontGeomSpy = vi.spyOn(frontMesh.geometry, 'dispose');
+      const frontMatSpy = vi.spyOn(
+        Array.isArray(frontMesh.material) ? frontMesh.material[0] : frontMesh.material,
+        'dispose'
+      );
+
+      model.destroy();
+
+      // Canvas removed from container
+      expect(container.contains(canvas)).toBe(false);
+      expect(geomDisposeSpy).toHaveBeenCalled();
+      expect(matDisposeSpy).toHaveBeenCalled();
+      expect(frontGeomSpy).toHaveBeenCalled();
+      expect(frontMatSpy).toHaveBeenCalled();
+    });
+
+    it('safely tolerates redundant destroy() calls (idempotence)', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      expect(() => {
+        model!.destroy();
+        model!.destroy();
+      }).not.toThrow();
+    });
+  });
+
+  describe('2. 3D Card Assembly & Physical Geometry', () => {
+    it('creates root THREE.Group representing the physical card entity', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      expect(model.cardGroup).toBeInstanceOf(THREE.Group);
+    });
+
+    it('creates extruded rounded slab with physical thickness (depth > 0)', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children.find(
+        (child) => child.name === 'card-slab'
+      ) as THREE.Mesh;
+
+      expect(slabMesh).toBeDefined();
+      expect(slabMesh.geometry).toBeDefined();
+
+      // Geometry should either be ExtrudeGeometry or have depth > 0 in bounding box / parameters
+      const geometry = slabMesh.geometry as THREE.ExtrudeGeometry;
+      const depth = geometry.parameters?.options?.depth ?? 0;
+      expect(depth).toBeGreaterThan(0);
+      expect(depth).toBeCloseTo(0.06, 2); // ~2.5mm relative scene thickness
+    });
+
+    it('includes gilded gold metallic material on the beveled rim/edges (metalness >= 0.8, roughness <= 0.3)', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children.find(
+        (child) => child.name === 'card-slab'
+      ) as THREE.Mesh;
+
+      expect(slabMesh).toBeDefined();
+
+      // Edge material should be MeshStandardMaterial with high metalness and low roughness
+      const material = (
+        Array.isArray(slabMesh.material) ? slabMesh.material[0] : slabMesh.material
+      ) as THREE.MeshStandardMaterial;
+
+      expect(material).toBeDefined();
+      expect(material.metalness).toBeGreaterThanOrEqual(0.8);
+      expect(material.roughness).toBeLessThanOrEqual(0.3);
+
+      // Should have warm gold metallic color (e.g. 0xe5b85c or similar)
+      const hexColor = material.color.getHexString();
+      expect(hexColor).toMatch(/e5b85c|d4af37|ffd700|c59b27|e6be6a/i);
+    });
+
+    it('mounts front face mesh at +Z exterior and back face mesh at -Z exterior', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+
+      const frontMesh = model.cardGroup.children.find(
+        (child) => child.name === 'card-front'
+      ) as THREE.Mesh;
+      const backMesh = model.cardGroup.children.find(
+        (child) => child.name === 'card-back'
+      ) as THREE.Mesh;
+
+      expect(frontMesh).toBeDefined();
+      expect(backMesh).toBeDefined();
+
+      // Front face is on +Z exterior side
+      expect(frontMesh.position.z).toBeGreaterThan(0);
+
+      // Back face is on -Z exterior side
+      expect(backMesh.position.z).toBeLessThan(0);
+    });
+
+    it('rotates back face mesh by 180 degrees (Math.PI) on Y axis for horizontal flip continuity', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+
+      const backMesh = model.cardGroup.children.find(
+        (child) => child.name === 'card-back'
+      ) as THREE.Mesh;
+
+      expect(backMesh).toBeDefined();
+      expect(Math.abs(backMesh.rotation.y)).toBeCloseTo(Math.PI, 4);
+    });
+  });
+
+  describe('3. Animation & Dynamic Controls', () => {
+    it('setRotation(x, y, z) updates card group orientation', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.setRotation(0.3, 1.2, -0.4);
+
+      expect(model.cardGroup.rotation.x).toBeCloseTo(0.3, 4);
+      expect(model.cardGroup.rotation.y).toBeCloseTo(1.2, 4);
+      expect(model.cardGroup.rotation.z).toBeCloseTo(-0.4, 4);
+    });
+
+    it('setPosition(x, y, z) updates card group translation', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.setPosition(2.5, -1.0, 5.0);
+
+      expect(model.cardGroup.position.x).toBeCloseTo(2.5, 4);
+      expect(model.cardGroup.position.y).toBeCloseTo(-1.0, 4);
+      expect(model.cardGroup.position.z).toBeCloseTo(5.0, 4);
+    });
+
+    it('setScale(s) updates uniform card group scale', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.setScale(1.45);
+
+      expect(model.cardGroup.scale.x).toBeCloseTo(1.45, 4);
+      expect(model.cardGroup.scale.y).toBeCloseTo(1.45, 4);
+      expect(model.cardGroup.scale.z).toBeCloseTo(1.45, 4);
+    });
+
+    it('setVeilOpacity(o) adjusts front mask veil opacity and clamps between 0 and 1', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+
+      model.setVeilOpacity(0.65);
+      expect(model.getVeilOpacity()).toBeCloseTo(0.65, 4);
+
+      model.setVeilOpacity(1.5);
+      expect(model.getVeilOpacity()).toBeLessThanOrEqual(1.0);
+
+      model.setVeilOpacity(-0.5);
+      expect(model.getVeilOpacity()).toBeGreaterThanOrEqual(0.0);
+    });
+
+    it('setSheenProgress(p) updates holographic specular shimmer offset', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+
+      model.setSheenProgress(0.72);
+      expect(model.getSheenProgress()).toBeCloseTo(0.72, 4);
+    });
+  });
+
+  describe('4. CardTextureGenerator', () => {
+    describe('generateGoldenCardBackSvg', () => {
+      it('returns high-resolution SVG string with guilloche, filigree, and celestial crest', () => {
+        const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
+
+        expect(typeof svg).toBe('string');
+        expect(svg).toContain('<svg');
+        expect(svg).toContain('</svg>');
+
+        // Check 3x Retina resolution or viewBox (1050x1470)
+        expect(svg).toMatch(/viewBox=["']0 0 1050 1470["']|width=["']1050["']/);
+
+        // Check for guilloche concentric curves / geometry
+        expect(svg).toMatch(/guilloche|<path|<circle/i);
+
+        // Check for 4 corner filigree accents
+        expect(svg).toMatch(/filigree|corner/i);
+
+        // Check for celestial crest / radiating rings
+        expect(svg).toMatch(/crest|celestial|ring/i);
+
+        // Check gold metallic palette definitions
+        expect(svg).toMatch(/#e5b85c|#d4af37|#ffd700|#8a6d2b|gold/i);
+      });
+
+      it('adapts accents to custom theme when provided', () => {
+        const customTheme: CardSummonTheme = {
+          primaryColor: '#00ffee',
+          coreColor: '#ffffff',
+        };
+        const svg = CardTextureGenerator.generateGoldenCardBackSvg(customTheme);
+
+        expect(svg).toContain('#00ffee');
+      });
+    });
+
+    describe('generateGoldenCardBackTexture', () => {
+      it('creates high-resolution THREE.CanvasTexture (or Texture) with mipmaps enabled', () => {
+        const texture = CardTextureGenerator.generateGoldenCardBackTexture(mockTheme);
+
+        expect(texture).toBeInstanceOf(THREE.Texture);
+        expect(texture.generateMipmaps).toBe(true);
+        expect(texture.minFilter).toBe(THREE.LinearMipmapLinearFilter);
+      });
+    });
+
+    describe('generateFrontCardTexture', () => {
+      it('creates high-resolution THREE.CanvasTexture representing the editorial card face', () => {
+        const texture = CardTextureGenerator.generateFrontCardTexture(mockCardData, mockTheme);
+
+        expect(texture).toBeInstanceOf(THREE.Texture);
+        expect(texture.generateMipmaps).toBe(true);
+        expect(texture.minFilter).toBe(THREE.LinearMipmapLinearFilter);
+      });
+
+      it('safely handles missing optional fields with sensible defaults', () => {
+        const minimalData: CardSummonData = {
+          name: 'Anonymous Candidate',
+          rarity: 'Common',
+          stars: 3,
+          role: 'Junior Engineer',
+          imageSrc: '',
+          imageAlt: '',
+          skillName: 'Clean Code',
+          skillDescription: 'Basic syntax mastery',
+        };
+
+        expect(() => {
+          CardTextureGenerator.generateFrontCardTexture(minimalData);
+        }).not.toThrow();
+      });
+    });
+  });
+});

@@ -1,6 +1,61 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll, vi } from 'vitest';
 import { gsap } from 'gsap';
 import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
+import { ThreeCardModel } from '@/engines/card/three/ThreeCardModel';
+
+// Polyfill Canvas 2D context for headless happy-dom environment
+const originalGetContext = typeof HTMLCanvasElement !== 'undefined' ? HTMLCanvasElement.prototype.getContext : undefined;
+
+if (typeof HTMLCanvasElement !== 'undefined') {
+  HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, contextType: string, ...args: unknown[]) {
+    if (contextType === '2d') {
+      return {
+        canvas: this,
+        fillStyle: '',
+        strokeStyle: '',
+        lineWidth: 1,
+        font: '',
+        textAlign: 'left',
+        textBaseline: 'alphabetic',
+        globalAlpha: 1,
+        fillRect: vi.fn(),
+        clearRect: vi.fn(),
+        strokeRect: vi.fn(),
+        fillText: vi.fn(),
+        strokeText: vi.fn(),
+        beginPath: vi.fn(),
+        closePath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        arc: vi.fn(),
+        stroke: vi.fn(),
+        fill: vi.fn(),
+        save: vi.fn(),
+        restore: vi.fn(),
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        scale: vi.fn(),
+        drawImage: vi.fn(),
+        createLinearGradient: vi.fn(() => ({
+          addColorStop: vi.fn(),
+        })),
+        createRadialGradient: vi.fn(() => ({
+          addColorStop: vi.fn(),
+        })),
+        measureText: vi.fn((text: string) => ({
+          width: text.length * 8,
+          actualBoundingBoxAscent: 10,
+          actualBoundingBoxDescent: 2,
+        })),
+        setTransform: vi.fn(),
+        resetTransform: vi.fn(),
+        roundRect: vi.fn(),
+        clip: vi.fn(),
+      } as unknown as CanvasRenderingContext2D;
+    }
+    return originalGetContext ? (originalGetContext.apply(this, [contextType, ...args] as any) as any) : null;
+  };
+}
 
 describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
   let engine: CardSummonEngine;
@@ -1414,5 +1469,134 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
     expect(shockwave?.className).toContain('w-[306px]');
     expect(shockwave?.className).toContain('md:w-[405px]');
+  });
+});
+
+describe('Three.js 3D Physical Card Model Integration', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  afterAll(() => {
+    if (typeof HTMLCanvasElement !== 'undefined' && originalGetContext) {
+      HTMLCanvasElement.prototype.getContext = originalGetContext;
+    }
+  });
+
+  it('instantiates and mounts ThreeCardModel inside card stage on open()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const threeModel = engine.getThreeCardModel();
+    expect(threeModel).not.toBeNull();
+    expect(threeModel).toBeInstanceOf(ThreeCardModel);
+
+    const stage = document.querySelector<HTMLElement>('[data-summon-card-stage]');
+    expect(stage).not.toBeNull();
+    const canvas = stage?.querySelector('canvas');
+    expect(canvas).not.toBeNull();
+  });
+
+  it('synchronously coordinates ThreeCardModel 3D rotation, position, and scale with GSAP openTimeline', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const tl = engine.getTimeline();
+    const threeModel = engine.getThreeCardModel();
+    expect(tl).not.toBeNull();
+    expect(threeModel).not.toBeNull();
+
+    // At timeline start (seek 0): rotation around Y is approximately -900° in radians (-15.708 rad)
+    tl?.seek(0);
+    const startRotY = threeModel!.getCardGroup().rotation.y;
+    expect(startRotY).toBeCloseTo(-900 * (Math.PI / 180), 0);
+
+    // At timeline end (progress 1): lands on front face (180° = Math.PI rad) and scale 1.0
+    tl?.progress(1);
+    const endRotY = threeModel!.getCardGroup().rotation.y;
+    const endPosY = threeModel!.getCardGroup().position.y;
+    const endScale = threeModel!.getCardGroup().scale.x;
+
+    expect(endRotY).toBeCloseTo(Math.PI, 1);
+    expect(endPosY).toBeCloseTo(0, 1);
+    expect(endScale).toBeCloseTo(1, 1);
+  });
+
+  it('updates ThreeCardModel rotation upon flipCard() between front (Math.PI) and back (0)', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const tl = engine.getTimeline();
+    tl?.progress(1);
+
+    const threeModel = engine.getThreeCardModel();
+    expect(threeModel).not.toBeNull();
+    expect(threeModel!.getCardGroup().rotation.y).toBeCloseTo(Math.PI, 1);
+
+    // Flip to back side (0 rad)
+    engine.flipCard();
+    // Progress tweens
+    gsap.globalTimeline.getChildren().forEach((child) => child.progress?.(1));
+    expect(threeModel!.getCardGroup().rotation.y).toBeCloseTo(0, 1);
+
+    // Flip back to front side (Math.PI rad)
+    engine.flipCard();
+    gsap.globalTimeline.getChildren().forEach((child) => child.progress?.(1));
+    expect(threeModel!.getCardGroup().rotation.y).toBeCloseTo(Math.PI, 1);
+  });
+
+  it('updates ThreeCardModel veil opacity upon toggleConcealment() between 1 and 0', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const threeModel = engine.getThreeCardModel();
+    expect(threeModel).not.toBeNull();
+    expect(threeModel!.getVeilOpacity()).toBeCloseTo(1, 1);
+
+    // Toggle concealment off
+    engine.toggleConcealment();
+    gsap.globalTimeline.getChildren().forEach((child) => child.progress?.(1));
+    expect(threeModel!.getVeilOpacity()).toBeCloseTo(0, 1);
+
+    // Toggle concealment on
+    engine.toggleConcealment();
+    gsap.globalTimeline.getChildren().forEach((child) => child.progress?.(1));
+    expect(threeModel!.getVeilOpacity()).toBeCloseTo(1, 1);
+  });
+
+  it('destroys ThreeCardModel cleanly upon close() and destroy()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const threeModel = engine.getThreeCardModel();
+    expect(threeModel).not.toBeNull();
+    const destroySpy = vi.spyOn(threeModel!, 'destroy');
+
+    engine.close();
+    expect(destroySpy).toHaveBeenCalled();
+    expect(engine.getThreeCardModel()).toBeNull();
+
+    // Re-open and verify engine.destroy()
+    engine.open();
+    const secondModel = engine.getThreeCardModel();
+    expect(secondModel).not.toBeNull();
+    const secondDestroySpy = vi.spyOn(secondModel!, 'destroy');
+
+    engine.destroy();
+    expect(secondDestroySpy).toHaveBeenCalled();
+    expect(engine.getThreeCardModel()).toBeNull();
   });
 });
