@@ -418,6 +418,82 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
         barsProgress: 0.75,
       });
     });
+
+    it('does not re-render 2D canvas or flag texture for upload on every setVeilOpacity or setFoilWipeProgress frame call', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
+      const frontMat = (slabMesh.material as THREE.MeshStandardMaterial[])[1];
+      const texture = frontMat.map!;
+
+      const initialVersion = texture.version;
+
+      // Simulate 60fps GSAP reveal updates across 10 frames
+      for (let i = 0; i <= 10; i++) {
+        const p = i / 10;
+        model.setFoilWipeProgress(p);
+        model.setVeilOpacity(1 - p);
+      }
+
+      // Texture version must NOT increment during animation frames (zero VRAM re-uploads)
+      expect(texture.version).toBe(initialVersion);
+    });
+
+    it('compiles frontMaterial with custom shader uniforms uVeilOpacity and uFoilWipeProgress', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
+      const frontMat = (slabMesh.material as THREE.MeshStandardMaterial[])[1];
+
+      expect(typeof frontMat.onBeforeCompile).toBe('function');
+
+      const mockShader = {
+        uniforms: {} as Record<string, { value: unknown }>,
+        vertexShader: 'void main() { gl_Position = vec4(1.0); }',
+        fragmentShader: '#include <map_fragment>\nvoid main() {}',
+      };
+
+      frontMat.onBeforeCompile(mockShader as unknown as THREE.WebGLProgramParametersWithUniforms, {} as THREE.WebGLRenderer);
+
+      expect(mockShader.uniforms.uVeilOpacity).toBeDefined();
+      expect(mockShader.uniforms.uFoilWipeProgress).toBeDefined();
+      expect(mockShader.fragmentShader).toContain('uVeilOpacity');
+      expect(mockShader.fragmentShader).toContain('uFoilWipeProgress');
+      expect(mockShader.fragmentShader).toContain('wipeDir');
+    });
+
+    it('updates shader uniform values directly when setVeilOpacity and setFoilWipeProgress are called', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
+      const frontMat = (slabMesh.material as THREE.MeshStandardMaterial[])[1];
+
+      const mockShader = {
+        uniforms: {} as Record<string, { value: unknown }>,
+        vertexShader: 'void main() { gl_Position = vec4(1.0); }',
+        fragmentShader: '#include <map_fragment>\nvoid main() {}',
+      };
+
+      frontMat.onBeforeCompile(mockShader as unknown as THREE.WebGLProgramParametersWithUniforms, {} as THREE.WebGLRenderer);
+
+      model.setVeilOpacity(0.42);
+      expect(mockShader.uniforms.uVeilOpacity.value).toBeCloseTo(0.42, 4);
+
+      model.setFoilWipeProgress(0.78);
+      expect(mockShader.uniforms.uFoilWipeProgress.value).toBeCloseTo(0.78, 4);
+    });
+
+    it('does not re-render 2D canvas on setStatsAnimationProgress frame calls', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
+      const frontMat = (slabMesh.material as THREE.MeshStandardMaterial[])[1];
+      const texture = frontMat.map!;
+
+      const initialVersion = texture.version;
+
+      for (let i = 0; i <= 10; i++) {
+        model.setStatsAnimationProgress(i / 10, i / 10);
+      }
+
+      expect(texture.version).toBe(initialVersion);
+    });
   });
 
   describe('4. CardTextureGenerator', () => {
