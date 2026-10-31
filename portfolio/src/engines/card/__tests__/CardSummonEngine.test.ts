@@ -1058,3 +1058,255 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(removeEventListenerSpy2).toHaveBeenCalledWith('pointerleave', expect.any(Function));
   });
 });
+
+describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  it('renders front card face structure inside [data-summon-card-face] with header, stars, class, portrait, lore, and attribute tickers', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const cardFace = document.querySelector<HTMLElement>('[data-summon-card-face]');
+    expect(cardFace).not.toBeNull();
+
+    // Header block
+    const header = cardFace?.querySelector<HTMLElement>('[data-summon-face-header]');
+    expect(header).not.toBeNull();
+
+    const rarity = header?.querySelector<HTMLElement>('[data-summon-face-rarity]');
+    expect(rarity).not.toBeNull();
+    expect(rarity?.textContent).toContain('MYTHIC RARE');
+
+    const stars = header?.querySelector<HTMLElement>('[data-summon-face-stars]');
+    expect(stars).not.toBeNull();
+    expect(stars?.textContent).toContain('★★★★★');
+
+    const classBadge = header?.querySelector<HTMLElement>('[data-summon-face-class]');
+    expect(classBadge).not.toBeNull();
+    expect(classBadge?.textContent).toContain('Mobile & Frontend Architect');
+
+    // Holographic arch portrait window
+    const portraitWindow = cardFace?.querySelector<HTMLElement>('[data-summon-face-portrait-window]');
+    expect(portraitWindow).not.toBeNull();
+
+    const avatar = portraitWindow?.querySelector<HTMLImageElement>('[data-summon-face-avatar]');
+    expect(avatar).not.toBeNull();
+    expect(avatar?.getAttribute('src')).toBe('/profile.jpg');
+    expect(avatar?.getAttribute('alt')).toBeTruthy();
+
+    // Lore block
+    const lore = cardFace?.querySelector<HTMLElement>('[data-summon-face-lore]');
+    expect(lore).not.toBeNull();
+
+    const name = lore?.querySelector<HTMLElement>('[data-summon-face-name]');
+    expect(name).not.toBeNull();
+    expect(name?.textContent).toContain('Zeiad Mohammed');
+
+    const skillTitle = lore?.querySelector<HTMLElement>('[data-summon-face-skill-title]');
+    expect(skillTitle).not.toBeNull();
+    expect(skillTitle?.textContent).toContain('Engineered Precision');
+
+    const skillDesc = lore?.querySelector<HTMLElement>('[data-summon-face-skill-desc]');
+    expect(skillDesc).not.toBeNull();
+    expect(skillDesc?.textContent).toContain('Orchestrates zero-overhead 60fps reactive motion');
+
+    // Attribute stats block
+    const stats = cardFace?.querySelector<HTMLElement>('[data-summon-face-stats]');
+    expect(stats).not.toBeNull();
+
+    const statPerf = stats?.querySelector<HTMLElement>('[data-summon-stat-perf]');
+    expect(statPerf).not.toBeNull();
+    expect(statPerf?.textContent).toContain('99');
+
+    const statArch = stats?.querySelector<HTMLElement>('[data-summon-stat-arch]');
+    expect(statArch).not.toBeNull();
+    expect(statArch?.textContent).toContain('98');
+
+    const statCode = stats?.querySelector<HTMLElement>('[data-summon-stat-code]');
+    expect(statCode).not.toBeNull();
+    expect(statCode?.textContent).toContain('95');
+  });
+
+  it('supports custom cardData configuration', () => {
+    const customData = {
+      name: 'Custom Developer',
+      rarity: 'SECRET RARE',
+      stars: 3,
+      role: 'Systems Engineer',
+      imageSrc: '/custom.jpg',
+      imageAlt: 'Custom Avatar',
+      skillName: 'Zero Alloc',
+      skillDescription: 'No GC latency',
+      stats: { perf: 100, arch: 92, code: 99 },
+    };
+
+    engine = new CardSummonEngine({
+      cardData: customData as any,
+    });
+    engine.open();
+
+    const cardFace = document.querySelector<HTMLElement>('[data-summon-card-face]');
+    expect(cardFace).not.toBeNull();
+
+    const rarity = cardFace?.querySelector<HTMLElement>('[data-summon-face-rarity]');
+    expect(rarity).not.toBeNull();
+    expect(rarity?.textContent).toContain('SECRET RARE');
+
+    const stars = cardFace?.querySelector<HTMLElement>('[data-summon-face-stars]');
+    expect(stars).not.toBeNull();
+    expect(stars?.textContent).toContain('★★★');
+
+    const roleBadge = cardFace?.querySelector<HTMLElement>('[data-summon-face-class]');
+    expect(roleBadge).not.toBeNull();
+    expect(roleBadge?.textContent).toContain('Systems Engineer');
+
+    const avatar = cardFace?.querySelector<HTMLImageElement>('[data-summon-face-avatar]');
+    expect(avatar).not.toBeNull();
+    expect(avatar?.getAttribute('src')).toBe('/custom.jpg');
+    expect(avatar?.getAttribute('alt')).toBe('Custom Avatar');
+
+    const name = cardFace?.querySelector<HTMLElement>('[data-summon-face-name]');
+    expect(name).not.toBeNull();
+    expect(name?.textContent).toContain('Custom Developer');
+
+    const skillTitle = cardFace?.querySelector<HTMLElement>('[data-summon-face-skill-title]');
+    expect(skillTitle).not.toBeNull();
+    expect(skillTitle?.textContent).toContain('Zero Alloc');
+
+    const skillDesc = cardFace?.querySelector<HTMLElement>('[data-summon-face-skill-desc]');
+    expect(skillDesc).not.toBeNull();
+    expect(skillDesc?.textContent).toContain('No GC latency');
+
+    const statPerf = cardFace?.querySelector<HTMLElement>('[data-summon-stat-perf]');
+    expect(statPerf).not.toBeNull();
+    expect(statPerf?.textContent).toContain('100');
+
+    const statArch = cardFace?.querySelector<HTMLElement>('[data-summon-stat-arch]');
+    expect(statArch).not.toBeNull();
+    expect(statArch?.textContent).toContain('92');
+
+    const statCode = cardFace?.querySelector<HTMLElement>('[data-summon-stat-code]');
+    expect(statCode).not.toBeNull();
+    expect(statCode?.textContent).toContain('99');
+  });
+
+  it('renders frosted obsidian concealment veil [data-summon-card-front-mask] with specular sheen [data-summon-card-front-sheen]', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const cardFace = document.querySelector<HTMLElement>('[data-summon-card-face]');
+    expect(cardFace).not.toBeNull();
+
+    const frontMask = cardFace?.querySelector<HTMLElement>('[data-summon-card-front-mask]');
+    expect(frontMask).not.toBeNull();
+    expect(frontMask?.className).toContain('backdrop-blur-xl');
+
+    const sheen = frontMask?.querySelector<HTMLElement>('[data-summon-card-front-sheen]');
+    expect(sheen).not.toBeNull();
+
+    const tweens = gsap.getTweensOf(sheen!);
+    expect(tweens.length).toBeGreaterThan(0);
+  });
+
+  it('supports swappable CardFaceRenderer via options.faceRenderer', () => {
+    const mockRender = vi.fn((container: HTMLElement) => {
+      const customEl = document.createElement('div');
+      customEl.setAttribute('data-custom-face', '');
+      customEl.textContent = 'Custom Rendered Face';
+      container.appendChild(customEl);
+    });
+
+    const mockRenderer = {
+      id: 'custom-face-renderer',
+      render: mockRender,
+    };
+
+    engine = new CardSummonEngine({
+      faceRenderer: mockRenderer,
+    } as any);
+
+    engine.open();
+
+    const cardFace = document.querySelector<HTMLElement>('[data-summon-card-face]');
+    expect(cardFace).not.toBeNull();
+    expect(mockRender).toHaveBeenCalledWith(
+      cardFace,
+      expect.any(Object),
+      expect.any(Object)
+    );
+    expect(cardFace?.querySelector('[data-custom-face]')).not.toBeNull();
+  });
+
+  it('respects prefers-reduced-motion for concealment sheen animation', () => {
+    const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+      matches: query.includes('prefers-reduced-motion: reduce'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    try {
+      engine = new CardSummonEngine();
+      engine.open();
+
+      const sheen = document.querySelector<HTMLElement>('[data-summon-card-front-sheen]');
+      expect(sheen).not.toBeNull();
+
+      const tweens = gsap.getTweensOf(sheen!);
+      expect(tweens.length).toBe(0);
+    } finally {
+      matchMediaSpy.mockRestore();
+    }
+  });
+
+  it('cleans up front card face, concealment mask, and sheen tweens on close() and destroy()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const sheen = document.querySelector<HTMLElement>('[data-summon-card-front-sheen]');
+    expect(sheen).not.toBeNull();
+    const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
+    expect(mask).not.toBeNull();
+
+    engine.close();
+
+    expect(document.querySelector('[data-summon-card-front-mask]')).toBeNull();
+    expect(document.querySelector('[data-summon-card-front-sheen]')).toBeNull();
+    expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
+    if (sheen) {
+      expect(gsap.getTweensOf(sheen).length).toBe(0);
+    }
+
+    // Re-open and verify destroy() teardown
+    engine.open();
+    const sheen2 = document.querySelector<HTMLElement>('[data-summon-card-front-sheen]');
+    expect(sheen2).not.toBeNull();
+
+    engine.destroy();
+
+    expect(document.querySelector('[data-summon-card-front-mask]')).toBeNull();
+    expect(document.querySelector('[data-summon-card-front-sheen]')).toBeNull();
+    expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
+    if (sheen2) {
+      expect(gsap.getTweensOf(sheen2).length).toBe(0);
+    }
+  });
+});
