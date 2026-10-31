@@ -37,6 +37,7 @@ export interface CardSummonOptions {
   theme?: CardSummonTheme;
   cardData?: CardSummonData;
   faceRenderer?: CardFaceRenderer;
+  autoFlipToFront?: boolean;
   onClose?: () => void;
 }
 
@@ -74,6 +75,11 @@ export class CardSummonEngine implements Engine {
   private openTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
   private isSettled: boolean = false;
+  private isFlipped: boolean = false;
+  private isMaskConcealedState: boolean = true;
+  private controlsEl: HTMLElement | null = null;
+  private flipTween: gsap.core.Tween | null = null;
+  private maskTween: gsap.core.Tween | null = null;
   private options: CardSummonOptions;
 
   private boundOnKeyDown: ((e: KeyboardEvent) => void) | null = null;
@@ -82,6 +88,9 @@ export class CardSummonEngine implements Engine {
   private boundOnCloseClick: ((e: MouseEvent) => void) | null = null;
   private boundOnPointerMove: ((e: PointerEvent) => void) | null = null;
   private boundOnPointerLeave: (() => void) | null = null;
+  private boundOnCardClick: ((e: MouseEvent) => void) | null = null;
+  private boundOnFlipBtnClick: ((e: MouseEvent) => void) | null = null;
+  private boundOnMaskToggleClick: ((e: MouseEvent) => void) | null = null;
 
   constructor(options: CardSummonOptions = {}) {
     this.options = options;
@@ -101,6 +110,54 @@ export class CardSummonEngine implements Engine {
    */
   public isOpen(): boolean {
     return this.isDialogOpen;
+  }
+
+  /**
+   * Returns whether the card is currently flipped to the front face (180deg).
+   */
+  public isCardFlipped(): boolean {
+    return this.isFlipped;
+  }
+
+  /**
+   * Returns whether the frosted obsidian concealment mask is currently active.
+   */
+  public isMaskConcealed(): boolean {
+    return this.isMaskConcealedState;
+  }
+
+  /**
+   * Smoothly flips the card between front face (180deg) and back sigil (0deg).
+   */
+  public flipCard(): void {
+    if (!this.cardEl) return;
+    this.isFlipped = !this.isFlipped;
+    if (this.flipTween) {
+      this.flipTween.kill();
+    }
+    this.flipTween = gsap.to(this.cardEl, {
+      rotationY: this.isFlipped ? 180 : 0,
+      duration: 0.7,
+      ease: 'power2.inOut',
+      overwrite: 'auto',
+    });
+  }
+
+  /**
+   * Toggles the Frosted Obsidian Glass Concealment Veil on/off.
+   */
+  public toggleConcealment(): void {
+    if (!this.frontMaskEl) return;
+    this.isMaskConcealedState = !this.isMaskConcealedState;
+    if (this.maskTween) {
+      this.maskTween.kill();
+    }
+    this.maskTween = gsap.to(this.frontMaskEl, {
+      opacity: this.isMaskConcealedState ? 1 : 0,
+      duration: 0.4,
+      ease: 'power2.out',
+      overwrite: 'auto',
+    });
   }
 
   /**
@@ -442,8 +499,9 @@ export class CardSummonEngine implements Engine {
       const x = (e.clientX - rect.left) / rect.width - 0.5;
       const y = (e.clientY - rect.top) / rect.height - 0.5;
       const maxTilt = 12;
-      const targetRotY = x * (maxTilt * 2);
-      const targetRotX = -y * (maxTilt * 2);
+      const baseRotY = this.isFlipped ? 180 : 0;
+      const targetRotY = baseRotY + (this.isFlipped ? -x : x) * (maxTilt * 2);
+      const targetRotX = (this.isFlipped ? y : -y) * (maxTilt * 2);
       gsap.to(this.cardEl, {
         rotationY: targetRotY,
         rotationX: targetRotX,
@@ -457,7 +515,7 @@ export class CardSummonEngine implements Engine {
     this.boundOnPointerLeave = () => {
       if (!this.cardEl) return;
       gsap.to(this.cardEl, {
-        rotationY: 0,
+        rotationY: this.isFlipped ? 180 : 0,
         rotationX: 0,
         duration: 0.5,
         ease: 'power2.out',
@@ -465,6 +523,50 @@ export class CardSummonEngine implements Engine {
       });
     };
     modal.addEventListener('pointerleave', this.boundOnPointerLeave);
+
+    // Floating inspection controls (Flip Card & Toggle Mask)
+    const controls = document.createElement('div');
+    controls.setAttribute('data-summon-controls', '');
+    controls.className =
+      'absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 sm:gap-3 pointer-events-auto select-none opacity-0 transition-opacity duration-300';
+    controls.innerHTML = `
+      <button type="button" data-summon-flip-btn class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+        <span>Flip Card</span>
+        <span class="text-amber-400">↺</span>
+      </button>
+      <button type="button" data-summon-mask-toggle class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+        <span>Toggle Concealment</span>
+        <span class="text-yellow-300">✦</span>
+      </button>
+    `;
+    modal.appendChild(controls);
+    this.controlsEl = controls;
+
+    const flipBtn = controls.querySelector<HTMLButtonElement>('[data-summon-flip-btn]');
+    if (flipBtn) {
+      this.boundOnFlipBtnClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        this.flipCard();
+      };
+      flipBtn.addEventListener('click', this.boundOnFlipBtnClick);
+    }
+
+    const maskToggleBtn = controls.querySelector<HTMLButtonElement>('[data-summon-mask-toggle]');
+    if (maskToggleBtn) {
+      this.boundOnMaskToggleClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        this.toggleConcealment();
+      };
+      maskToggleBtn.addEventListener('click', this.boundOnMaskToggleClick);
+    }
+
+    // Clicking card directly flips it
+    this.boundOnCardClick = (e: MouseEvent) => {
+      if (!this.cardEl || !this.isSettled) return;
+      if ((e.target as HTMLElement).closest('button')) return;
+      this.flipCard();
+    };
+    card.addEventListener('click', this.boundOnCardClick);
 
     // Check prefers-reduced-motion
     const prefersReducedMotion = typeof window !== 'undefined' &&
@@ -474,6 +576,12 @@ export class CardSummonEngine implements Engine {
     this.openTimeline = gsap.timeline({
       onComplete: () => {
         this.isSettled = true;
+        if (this.controlsEl) {
+          this.controlsEl.style.opacity = '1';
+        }
+        if (this.options.autoFlipToFront && this.cardEl) {
+          this.flipCard();
+        }
       },
     });
 
@@ -715,7 +823,27 @@ export class CardSummonEngine implements Engine {
       this.modalEl.removeEventListener('pointerleave', this.boundOnPointerLeave);
       this.boundOnPointerLeave = null;
     }
+    if (this.cardEl && this.boundOnCardClick) {
+      this.cardEl.removeEventListener('click', this.boundOnCardClick);
+      this.boundOnCardClick = null;
+    }
+    this.boundOnFlipBtnClick = null;
+    this.boundOnMaskToggleClick = null;
     this.isSettled = false;
+    this.isFlipped = false;
+    this.isMaskConcealedState = true;
+    if (this.flipTween) {
+      this.flipTween.kill();
+      this.flipTween = null;
+    }
+    if (this.maskTween) {
+      this.maskTween.kill();
+      this.maskTween = null;
+    }
+    if (this.controlsEl) {
+      this.controlsEl.remove();
+      this.controlsEl = null;
+    }
     if (this.openTimeline) {
       this.openTimeline.kill();
       this.openTimeline = null;

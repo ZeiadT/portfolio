@@ -114,3 +114,32 @@
 - [x] **Step 2: Run Vite production build**
 - [x] **Step 3: Mark documentation plan Completed and commit**
 - [x] **Step 4: Present Phase 5 to the user for review along with the copy-paste prompt recipe for Option 3 (Minimalist Editorial Luxury)**
+
+---
+
+### Task 5: Candidate Custom Data Injection & Interactive Phase 5 Inspection
+
+**Files:**
+- Modify: `portfolio/src/components/home/ProfileHeader.ts`
+- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
+- Modify: `portfolio/src/engines/card/__tests__/CardSummonEngine.test.ts`
+
+**Requirements:**
+1. Inject Zeiad's authentic credentials from CV into `ProfileHeader.ts`:
+   - Role: "Android Application Developer"
+   - Skill: "Clean Reactive Architecture"
+   - Description: "Engineers offline-first Android & KMP applications with Kotlin Coroutines, Jetpack Compose, and robust Clean Architecture."
+   - Stats: PERF: 99 / ARCH: 98 / CODE: 96
+2. Support `options.autoFlipToFront?: boolean` in `CardSummonEngine`:
+   - When true, automatically animates card flip to front (`rotationY: 180`) upon summon landing, immediately showcasing the Phase 5 Front Face.
+   - Interactive 3D parallax tilt dynamically adjusts base angle depending on `isFlipped`.
+3. Interactive Inspection Controls:
+   - Clicking card or flip control toggles between front (180deg) and back (0deg).
+   - Concealment toggle allows switching between frosted obsidian shimmer and crystal-clear unblurred card face.
+   - Clean teardown on `close()` and `destroy()`.
+4. Unit tests in `CardSummonEngine.test.ts` verifying auto-flip, flip toggle, and concealment toggle behavior.
+
+- [x] **Step 1: Write unit tests for interactive flip and concealment toggles in `CardSummonEngine.test.ts`**
+- [x] **Step 2: Implement autoFlipToFront, interactive 3D flip, and concealment toggle in `CardSummonEngine.ts`**
+- [x] **Step 3: Update `ProfileHeader.ts` with customized candidate data and `autoFlipToFront: true`**
+- [x] **Step 4: Verify test suite and production build**

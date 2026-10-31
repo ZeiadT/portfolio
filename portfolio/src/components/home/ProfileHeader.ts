@@ -86,19 +86,21 @@ export class ProfileHeader {
       'lg:col-span-5 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center justify-center';
 
     this.cardSummonEngine = new CardSummonEngine({
+      autoFlipToFront: true,
       cardData: {
         name: 'Zeiad Mohammed',
         rarity: 'MYTHIC RARE',
         stars: 5,
-        role: 'Mobile & Frontend Architect',
+        role: 'Android Application Developer',
         imageSrc: this.data.avatar.src,
         imageAlt: this.data.avatar.alt,
-        skillName: 'Engineered Precision',
-        skillDescription: 'Orchestrates zero-overhead 60fps reactive motion',
+        skillName: 'Clean Reactive Architecture',
+        skillDescription:
+          'Engineers offline-first Android & KMP platforms with Kotlin Coroutines, Jetpack Compose, and robust Clean Architecture.',
         stats: {
           perf: 99,
           arch: 98,
-          code: 95,
+          code: 96,
         },
       },
     });

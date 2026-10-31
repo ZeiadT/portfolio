@@ -1309,4 +1309,49 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
       expect(gsap.getTweensOf(sheen2).length).toBe(0);
     }
   });
+
+  it('supports autoFlipToFront option to automatically rotate card to front face upon timeline completion', () => {
+    engine = new CardSummonEngine({ autoFlipToFront: true });
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Trigger onComplete
+    tl?.progress(1);
+
+    // Engine's isFlipped state should be true
+    expect(engine.isCardFlipped()).toBe(true);
+  });
+
+  it('supports interactive card flip and concealment mask toggle controls', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    tl?.progress(1);
+
+    // Initial state: not flipped
+    expect(engine.isCardFlipped()).toBe(false);
+
+    // Flip card programmatically or via click
+    engine.flipCard();
+    expect(engine.isCardFlipped()).toBe(true);
+
+    // Toggle concealment mask
+    const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
+    expect(mask).not.toBeNull();
+
+    expect(engine.isMaskConcealed()).toBe(true);
+    engine.toggleConcealment();
+    expect(engine.isMaskConcealed()).toBe(false);
+    engine.toggleConcealment();
+    expect(engine.isMaskConcealed()).toBe(true);
+  });
 });
