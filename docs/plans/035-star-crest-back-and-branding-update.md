@@ -1,7 +1,8 @@
 # Star Crest Card Back & Branding Update Implementation Plan
 
-- **Status**: Proposed
+- **Status**: Completed
 - **Created**: 2026-10-31
+- **Completed**: 2026-10-31
 - **Tech Stack**: Three.js (^0.160.0), HTML5 Canvas 2D, SVG, Vanilla TypeScript, Vitest
 - **Branch**: `main`
 
@@ -82,11 +83,11 @@ User feedback:
 
 ## 3. Implementation Checklist
 
-- [ ] 1. Write failing tests in `CardTextureGenerator.test.ts` and `EditorialCardFaceRenderer.test.ts` (RED phase).
-- [ ] 2. Run tests to confirm failure.
-- [ ] 3. Commit test specifications.
-- [ ] 4. Update `CardTextureGenerator.ts`, `EditorialCardFaceRenderer.ts`, and `CardSummonEngine.ts`.
-- [ ] 5. Update `portfolio/index.html` favicon and title.
-- [ ] 6. Copy `assets/card-crest.svg` to `portfolio/public/card-crest.svg`.
-- [ ] 7. Run full test suite and production build.
-- [ ] 8. Mark plan Completed, commit and push to GitHub.
+- [x] 1. Write failing tests in `CardTextureGenerator.test.ts` and `EditorialCardFaceRenderer.test.ts` (RED phase).
+- [x] 2. Run tests to confirm failure.
+- [x] 3. Commit test specifications (`8119dba`).
+- [x] 4. Update `CardTextureGenerator.ts`, `EditorialCardFaceRenderer.ts`, and `CardSummonEngine.ts`.
+- [x] 5. Update `portfolio/index.html` favicon and title.
+- [x] 6. Copy `assets/card-crest.svg` to `portfolio/public/card-crest.svg`.
+- [x] 7. Run full test suite and production build.
+- [x] 8. Mark plan Completed, commit and push to GitHub.

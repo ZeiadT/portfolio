@@ -67,6 +67,14 @@ export class CardTextureGenerator {
     'M 169.85 379.00 L 176.67 408.00 L 179.00 412.19 L 224.00 434.50 L 271.00 439.42 Z';
 
   /**
+   * Vector path for the signature star emblem with dynamic center swirl from assets/card-crest.svg.
+   * ViewBox 0 0 600 600 (center at 300, 300).
+   */
+  public static readonly STAR_CREST_PATH =
+    'M 76.79 418.88 L 161.38 378.22 L 176.38 369.55 L 292.18 311.88 L 242.85 320.88 L 209.38 324.12 L 198.38 323.94 L 192.38 322.50 L 188.38 319.97 L 187.40 316.88 L 187.97 312.88 L 192.25 305.88 L 209.30 289.88 L 237.38 269.55 L 268.38 250.41 L 267.78 251.88 L 242.38 270.24 L 228.35 281.88 L 218.16 293.88 L 216.71 300.88 L 218.38 303.46 L 223.38 305.57 L 233.38 305.81 L 257.38 299.12 L 278.23 289.88 L 279.13 288.88 L 277.38 288.30 L 255.38 290.96 L 250.38 289.99 L 248.01 286.88 L 252.25 279.88 L 261.55 271.88 L 351.88 207.88 L 313.51 113.88 L 310.79 107.88 L 306.88 103.88 L 298.38 101.49 L 292.01 103.88 L 288.38 107.98 L 240.28 224.88 L 233.38 232.20 L 225.38 235.11 L 103.38 243.71 L 98.38 245.16 L 94.38 248.88 L 91.89 256.88 L 92.26 260.88 L 94.72 264.88 L 157.66 319.88 L 163.41 327.88 L 164.05 333.88 L 161.45 340.88 L 151.38 352.88 L 137.38 365.41 L 82.38 409.39 L 73.25 418.88 L 76.79 418.88 Z ' +
+    'M 423.42 497.88 L 427.38 496.14 L 431.60 491.88 L 433.00 488.88 L 433.28 483.88 L 406.34 370.88 L 405.86 364.88 L 407.18 355.88 L 410.81 347.88 L 416.78 340.88 L 504.57 264.88 L 507.42 258.88 L 507.66 254.88 L 505.38 249.27 L 499.38 244.34 L 451.66 239.88 L 517.38 190.46 L 524.07 184.88 L 526.38 181.17 L 521.43 181.88 L 512.38 185.50 L 362.38 251.54 L 330.38 266.34 L 308.47 277.88 L 362.38 268.50 L 393.38 268.37 L 406.38 271.47 L 413.38 275.64 L 417.23 281.88 L 417.80 290.88 L 416.26 296.88 L 410.91 304.88 L 402.51 312.88 L 391.38 320.57 L 402.89 307.88 L 405.90 302.88 L 407.16 295.88 L 404.38 291.11 L 398.38 287.59 L 385.38 284.72 L 358.40 284.88 L 367.38 289.77 L 370.76 292.88 L 371.50 299.88 L 368.50 305.88 L 362.73 312.88 L 345.38 328.11 L 321.38 345.15 L 285.38 367.59 L 242.38 392.10 L 180.96 424.88 L 176.93 436.88 L 165.89 484.88 L 167.15 490.88 L 171.47 495.88 L 178.38 498.53 L 184.38 497.27 L 290.38 432.81 L 296.38 429.46 L 301.38 429.20 L 307.38 431.52 L 414.38 497.03 L 418.38 498.43 L 423.42 497.88 Z';
+
+  /**
    * Helper to draw a rounded rectangle path using basic 2D context primitives
    * (beginPath, moveTo, lineTo, arc, closePath) to ensure complete compatibility
    * across headless mock contexts and real browser canvases.
@@ -310,10 +318,10 @@ export class CardTextureGenerator {
     <path d="M -207 -207 L -186 -186 M 186 186 L 207 207 M 207 -207 L 186 -186 M -186 186 L -207 207" stroke="${primaryColor}" stroke-width="3.6" stroke-linecap="round" />
   </g>
 
-  <!-- Central Glowing Cat Mask Crest -->
+  <!-- Central Glowing Star Crest -->
   <g data-summon-card-crest="true">
     <circle cx="525" cy="735" r="132" fill="url(#gold-crest-glow)" />
-    <path d="${CardTextureGenerator.CAT_MASK_PATH}" transform="translate(525, 735) scale(0.38) translate(-292.5, -290)" fill="url(#gold-foil-grad)" stroke="#ffd700" stroke-width="2" fill-rule="evenodd" />
+    <path d="${CardTextureGenerator.STAR_CREST_PATH}" transform="translate(525, 735) scale(0.48) translate(-300, -300)" fill="url(#gold-foil-grad)" stroke="#ffd700" stroke-width="2" fill-rule="evenodd" />
   </g>
 </svg>`;
   }
@@ -462,7 +470,7 @@ export class CardTextureGenerator {
     ctx.lineTo(294, 0);
     ctx.stroke();
 
-    // 6. Central Cat Mask Crest
+    // 6. Central Star Crest
     const crestGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 132);
     crestGlow.addColorStop(0, coreColor);
     crestGlow.addColorStop(0.3, accentColor);
@@ -473,16 +481,16 @@ export class CardTextureGenerator {
     ctx.arc(0, 0, 132, 0, Math.PI * 2);
     ctx.fill();
 
-    // Cat Mask Vector Logo Crest
+    // Star Vector Logo Crest
     ctx.save();
-    ctx.scale(0.38, 0.38);
-    ctx.translate(-292.5, -290);
+    ctx.scale(0.48, 0.48);
+    ctx.translate(-300, -300);
     ctx.fillStyle = goldFoil;
     ctx.strokeStyle = '#ffd700';
     ctx.lineWidth = 2;
     if (typeof Path2D !== 'undefined') {
       try {
-        const path = new Path2D(CardTextureGenerator.CAT_MASK_PATH);
+        const path = new Path2D(CardTextureGenerator.STAR_CREST_PATH);
         if (typeof (ctx as unknown as { fill: (p: Path2D, fillRule?: CanvasFillRule) => void }).fill === 'function') {
           (ctx as unknown as { fill: (p?: Path2D, fillRule?: CanvasFillRule) => void }).fill(path, 'evenodd');
         }
@@ -611,16 +619,6 @@ export class CardTextureGenerator {
         borderInnerRadius
       );
       ctx.stroke();
-
-      // Corner Hairline Crosshairs (+)
-      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
-      ctx.font = '22px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('+', 48, 48);
-      ctx.fillText('+', 1002, 48);
-      ctx.fillText('+', 48, 1422);
-      ctx.fillText('+', 1002, 1422);
 
       // 3. Header Block
       // Left Role Title with Primary Color Indicator Orb

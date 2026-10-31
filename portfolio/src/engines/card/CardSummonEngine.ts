@@ -4,6 +4,7 @@ import type { CardFaceRenderer } from './renderers/CardFaceRenderer';
 import { MythicCardFaceRenderer } from './renderers/MythicCardFaceRenderer';
 import { EditorialCardFaceRenderer } from './renderers/EditorialCardFaceRenderer';
 import { ThreeCardModel } from './three/ThreeCardModel';
+import { CardTextureGenerator } from './three/CardTextureGenerator';
 
 export type { CardFaceRenderer };
 export { MythicCardFaceRenderer, EditorialCardFaceRenderer };
@@ -524,13 +525,10 @@ export class CardSummonEngine implements Engine {
           <path d="M -69 -69 L -62 -62 M 62 62 L 69 69 M 69 -69 L 62 -62 M -62 62 L -69 69" stroke="${primaryColor}" stroke-width="1.2" stroke-linecap="round" />
         </g>
 
-        <!-- Central Glowing Ace Crest -->
+        <!-- Central Glowing Star Crest -->
         <g data-summon-card-crest transform="translate(175, 245)">
           <circle cx="0" cy="0" r="44" fill="url(#${sigilId}-glow)" />
-          <polygon points="0,-42 28,0 0,42 -28,0" fill="none" stroke="url(#${sigilId}-energy)" stroke-width="1.5" />
-          <polygon points="0,-32 20,0 0,32 -20,0" fill="${primaryColor}" fill-opacity="0.15" stroke="${coreColor}" stroke-width="1" />
-          <path d="M 0 -24 L 6 -6 L 24 0 L 6 6 L 0 24 L -6 6 L -24 0 L -6 -6 Z" fill="${coreColor}" fill-opacity="0.9" />
-          <circle cx="0" cy="0" r="3.5" fill="${coreColor}" />
+          <path d="${CardTextureGenerator.STAR_CREST_PATH}" transform="scale(0.16) translate(-300, -300)" fill="url(#${sigilId}-energy)" stroke="${coreColor}" stroke-width="1.5" fill-rule="evenodd" />
         </g>
       </svg>
     `;

@@ -64,13 +64,7 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
 
     container.innerHTML = `
       <!-- Sleek monoline hairline border frame with concentric radius: 24px - 6px = 18px -->
-      <div data-summon-face-frame class="absolute inset-0 pointer-events-none rounded-[18px] border border-white/10 m-1.5" aria-hidden="true">
-        <!-- Corner hairline crosshairs -->
-        <span class="absolute top-1.5 left-1.5 text-[8px] sm:text-[9px] font-mono text-white/30 select-none">+</span>
-        <span class="absolute top-1.5 right-1.5 text-[8px] sm:text-[9px] font-mono text-white/30 select-none">+</span>
-        <span class="absolute bottom-1.5 left-1.5 text-[8px] sm:text-[9px] font-mono text-white/30 select-none">+</span>
-        <span class="absolute bottom-1.5 right-1.5 text-[8px] sm:text-[9px] font-mono text-white/30 select-none">+</span>
-      </div>
+      <div data-summon-face-frame class="absolute inset-0 pointer-events-none rounded-[18px] border border-white/10 m-1.5" aria-hidden="true"></div>
 
       <!-- Header block -->
       <div data-summon-face-header class="relative z-10 flex flex-col gap-1 w-full pt-0.5">
