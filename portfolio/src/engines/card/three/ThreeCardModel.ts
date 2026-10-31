@@ -93,6 +93,11 @@ export class ThreeCardModel {
   private sheenProgress: number = 0;
   private isDestroyed: boolean = false;
 
+  private customUniforms = {
+    uVeilOpacity: { value: 1.0 },
+    uFoilWipeProgress: { value: 0.0 },
+  };
+
   constructor(options: ThreeCardModelOptions = {}) {
     this.cardData = { ...DEFAULT_CARD_DATA, ...options.cardData };
     this.theme = options.theme ?? {};
@@ -153,10 +158,10 @@ export class ThreeCardModel {
       this.theme,
       {
         imageElement: this.loadedImage,
-        starsProgress: this.starsProgress,
-        barsProgress: this.barsProgress,
-        veilOpacity: this.veilOpacity,
-        foilWipeProgress: this.foilWipeProgress,
+        starsProgress: 1.0,
+        barsProgress: 1.0,
+        veilOpacity: 0.0,
+        foilWipeProgress: 1.0,
       },
       this.frontCanvas
     );
@@ -166,6 +171,48 @@ export class ThreeCardModel {
       roughness: 0.88, // Luxury satin/matte print - zero mirror reflection or specular glare!
       metalness: 0.0,
     });
+
+    this.frontMaterial.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
+      shader.uniforms.uVeilOpacity = this.customUniforms.uVeilOpacity;
+      shader.uniforms.uFoilWipeProgress = this.customUniforms.uFoilWipeProgress;
+
+      shader.fragmentShader = `
+        uniform float uVeilOpacity;
+        uniform float uFoilWipeProgress;
+      ` + shader.fragmentShader;
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `
+        #include <map_fragment>
+        #ifdef USE_MAP
+        if (uVeilOpacity > 0.001) {
+          float rad = -0.610865; // -35 degrees in radians
+          vec2 wipeDir = vec2(cos(rad), sin(rad));
+          vec2 uvCoord = vec2(vMapUv.x, (1.0 - vMapUv.y) * 1.4);
+          float p = dot(uvCoord, wipeDir);
+          float minP = min(0.0, min(wipeDir.x, min(1.4 * wipeDir.y, wipeDir.x + 1.4 * wipeDir.y)));
+          float maxP = max(0.0, max(wipeDir.x, max(1.4 * wipeDir.y, wipeDir.x + 1.4 * wipeDir.y)));
+          float currentP = minP + uFoilWipeProgress * (maxP - minP);
+          float dist = p - currentP;
+
+          // Ahead of wipe line: dark frosted veil
+          if (dist > 0.0) {
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.027, 0.027, 0.043), uVeilOpacity * 0.96);
+          }
+          // Diagonal foil specular gleam band
+          float band = 0.12;
+          if (abs(dist) < band) {
+            float factor = 1.0 - abs(dist) / band;
+            float gleam = factor * factor;
+            vec3 goldGleam = mix(vec3(1.0, 0.84, 0.0), vec3(1.0, 1.0, 1.0), gleam);
+            diffuseColor.rgb += goldGleam * gleam * uVeilOpacity * 1.4;
+          }
+        }
+        #endif
+        `
+      );
+    };
     const backMaterial = new THREE.MeshStandardMaterial({
       map: this.backTexture,
       roughness: 0.3,
@@ -357,9 +404,9 @@ export class ThreeCardModel {
    */
   public setVeilOpacity(o: number): void {
     this.veilOpacity = Math.max(0, Math.min(1, o));
+    this.customUniforms.uVeilOpacity.value = this.veilOpacity;
     // Veil is a tint on the front face itself, not a separate layer.
     this.frontMaterial?.color.setHex(0xffffff).lerp(VEIL_COLOR, this.veilOpacity * 0.75);
-    this.redrawFrontTexture();
   }
 
   public getVeilOpacity(): number {
@@ -371,7 +418,7 @@ export class ThreeCardModel {
    */
   public setFoilWipeProgress(p: number): void {
     this.foilWipeProgress = Math.max(0, Math.min(1, p));
-    this.redrawFrontTexture();
+    this.customUniforms.uFoilWipeProgress.value = this.foilWipeProgress;
   }
 
   public getFoilWipeProgress(): number {
@@ -395,7 +442,6 @@ export class ThreeCardModel {
   public setStatsAnimationProgress(starsProgress: number, barsProgress: number): void {
     this.starsProgress = Math.max(0, Math.min(1, starsProgress));
     this.barsProgress = Math.max(0, Math.min(1, barsProgress));
-    this.redrawFrontTexture();
   }
 
   public getStatsAnimationProgress(): { starsProgress: number; barsProgress: number } {
@@ -416,10 +462,10 @@ export class ThreeCardModel {
       this.theme,
       {
         imageElement: this.loadedImage,
-        starsProgress: this.starsProgress,
-        barsProgress: this.barsProgress,
-        veilOpacity: this.veilOpacity,
-        foilWipeProgress: this.foilWipeProgress,
+        starsProgress: 1.0,
+        barsProgress: 1.0,
+        veilOpacity: 0.0,
+        foilWipeProgress: 1.0,
       }
     );
     this.frontTexture.needsUpdate = true;

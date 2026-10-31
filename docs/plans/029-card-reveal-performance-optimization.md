@@ -1,7 +1,8 @@
 # Card Reveal Performance & 60FPS Optimization Implementation Plan
 
-- **Status**: Ready for Implementation
+- **Status**: Completed
 - **Created**: 2026-10-31
+- **Completed**: 2026-10-31
 - **Tech Stack**: Three.js (^0.160.0), WebGL GLSL Shaders, Vanilla TypeScript, GSAP 3, Vitest
 - **Branch**: `feat/card-shine-effect`
 
@@ -79,9 +80,9 @@ During the 3D profile card reveal sequence ($t = 1.30\text{s} \to 2.15\text{s}$)
   3. `frontMaterial.onBeforeCompile` registers custom uniforms and injects the diagonal wipe shader logic into the fragment shader.
   4. Portrait image loading still triggers a single texture update on `img.onload`.
   5. All existing contract methods (`getVeilOpacity`, `getFoilWipeProgress`, `getStatsAnimationProgress`, `setRotation`, `destroy`) remain 100% compliant.
-- [ ] Step 1: Write new unit tests in `ThreeCardModel.test.ts`.
-- [ ] Step 2: Run test suite to verify (RED phase).
-- [ ] Step 3: Git commit test specifications.
+- [x] Step 1: Write new unit tests in `ThreeCardModel.test.ts`.
+- [x] Step 2: Run test suite to verify (RED phase).
+- [x] Step 3: Git commit test specifications.
 
 ### Task 2: Implement GPU Shader Wipe & Optimize `ThreeCardModel.ts`
 - **Files:** `portfolio/src/engines/card/three/ThreeCardModel.ts`
@@ -90,21 +91,21 @@ During the 3D profile card reveal sequence ($t = 1.30\text{s} \to 2.15\text{s}$)
   2. Implement `frontMaterial.onBeforeCompile` with GLSL diagonal wipe & champagne-gold specular sweep injection.
   3. Update `setVeilOpacity`, `setFoilWipeProgress`, and `setStatsAnimationProgress` to update uniforms and state without calling `redrawFrontTexture()`.
   4. Update `redrawFrontTexture()` to render the base card face cleanly.
-- [ ] Step 1: Implement shader & uniform updates in `ThreeCardModel.ts`.
-- [ ] Step 2: Run test suite to verify (GREEN phase).
-- [ ] Step 3: Git commit implementation.
+- [x] Step 1: Implement shader & uniform updates in `ThreeCardModel.ts`.
+- [x] Step 2: Run test suite to verify (GREEN phase).
+- [x] Step 3: Git commit implementation.
 
 ### Task 3: Optimize `CardTextureGenerator.ts` to Eliminate `getImageData` Pipeline Stalls
 - **Files:** `portfolio/src/engines/card/three/CardTextureGenerator.ts`
 - **Changes:**
   1. Use `ctx.filter = 'grayscale(100%)'` prior to `drawImage` when `ctx.filter` is available.
   2. Avoid calling `getImageData` on browser canvases with native filter support.
-- [ ] Step 1: Implement canvas filter optimization in `CardTextureGenerator.ts`.
-- [ ] Step 2: Run `CardTextureGenerator.test.ts` and verify all tests pass.
-- [ ] Step 3: Git commit optimization.
+- [x] Step 1: Implement canvas filter optimization in `CardTextureGenerator.ts`.
+- [x] Step 2: Run `CardTextureGenerator.test.ts` and verify all tests pass.
+- [x] Step 3: Git commit optimization.
 
 ### Task 4: Full Verification Across All Suites & Production Build
 - **Files:** Full test suite, Vite build.
-- [ ] Step 1: Run `npm --prefix portfolio test`.
-- [ ] Step 2: Run `npm --prefix portfolio run build`.
-- [ ] Step 3: Verify silky smooth 60 FPS reveal in browser.
+- [x] Step 1: Run `npm --prefix portfolio test`.
+- [x] Step 2: Run `npm --prefix portfolio run build`.
+- [x] Step 3: Verify silky smooth 60 FPS reveal in browser.

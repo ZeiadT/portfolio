@@ -694,22 +694,25 @@ export class CardTextureGenerator {
           dy = portraitY + (portraitH - dh) / 2;
         }
 
+        const hasNativeFilter = 'filter' in ctx && typeof ctx.filter === 'string';
         ctx.save();
-        if ('filter' in ctx) {
+        if (hasNativeFilter) {
           ctx.filter = 'grayscale(100%)';
         }
         ctx.drawImage(img, dx, dy, dw, dh);
         ctx.restore();
 
-        // Pixel luminance grayscale desaturation fallback
-        try {
-          if (ctx.filter !== 'grayscale(100%)' && typeof ctx.getImageData === 'function' && typeof ctx.putImageData === 'function') {
-            const imgData = ctx.getImageData(portraitX, portraitY, portraitW, portraitH);
-            CardTextureGenerator.desaturatePixels(imgData.data);
-            ctx.putImageData(imgData, portraitX, portraitY);
+        // Pixel luminance grayscale desaturation fallback only when native filter is unsupported
+        if (!hasNativeFilter) {
+          try {
+            if (typeof ctx.getImageData === 'function' && typeof ctx.putImageData === 'function') {
+              const imgData = ctx.getImageData(portraitX, portraitY, portraitW, portraitH);
+              CardTextureGenerator.desaturatePixels(imgData.data);
+              ctx.putImageData(imgData, portraitX, portraitY);
+            }
+          } catch {
+            // Silently ignore cross-origin taint
           }
-        } catch {
-          // Silently ignore cross-origin taint
         }
 
         // Soft dark vignette overlay
