@@ -102,8 +102,8 @@ describe('Empirical Kinematics Challenger: CardSummonEngine & ThreeCardModel', (
         opacity: Number(gsap.getProperty(flashVeil, 'opacity') ?? 0),
       },
       shockwave: {
-        scale: Number(gsap.getProperty(shockwave, 'scale') ?? 1),
-        opacity: Number(gsap.getProperty(shockwave, 'opacity') ?? 0),
+        scale: shockwave ? Number(gsap.getProperty(shockwave, 'scale') ?? 1) : 0,
+        opacity: shockwave ? Number(gsap.getProperty(shockwave, 'opacity') ?? 0) : 0,
       },
       threeCardModel: threeSnapshot,
     };
@@ -317,36 +317,28 @@ describe('Empirical Kinematics Challenger: CardSummonEngine & ThreeCardModel', (
     }
   });
 
-  it('5. Phase 3: verifies optical bloom opacity peak >= 0.9, shockwave scale >= 2.0, and warm golden styling', () => {
+  it('5. Phase 3: verifies optical bloom opacity peak >= 0.9, warm golden styling, and absence of static shockwave circle', () => {
     engine = new CardSummonEngine();
     engine.open();
 
     const flashVeil = document.querySelector<HTMLElement>('[data-summon-flash-veil]');
-    const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
     expect(flashVeil).not.toBeNull();
-    expect(shockwave).not.toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
 
     // Verify warm gradient / amber styling (no military stun grenade pure white)
     const veilBg = (flashVeil?.style.background || '') + (flashVeil?.className || '');
     expect(veilBg).toMatch(/radial-gradient|amber|gold|rgba\(255,\s*2[0-9]{2}/i);
 
-    const swStyle = (shockwave?.className || '') + (shockwave?.style.cssText || '');
-    expect(swStyle).toMatch(/amber|gold|rgba\(255,\s*215|shadow/i);
-
     const tl = engine.getTimeline();
     let peakOpacity = 0;
-    let peakScale = 0;
 
     for (let t = 1.25; t <= 1.60; t += 0.01) {
       tl?.seek(t, false);
       const op = Number(gsap.getProperty(flashVeil!, 'opacity'));
-      const sc = Number(gsap.getProperty(shockwave!, 'scale'));
       if (op > peakOpacity) peakOpacity = op;
-      if (sc > peakScale) peakScale = sc;
     }
 
     expect(peakOpacity).toBeGreaterThanOrEqual(0.9);
-    expect(peakScale).toBeGreaterThanOrEqual(2.0);
   });
 
   it('6. Phase 4: verifies descent duration >= 0.4s and scaleY >= 0.98 (no cartoon squash on landing)', () => {

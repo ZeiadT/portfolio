@@ -968,7 +968,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
     }
   });
 
-  it('creates [data-summon-flash-veil] and [data-summon-shockwave] inside modal with aria-hidden="true" and pointer-events-none', () => {
+  it('creates [data-summon-flash-veil] and ensures static [data-summon-shockwave] circle is removed', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -979,13 +979,10 @@ describe('Gacha Psychology & Motion Redesign', () => {
     const shockwave = modal?.querySelector<HTMLElement>('[data-summon-shockwave]');
 
     expect(flashVeil).not.toBeNull();
-    expect(shockwave).not.toBeNull();
+    expect(shockwave).toBeNull();
 
     expect(flashVeil?.getAttribute('aria-hidden')).toBe('true');
-    expect(shockwave?.getAttribute('aria-hidden')).toBe('true');
-
     expect(flashVeil?.className).toMatch(/\bpointer-events-none\b/);
-    expect(shockwave?.className).toMatch(/\bpointer-events-none\b/);
   });
 
   it('animates anticipatory inhale squash on bottom glow (scaleY < 0.9, scaleX > 1.05) prior to card launch', () => {
@@ -1076,40 +1073,32 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(endScale).toBeLessThanOrEqual(1.030);
   });
 
-  it('animates optical flash veil (peak opacity >= 0.9) and shockwave expansion (scale >= 2.0) at climax', () => {
+  it('animates optical flash veil (peak opacity >= 0.9) at climax and ensures no shockwave circle exists', () => {
     engine = new CardSummonEngine();
     engine.open();
 
     const flashVeil = document.querySelector<HTMLElement>('[data-summon-flash-veil]');
-    const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
     expect(flashVeil).not.toBeNull();
-    expect(shockwave).not.toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
 
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
     let peakFlashOpacity = 0;
-    let maxShockwaveScale = 0;
 
     for (let p = 0; p <= 1; p += 0.02) {
       tl?.progress(p);
       const flashOpacity = Number(gsap.getProperty(flashVeil, 'opacity'));
-      const swScale = Number(gsap.getProperty(shockwave, 'scale'));
       if (flashOpacity > peakFlashOpacity) {
         peakFlashOpacity = flashOpacity;
-      }
-      if (swScale > maxShockwaveScale) {
-        maxShockwaveScale = swScale;
       }
     }
 
     expect(peakFlashOpacity).toBeGreaterThanOrEqual(0.9);
-    expect(maxShockwaveScale).toBeGreaterThanOrEqual(2.0);
 
     // Dissipates to 0 (or opacity <= 0.05) when animation settles
     tl?.progress(1);
     expect(Number(gsap.getProperty(flashVeil, 'opacity'))).toBeLessThanOrEqual(0.05);
-    expect(Number(gsap.getProperty(shockwave, 'opacity'))).toBeLessThanOrEqual(0.05);
   });
 
   it('activates interactive 3D pointer parallax tilt on settled state and resets on pointer leave', () => {
@@ -1229,14 +1218,14 @@ describe('Gacha Psychology & Motion Redesign', () => {
     matchMediaSpy.mockRestore();
   });
 
-  it('removes flash veil, shockwave, and pointer listeners cleanly on close() and destroy()', () => {
+  it('removes flash veil and pointer listeners cleanly on close() and destroy()', () => {
     engine = new CardSummonEngine();
     engine.open();
 
     const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
     expect(modal).not.toBeNull();
     expect(document.querySelector('[data-summon-flash-veil]')).not.toBeNull();
-    expect(document.querySelector('[data-summon-shockwave]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
 
     const tl = engine.getTimeline();
     tl?.progress(1);
@@ -1259,7 +1248,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
     const modal2 = document.querySelector<HTMLElement>('[data-card-summon-modal]');
     expect(modal2).not.toBeNull();
     expect(document.querySelector('[data-summon-flash-veil]')).not.toBeNull();
-    expect(document.querySelector('[data-summon-shockwave]')).not.toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
 
     const tl2 = engine.getTimeline();
     tl2?.progress(1);
@@ -1352,35 +1341,26 @@ describe('Graceful Luxury Reveal Choreography (5 Phases)', () => {
     expect(Number(gsap.getProperty(card!, 'scale'))).toBeCloseTo(1.025, 2);
   });
 
-  it('Phase 3: styles flash veil with warm amber-gold radial bloom and shockwave with gilded golden halo', () => {
+  it('Phase 3: styles flash veil with warm amber-gold radial bloom and does not render shockwave circle', () => {
     engine = new CardSummonEngine();
     engine.open();
 
     const flashVeil = document.querySelector<HTMLElement>('[data-summon-flash-veil]');
-    const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
     expect(flashVeil).not.toBeNull();
-    expect(shockwave).not.toBeNull();
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
 
     // Warm radial bloom styling instead of flat white
     const bgStyle = flashVeil?.style.background || flashVeil?.className || '';
     expect(bgStyle).toMatch(/radial-gradient|amber|gold|rgba\(255,\s*2[0-9]{2}/i);
 
-    // Gilded golden halo wave styling on shockwave
-    const swStyle = (shockwave?.className || '') + (shockwave?.style.cssText || '');
-    expect(swStyle).toMatch(/amber|gold|rgba\(255,\s*215|shadow/i);
-
     const tl = engine.getTimeline();
     let peakOpacity = 0;
-    let maxScale = 0;
     for (let p = 0; p <= 1; p += 0.02) {
       tl?.progress(p);
       const op = Number(gsap.getProperty(flashVeil, 'opacity'));
-      const sc = Number(gsap.getProperty(shockwave, 'scale'));
       if (op > peakOpacity) peakOpacity = op;
-      if (sc > maxScale) maxScale = sc;
     }
     expect(peakOpacity).toBeGreaterThanOrEqual(0.9);
-    expect(maxScale).toBeGreaterThanOrEqual(2.0);
   });
 
   it('Phase 4: descends smoothly without squash (scaleY >= 0.98) and completes diagonal foil wipe', () => {
@@ -1828,9 +1808,7 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     expect(cardAura?.className).toContain('w-[290px]');
     expect(cardAura?.className).toContain('lg:w-[396px]');
 
-    const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
-    expect(shockwave?.className).toContain('w-[306px]');
-    expect(shockwave?.className).toContain('md:w-[405px]');
+    expect(document.querySelector('[data-summon-shockwave]')).toBeNull();
   });
 });
 
