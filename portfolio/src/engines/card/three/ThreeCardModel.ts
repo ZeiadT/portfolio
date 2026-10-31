@@ -193,16 +193,20 @@ export class ThreeCardModel {
           float p = dot(uvCoord, wipeDir);
           float minP = min(0.0, min(wipeDir.x, min(1.4 * wipeDir.y, wipeDir.x + 1.4 * wipeDir.y)));
           float maxP = max(0.0, max(wipeDir.x, max(1.4 * wipeDir.y, wipeDir.x + 1.4 * wipeDir.y)));
-          float currentP = minP + uFoilWipeProgress * (maxP - minP);
+
+          float band = 0.12;
+          float bandOffset = band * 1.6; // Offset sweep outside the corners so gleam is completely off-card at progress 0 and 1
+          float startP = minP - bandOffset;
+          float endP = maxP + bandOffset;
+          float currentP = mix(startP, endP, uFoilWipeProgress);
           float dist = p - currentP;
 
-          // Ahead of wipe line: dark frosted veil
+          // Ahead of wipe line: dark frosted obsidian veil
           if (dist > 0.0) {
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.027, 0.027, 0.043), uVeilOpacity * 0.96);
           }
-          // Diagonal foil specular gleam band
-          float band = 0.12;
-          if (abs(dist) < band) {
+          // Diagonal foil specular gleam band: only active while the wipe is in motion (uFoilWipeProgress > 0.001 && uFoilWipeProgress < 0.999)
+          if (uFoilWipeProgress > 0.001 && uFoilWipeProgress < 0.999 && abs(dist) < band) {
             float factor = 1.0 - abs(dist) / band;
             float gleam = factor * factor;
             vec3 goldGleam = mix(vec3(1.0, 0.84, 0.0), vec3(1.0, 1.0, 1.0), gleam);

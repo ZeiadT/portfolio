@@ -178,14 +178,14 @@ export class CardTextureGenerator {
   <!-- Obsidian Base Surface (1050x1470, R=48) -->
   <rect width="1050" height="1470" rx="48" fill="url(#gold-back-bg)" />
 
-  <!-- Concentric Guilloche Inset Grid -->
-  <rect x="36" y="36" width="978" height="1398" rx="36" fill="url(#guilloche-sacred-pattern)" />
+  <!-- Concentric Guilloche Inset Grid (p=24 => rx=24) -->
+  <rect x="24" y="24" width="1002" height="1422" rx="24" fill="url(#guilloche-sacred-pattern)" />
 
-  <!-- Outer Gilded Metallic Borders -->
+  <!-- Outer Gilded Metallic Borders (Concentric: R_inner = R_outer - padding) -->
   <g data-summon-card-back-frame="true">
-    <rect x="36" y="36" width="978" height="1398" rx="36" fill="none" stroke="url(#gold-foil-grad)" stroke-width="4.5" />
-    <rect x="54" y="54" width="942" height="1362" rx="28" fill="none" stroke="#ffd700" stroke-opacity="0.45" stroke-width="2.5" stroke-dasharray="16 10" />
-    <rect x="70" y="70" width="910" height="1330" rx="20" fill="none" stroke="#d4af37" stroke-opacity="0.25" stroke-width="1.5" />
+    <rect x="24" y="24" width="1002" height="1422" rx="24" fill="none" stroke="url(#gold-foil-grad)" stroke-width="4.5" />
+    <rect x="36" y="36" width="978" height="1398" rx="12" fill="none" stroke="#ffd700" stroke-opacity="0.45" stroke-width="2.5" stroke-dasharray="16 10" />
+    <rect x="42" y="42" width="966" height="1386" rx="6" fill="none" stroke="#d4af37" stroke-opacity="0.25" stroke-width="1.5" />
   </g>
 
   <!-- Radiating Celestial Rays and Constellations -->
@@ -359,7 +359,7 @@ export class CardTextureGenerator {
       ctx.stroke();
     }
 
-    // 3. Multi-tier Gilded Gold Borders
+    // 3. Multi-tier Gilded Gold Borders (concentric: R_inner = R_outer - padding)
     const goldFoil = ctx.createLinearGradient(0, 0, 1050, 1470);
     goldFoil.addColorStop(0, '#ffffff');
     goldFoil.addColorStop(0.15, '#ffd700');
@@ -369,17 +369,17 @@ export class CardTextureGenerator {
 
     ctx.strokeStyle = goldFoil;
     ctx.lineWidth = 4.5;
-    drawRoundedRect(ctx, 36, 36, 978, 1398, 36);
+    drawRoundedRect(ctx, 24, 24, 1002, 1422, CardTextureGenerator.computeConcentricRadius(48, 24)); // 24
     ctx.stroke();
 
     ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
     ctx.lineWidth = 2.5;
-    drawRoundedRect(ctx, 54, 54, 942, 1362, 28);
+    drawRoundedRect(ctx, 36, 36, 978, 1398, CardTextureGenerator.computeConcentricRadius(48, 36)); // 12
     ctx.stroke();
 
     ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
     ctx.lineWidth = 1.5;
-    drawRoundedRect(ctx, 70, 70, 910, 1330, 20);
+    drawRoundedRect(ctx, 42, 42, 966, 1386, CardTextureGenerator.computeConcentricRadius(48, 42)); // 6
     ctx.stroke();
 
     // 4. Corner Filigree Flourishes (4 Quadrants)
@@ -951,7 +951,11 @@ export class CardTextureGenerator {
           const p3 = 1050 * cos + 1470 * sin;
           const minP = Math.min(p0, p1, p2, p3);
           const maxP = Math.max(p0, p1, p2, p3);
-          const currentP = minP + foilWipeProgress * (maxP - minP);
+          const foilBandWidth = 240;
+          const bandOffset = foilBandWidth * 1.5;
+          const startP = minP - bandOffset;
+          const endP = maxP + bandOffset;
+          const currentP = startP + foilWipeProgress * (endP - startP);
 
           ctx.save();
           ctx.translate(525, 735);
@@ -985,7 +989,6 @@ export class CardTextureGenerator {
           ctx.translate(525, 735);
           ctx.rotate(rad);
 
-          const foilBandWidth = 240;
           const grad = ctx.createLinearGradient(
             localCut - foilBandWidth / 2,
             0,

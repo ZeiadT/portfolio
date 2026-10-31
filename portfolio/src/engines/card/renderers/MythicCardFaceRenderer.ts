@@ -71,9 +71,9 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
               <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.8" />
             </linearGradient>
           </defs>
-          <!-- Outer hairline border with inset gold/vermilion glow -->
-          <rect x="6" y="6" width="338" height="478" rx="20" fill="none" stroke="url(#${frameId}-border)" stroke-width="1.5" />
-          <rect x="9" y="9" width="332" height="472" rx="17" fill="none" stroke="${coreColor}" stroke-opacity="0.1" stroke-width="0.8" />
+          <!-- Outer hairline border with inset gold/vermilion glow (Concentric: 24 - 6 = 18, 24 - 9 = 15) -->
+          <rect x="6" y="6" width="338" height="478" rx="18" fill="none" stroke="url(#${frameId}-border)" stroke-width="1.5" />
+          <rect x="9" y="9" width="332" height="472" rx="15" fill="none" stroke="${coreColor}" stroke-opacity="0.1" stroke-width="0.8" />
           <!-- Corner metallic brackets / filigree -->
           <g stroke="url(#${frameId}-border)" stroke-width="1.5" fill="none" stroke-linecap="round">
             <path d="M 12 26 L 12 16 Q 12 12 16 12 L 26 12" />

@@ -387,10 +387,10 @@ export class CardSummonEngine implements Engine {
         <rect width="350" height="490" rx="24" fill="url(#${sigilId}-bg)" />
         <rect x="12" y="12" width="326" height="466" rx="16" fill="url(#${sigilId}-guilloche)" />
 
-        <!-- Outer Obsidian & Metallic Frame -->
+        <!-- Outer Obsidian & Metallic Frame (Concentric: 24 - 12 = 12, 24 - 18 = 6) -->
         <g data-summon-card-back-frame>
-          <rect x="12" y="12" width="326" height="466" rx="16" fill="none" stroke="url(#${sigilId}-border)" stroke-width="1.5" />
-          <rect x="18" y="18" width="314" height="454" rx="12" fill="none" stroke="${primaryColor}" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="6 4" />
+          <rect x="12" y="12" width="326" height="466" rx="12" fill="none" stroke="url(#${sigilId}-border)" stroke-width="1.5" />
+          <rect x="18" y="18" width="314" height="454" rx="6" fill="none" stroke="${primaryColor}" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="6 4" />
         </g>
 
         <!-- Sacred Geometry & Celestial Star Constellations (fills negative space) -->

@@ -1,7 +1,8 @@
 # Card Inner Border Radius & Reveal Sheen Offset Refinement Implementation Plan
 
-- **Status**: Ready for Implementation
+- **Status**: Completed
 - **Created**: 2026-10-31
+- **Completed**: 2026-10-31
 - **Tech Stack**: Three.js (^0.160.0), WebGL GLSL Shaders, Vanilla TypeScript, GSAP 3, Vitest
 - **Branch**: `feat/card-shine-effect`
 
@@ -51,9 +52,9 @@ $$R_{\text{inner}} = \max(0, R_{\text{outer}} - \text{padding})$$
   1. Golden card back SVG and canvas use $R_{\text{inner}} = R_{\text{outer}} - \text{padding}$ for all frames ($48 - 24 = 24$, $48 - 36 = 12$).
   2. In `frontMaterial.onBeforeCompile`, shader wipe range extends beyond `minP` by at least `band * 1.5`, ensuring zero gleam on the card at `uFoilWipeProgress == 0.0`.
   3. Shader code contains guard ensuring gleam is inactive at progress 0.
-- [ ] Step 1: Write unit tests in `ThreeCardModel.test.ts` and `CardTextureGenerator.test.ts`.
-- [ ] Step 2: Run tests to verify failures (RED phase).
-- [ ] Step 3: Git commit test specifications.
+- [x] Step 1: Write unit tests in `ThreeCardModel.test.ts` and `CardTextureGenerator.test.ts`.
+- [x] Step 2: Run tests to verify failures (RED phase).
+- [x] Step 3: Git commit test specifications.
 
 ### Task 2: Implement Reveal Sheen Offset in `ThreeCardModel.ts` & `CardTextureGenerator.ts`
 - **Files:**
@@ -67,9 +68,9 @@ $$R_{\text{inner}} = \max(0, R_{\text{outer}} - \text{padding})$$
      - Guard gleam with `uFoilWipeProgress > 0.001 && uFoilWipeProgress < 0.999`.
   2. In `CardTextureGenerator.ts` canvas fallback:
      - Apply matching `offset = foilBandWidth * 1.5` offset to `currentP`.
-- [ ] Step 1: Implement sheen offset adjustments.
-- [ ] Step 2: Run tests to verify (GREEN phase).
-- [ ] Step 3: Git commit sheen offset fix.
+- [x] Step 1: Implement sheen offset adjustments.
+- [x] Step 2: Run tests to verify (GREEN phase).
+- [x] Step 3: Git commit sheen offset fix.
 
 ### Task 3: Enforce Concentric Border Radius Across All Card Renders
 - **Files:**
@@ -85,12 +86,12 @@ $$R_{\text{inner}} = \max(0, R_{\text{outer}} - \text{padding})$$
      - Update SVG card back frame rects to `rx="12"` and `rx="6"`.
   3. In `MythicCardFaceRenderer.ts`:
      - Update SVG frame rects to `rx="18"` and `rx="15"`.
-- [ ] Step 1: Implement concentric border radii across all layers.
-- [ ] Step 2: Run all test suites and verify all pass.
-- [ ] Step 3: Git commit concentric border updates.
+- [x] Step 1: Implement concentric border radii across all layers.
+- [x] Step 2: Run all test suites and verify all pass.
+- [x] Step 3: Git commit concentric border updates.
 
 ### Task 4: Full Verification Across All Suites & Production Build
 - **Files:** Full test suite, Vite build.
-- [ ] Step 1: Run `npm --prefix portfolio test`.
-- [ ] Step 2: Run `npm --prefix portfolio run build`.
-- [ ] Step 3: Verify visual perfection at `http://localhost:3000/`.
+- [x] Step 1: Run `npm --prefix portfolio test`.
+- [x] Step 2: Run `npm --prefix portfolio run build`.
+- [x] Step 3: Verify visual perfection at `http://localhost:3000/`.
