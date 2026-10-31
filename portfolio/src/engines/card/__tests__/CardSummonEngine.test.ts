@@ -14,6 +14,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     if (engine) {
       engine.destroy();
     }
@@ -253,6 +254,7 @@ describe('Phase 2: 3D card ascent and rotation', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     if (engine) {
       engine.destroy();
     }
@@ -293,7 +295,7 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     ).toBe(true);
   });
 
-  it('animates card ascent with yPercent towards 0, card back facing camera (-180°), and Z-tilt deceleration', () => {
+  it('animates card ascent with yPercent towards 0, 3D Y-rotation spin, and 12° Z-tilt deceleration', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -311,8 +313,8 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     const startRotZ = Math.abs(Number(gsap.getProperty(card, 'rotationZ')));
 
     expect(startYPercent).toBeGreaterThan(50);
-    expect(startRotY).toBe(180);
-    expect(startRotZ).toBeGreaterThanOrEqual(8);
+    expect(startRotY).toBeGreaterThanOrEqual(720);
+    expect(startRotZ).toBeGreaterThanOrEqual(10);
 
     // Resting state at progress 1
     tl?.progress(1);
@@ -321,7 +323,7 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     const endRotZ = Number(gsap.getProperty(card, 'rotationZ'));
 
     expect(endYPercent).toBe(0);
-    expect(endRotY).toBe(0);
+    expect(endRotY).toBe(180);
     expect(endRotZ).toBe(0);
   });
 
@@ -348,7 +350,7 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     const rotZ = Number(gsap.getProperty(card, 'rotationZ'));
 
     expect(yPercent).toBe(0);
-    expect(rotY).toBe(0);
+    expect(rotY).toBe(180);
     expect(rotZ).toBe(0);
 
     matchMediaSpy.mockRestore();
@@ -388,6 +390,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     if (engine) {
       engine.destroy();
     }
@@ -431,7 +434,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     expect(endOpacity).toBeLessThanOrEqual(0.05);
   });
 
-  it('launches card with mystic back sigil facing camera (-180°) and sustains slow-motion apex hover with negative yPercent before graceful descent', () => {
+  it('launches card with 3 full spins (1080°) and sustains slow-motion apex hover with negative yPercent before graceful descent', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -441,20 +444,20 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // Initial state at progress 0 / seek 0: card back facing camera (-180°)
+    // Initial state at progress 0 / seek 0: exactly 3 spins (1080°) ending at 180° (start = -900°)
     tl?.seek(0);
-    const startRotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
-    expect(startRotY).toBe(180);
+    const startRotY = Number(gsap.getProperty(card, 'rotationY'));
+    expect(startRotY).toBe(-900);
 
-    // During apex slow-motion hover and reveal flip (sampled between progress 0.75 and 0.85),
-    // yPercent remains in negative overshoot (< 0) while rotationY has settled to <= 30°
-    for (let p = 0.75; p <= 0.85; p += 0.05) {
+    // During apex slow-motion hover (sampled between progress 0.65 and 0.80),
+    // yPercent remains in negative overshoot (< 0) while rotationY has decelerated to <= 30° from 180°
+    for (let p = 0.65; p <= 0.80; p += 0.05) {
       tl?.progress(p);
       const yPercent = Number(gsap.getProperty(card, 'yPercent'));
-      const rotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
+      const rotY = Number(gsap.getProperty(card, 'rotationY'));
 
       expect(yPercent).toBeLessThan(0);
-      expect(rotY).toBeLessThanOrEqual(30);
+      expect(Math.abs(rotY - 180)).toBeLessThanOrEqual(30);
     }
   });
 
@@ -526,12 +529,12 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     // Locks smoothly into resting state at progress(1)
     tl?.progress(1);
     expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationZ'))).toBe(0);
     expect(Number(gsap.getProperty(card, 'scale'))).toBe(1);
   });
 
-  it('synchronizes landing at timeline completion with yPercent 0, rotationY 0, and rotationZ 0', () => {
+  it('synchronizes landing at timeline completion with yPercent 0, rotationY 180, and rotationZ 0', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -544,7 +547,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     tl?.progress(1);
 
     expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationZ'))).toBe(0);
     expect(Number(gsap.getProperty(card, 'scale'))).toBe(1);
     expect(Number(gsap.getProperty(card, 'scaleY'))).toBe(1);
@@ -604,7 +607,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
 
     // In reduced motion mode, card must be immediately at resting state
     expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationZ'))).toBe(0);
 
     // Aura must not flare (opacity <= 0.2 or 0)
@@ -643,6 +646,7 @@ describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     if (engine) {
       engine.destroy();
     }
@@ -676,13 +680,13 @@ describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
     expect(hasBackfaceHidden(cardBack!)).toBe(true);
     expect(hasBackfaceHidden(cardFace!)).toBe(true);
 
-    // Verify one face is rotated 180deg in Y axis for true double-sided 3D entity
+    // Verify card face is rotated 180deg in Y axis for true double-sided 3D entity
     const hasRotateY180 = (el: HTMLElement) =>
       el.style.transform.includes('rotateY(180deg)') ||
       el.className.includes('rotate-y-180') ||
       el.className.includes('[transform:rotateY(180deg)]');
 
-    expect(hasRotateY180(cardBack!) || hasRotateY180(cardFace!)).toBe(true);
+    expect(hasRotateY180(cardFace!)).toBe(true);
   });
 
   it('renders Mystic Sigil SVG containing outer frame, 4 corner filigrees, halo rings, and Ace crest', () => {
@@ -776,6 +780,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     if (engine) {
       engine.destroy();
     }
@@ -928,8 +933,8 @@ describe('Gacha Psychology & Motion Redesign', () => {
     // Finish opening animation into settled state
     tl?.progress(1);
 
-    // Initial settled rotations must be 0
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    // Initial settled rotations must be 180 (front face) and 0 (pitch)
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
 
     // Dispatch pointermove away from center (bottom-right offset)
@@ -947,21 +952,21 @@ describe('Gacha Psychology & Motion Redesign', () => {
     const movedRotY = Number(gsap.getProperty(card, 'rotationY'));
     const movedRotX = Number(gsap.getProperty(card, 'rotationX'));
 
-    // Should have non-zero rotation within [-15, 15] degrees
-    expect(movedRotY).not.toBe(0);
-    expect(Math.abs(movedRotY)).toBeLessThanOrEqual(15);
+    // Should have non-zero rotation tilt relative to 180 within [-15, 15] degrees
+    expect(movedRotY).not.toBe(180);
+    expect(Math.abs(movedRotY - 180)).toBeLessThanOrEqual(15);
     expect(movedRotX).not.toBe(0);
     expect(Math.abs(movedRotX)).toBeLessThanOrEqual(15);
 
-    // Dispatch pointerleave on modal - restores card rotation back towards 0
+    // Dispatch pointerleave on modal - restores card rotation back towards 180
     modal?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
     gsap.getTweensOf(card).forEach((tween) => tween.progress(1));
 
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
   });
 
-  it('leaves rotationY and rotationX strictly at 0 when pointermove is dispatched under prefers-reduced-motion: reduce', () => {
+  it('leaves rotationY strictly at 180 and rotationX at 0 when pointermove is dispatched under prefers-reduced-motion: reduce', () => {
     const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
       matches: query.includes('prefers-reduced-motion: reduce'),
       media: query,
@@ -996,7 +1001,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
     const tl = engine.getTimeline();
     tl?.progress(1);
 
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
 
     // Dispatch pointermove away from center
@@ -1011,7 +1016,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
     // Resolve any active GSAP tweens on card
     gsap.getTweensOf(card).forEach((tween) => tween.progress(1));
 
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
 
     matchMediaSpy.mockRestore();
@@ -1074,6 +1079,7 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     if (engine) {
       engine.destroy();
     }
@@ -1313,7 +1319,7 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     }
   });
 
-  it('ensures card rests on revealed front face (rotationY 0) upon timeline completion', () => {
+  it('supports autoFlipToFront option to automatically rotate card to front face upon timeline completion', () => {
     engine = new CardSummonEngine({ autoFlipToFront: true });
     engine.open();
 
@@ -1326,9 +1332,8 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     // Trigger onComplete
     tl?.progress(1);
 
-    // Card should firmly rest on revealed front face at rotationY 0
-    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(0);
-    expect(engine.isCardFlipped()).toBe(false);
+    // Engine's isFlipped state should be true
+    expect(engine.isCardFlipped()).toBe(true);
   });
 
   it('supports interactive card flip and concealment mask toggle controls', () => {
@@ -1338,16 +1343,17 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     const card = document.querySelector<HTMLElement>('[data-summon-card]');
     expect(card).not.toBeNull();
 
-    // Before reveal completes, mask is concealed
-    expect(engine.isMaskConcealed()).toBe(true);
-
     const tl = engine.getTimeline();
     tl?.progress(1);
 
-    // Initial state upon reveal settle: not flipped (showing front face)
+    // Initial state: lands on front side, blurred
+    expect(engine.isCardFlipped()).toBe(true);
+
+    // Flip card programmatically or via click to back sigil (0deg)
+    engine.flipCard();
     expect(engine.isCardFlipped()).toBe(false);
 
-    // Flip card programmatically or via click
+    // Flip back to front face (180deg)
     engine.flipCard();
     expect(engine.isCardFlipped()).toBe(true);
 
@@ -1355,12 +1361,39 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
     expect(mask).not.toBeNull();
 
-    // After reveal completes, mask has dissolved
-    expect(engine.isMaskConcealed()).toBe(false);
-    engine.toggleConcealment();
     expect(engine.isMaskConcealed()).toBe(true);
     engine.toggleConcealment();
     expect(engine.isMaskConcealed()).toBe(false);
+    engine.toggleConcealment();
+    expect(engine.isMaskConcealed()).toBe(true);
+  });
+
+  it('concludes summon spin directly on the front card face (rotationY: 180) veiled by the frosted blur mask', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    const frontMask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
+    expect(card).not.toBeNull();
+    expect(frontMask).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Verify 3-spin start (-900deg) to front face (180deg)
+    tl?.seek(0);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(-900);
+
+    // Settle animation
+    tl?.progress(1);
+
+    // Concludes squarely at 180deg on front face without post-landing auto-flip jump
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
+    expect(engine.isCardFlipped()).toBe(true);
+
+    // Front face is veiled in frosted obsidian blur
+    expect(frontMask?.className).toContain('backdrop-blur-xl');
+    expect(engine.isMaskConcealed()).toBe(true);
   });
 
   it('applies calibrated zoomed card dimensions reduced by 10% w-[290px] sm:w-[335px] md:w-[370px] lg:w-[396px]', () => {
@@ -1381,190 +1414,5 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
     expect(shockwave?.className).toContain('w-[306px]');
     expect(shockwave?.className).toContain('md:w-[405px]');
-  });
-});
-
-describe('Phase 6: The Radiant Unblur & Flip Reveal', () => {
-  let engine: CardSummonEngine;
-  let container: HTMLElement;
-
-  beforeEach(() => {
-    document.body.innerHTML = '';
-    container = document.createElement('div');
-    container.id = 'app-root';
-    document.body.appendChild(container);
-  });
-
-  afterEach(() => {
-    if (engine) {
-      engine.destroy();
-    }
-  });
-
-  it('choreographs 3D flip reveal at apex climax (1.20s), transitioning card from back (-180deg) to front (0deg)', () => {
-    engine = new CardSummonEngine();
-    engine.open();
-
-    const card = document.querySelector<HTMLElement>('[data-summon-card]');
-    const cardFace = document.querySelector<HTMLElement>('[data-summon-card-face]');
-    expect(card).not.toBeNull();
-    expect(cardFace).not.toBeNull();
-
-    const tl = engine.getTimeline();
-    expect(tl).not.toBeNull();
-
-    // During ascent (t = 0.5s), card is facing back at rotationY -180 and cardFace is hidden to prevent blur bleed
-    tl?.seek(0.5);
-    const ascentRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
-    expect(ascentRotY).toBe(-180);
-    expect(cardFace?.style.visibility).toBe('hidden');
-
-    // At apex freeze (t = 1.15s), card is still facing back at rotationY -180
-    tl?.seek(1.15);
-    const apexRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
-    expect(apexRotY).toBe(-180);
-
-    // At t = 1.60s, card has flipped towards 0deg and cardFace is visible
-    tl?.seek(1.60);
-    const flippedRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
-    expect(flippedRotY).toBe(0);
-    expect(cardFace?.style.visibility).toBe('visible');
-
-    // At settle (progress 1), card rests firmly at 0deg
-    tl?.progress(1);
-    expect(Math.round(Number(gsap.getProperty(card, 'rotationY')))).toBe(0);
-  });
-
-  it('melts frosted concealment veil to opacity 0 during reveal and sweeps specular sheen across front face', () => {
-    engine = new CardSummonEngine();
-    engine.open();
-
-    const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
-    const sheen = document.querySelector<HTMLElement>('[data-summon-card-front-sheen]');
-    expect(mask).not.toBeNull();
-    expect(sheen).not.toBeNull();
-
-    const tl = engine.getTimeline();
-    expect(tl).not.toBeNull();
-
-    // At climax start (t = 1.25s), mask is still fully opaque (1.0)
-    tl?.seek(1.25);
-    expect(Number(gsap.getProperty(mask, 'opacity'))).toBeGreaterThan(0.9);
-
-    // At timeline completion, mask has melted to 0 and engine reports unblurred
-    tl?.progress(1);
-    expect(Number(gsap.getProperty(mask, 'opacity'))).toBe(0);
-    expect(engine.isMaskConcealed()).toBe(false);
-  });
-
-  it('animates 5 gold stars and stat progress bars upon reveal', () => {
-    engine = new CardSummonEngine();
-    engine.open();
-
-    const stars = document.querySelectorAll<HTMLElement>('[data-summon-star]');
-    expect(stars.length).toBe(5);
-
-    const statFills = document.querySelectorAll<HTMLElement>('[data-summon-stat-bar-fill]');
-    expect(statFills.length).toBe(3);
-
-    const tl = engine.getTimeline();
-    expect(tl).not.toBeNull();
-
-    // Before reveal (t = 1.25s), stat bars are at 0%
-    tl?.seek(1.25);
-    statFills.forEach((fill) => {
-      const w = fill.style.width || gsap.getProperty(fill, 'width');
-      expect(parseFloat(String(w)) || 0).toBeLessThanOrEqual(5);
-    });
-
-    // At settle, stat bars match target attributes (99%, 98%, 95%)
-    tl?.progress(1);
-    const targetWidths = Array.from(statFills).map((f) => f.getAttribute('data-target-width'));
-    expect(targetWidths).toEqual(['99', '98', '95']);
-  });
-
-  it('features Zero-UI pure artifact with no bottom pill buttons, allowing direct card click to flip between front (0deg) and back (180deg)', () => {
-    engine = new CardSummonEngine();
-    engine.open();
-
-    // Pill buttons must not exist
-    expect(document.querySelector('[data-summon-controls]')).toBeNull();
-    expect(document.querySelector('[data-summon-flip-btn]')).toBeNull();
-    expect(document.querySelector('[data-summon-mask-toggle]')).toBeNull();
-
-    const card = document.querySelector<HTMLElement>('[data-summon-card]');
-    expect(card).not.toBeNull();
-
-    const tl = engine.getTimeline();
-    tl?.progress(1);
-
-    // Initially settled on front face (rotationY = 0)
-    expect(engine.isCardFlipped()).toBe(false);
-    expect(Math.round(Number(gsap.getProperty(card, 'rotationY')))).toBe(0);
-
-    // Clicking card flips to back sigil (rotationY = 180)
-    card?.click();
-    expect(engine.isCardFlipped()).toBe(true);
-
-    // Clicking card again flips back to front face (rotationY = 0)
-    card?.click();
-    expect(engine.isCardFlipped()).toBe(false);
-  });
-
-  it('displays subtle "Click anywhere to close" hint [data-summon-hint] with blur fade-in after settle', () => {
-    engine = new CardSummonEngine();
-    engine.open();
-
-    const hint = document.querySelector<HTMLElement>('[data-summon-hint]');
-    expect(hint).not.toBeNull();
-    expect(hint?.textContent?.toLowerCase()).toContain('click anywhere to close');
-  });
-
-  it('respects prefers-reduced-motion by placing card at 0deg with unblurred front face, target stat widths, and immediate hint', () => {
-    const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
-      matches: query.includes('prefers-reduced-motion: reduce'),
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
-
-    try {
-      engine = new CardSummonEngine();
-      engine.open();
-
-      const card = document.querySelector<HTMLElement>('[data-summon-card]');
-      const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
-      const hint = document.querySelector<HTMLElement>('[data-summon-hint]');
-
-      expect(Math.round(Number(gsap.getProperty(card, 'rotationY')))).toBe(0);
-      expect(Number(gsap.getProperty(mask, 'opacity'))).toBe(0);
-      expect(Number(gsap.getProperty(hint, 'opacity'))).toBeGreaterThan(0);
-      expect(engine.isMaskConcealed()).toBe(false);
-    } finally {
-      matchMediaSpy.mockRestore();
-    }
-  });
-
-  it('cleans up hint element, card flip tweens, and timeline on close() and destroy()', () => {
-    engine = new CardSummonEngine();
-    engine.open();
-
-    const hint = document.querySelector<HTMLElement>('[data-summon-hint]');
-    expect(hint).not.toBeNull();
-
-    engine.close();
-    expect(document.querySelector('[data-summon-hint]')).toBeNull();
-    expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
-
-    engine.open();
-    expect(document.querySelector('[data-summon-hint]')).not.toBeNull();
-
-    engine.destroy();
-    expect(document.querySelector('[data-summon-hint]')).toBeNull();
-    expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
   });
 });

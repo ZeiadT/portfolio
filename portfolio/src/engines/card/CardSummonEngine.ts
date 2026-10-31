@@ -78,8 +78,7 @@ export class CardSummonEngine implements Engine {
   private isSettled: boolean = false;
   private isFlipped: boolean = false;
   private isMaskConcealedState: boolean = true;
-  private hintEl: HTMLElement | null = null;
-  private hintTween: gsap.core.Tween | null = null;
+  private controlsEl: HTMLElement | null = null;
   private flipTween: gsap.core.Tween | null = null;
   private maskTween: gsap.core.Tween | null = null;
   private options: CardSummonOptions;
@@ -91,6 +90,8 @@ export class CardSummonEngine implements Engine {
   private boundOnPointerMove: ((e: PointerEvent) => void) | null = null;
   private boundOnPointerLeave: (() => void) | null = null;
   private boundOnCardClick: ((e: MouseEvent) => void) | null = null;
+  private boundOnFlipBtnClick: ((e: MouseEvent) => void) | null = null;
+  private boundOnMaskToggleClick: ((e: MouseEvent) => void) | null = null;
 
   constructor(options: CardSummonOptions = {}) {
     this.options = options;
@@ -113,7 +114,7 @@ export class CardSummonEngine implements Engine {
   }
 
   /**
-   * Returns whether the card is currently flipped away from its revealed front face (180deg).
+   * Returns whether the card is currently flipped to the front face (180deg).
    */
   public isCardFlipped(): boolean {
     return this.isFlipped;
@@ -127,7 +128,7 @@ export class CardSummonEngine implements Engine {
   }
 
   /**
-   * Smoothly flips the card between front face (0deg) and back sigil (180deg).
+   * Smoothly flips the card between front face (180deg) and back sigil (0deg).
    */
   public flipCard(): void {
     if (!this.cardEl) return;
@@ -181,6 +182,7 @@ export class CardSummonEngine implements Engine {
     }
 
     this.isDialogOpen = true;
+    this.isFlipped = true;
     if (typeof document !== 'undefined') {
       this.previousActiveElement = document.activeElement as HTMLElement | null;
       if (document.body) {
@@ -289,9 +291,8 @@ export class CardSummonEngine implements Engine {
     // Double-sided 3D card faces
     const cardBack = document.createElement('div');
     cardBack.setAttribute('data-summon-card-back', '');
-    cardBack.className = 'absolute inset-0 rounded-3xl overflow-hidden pointer-events-none select-none [backface-visibility:hidden] [transform:rotateY(180deg)]';
+    cardBack.className = 'absolute inset-0 rounded-3xl overflow-hidden pointer-events-none select-none [backface-visibility:hidden]';
     cardBack.style.backfaceVisibility = 'hidden';
-    cardBack.style.transform = 'rotateY(180deg)';
     cardBack.innerHTML = `
       <svg viewBox="0 0 350 490" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
@@ -462,12 +463,12 @@ export class CardSummonEngine implements Engine {
       </svg>
     `;
 
-    // Card Face (front face at 0deg)
+    // Card Face placeholder (rotated 180deg on Y axis)
     const cardFace = document.createElement('div');
     cardFace.setAttribute('data-summon-card-face', '');
-    cardFace.className = 'absolute inset-0 rounded-3xl overflow-hidden pointer-events-none select-none bg-neutral-900 border border-white/20 [backface-visibility:hidden]';
+    cardFace.className = 'absolute inset-0 rounded-3xl overflow-hidden pointer-events-none select-none bg-neutral-900 border border-white/20 [backface-visibility:hidden] [transform:rotateY(180deg)]';
     cardFace.style.backfaceVisibility = 'hidden';
-    cardFace.style.transform = 'rotateY(0deg)';
+    cardFace.style.transform = 'rotateY(180deg)';
 
     const defaultCardData: CardSummonData = {
       name: 'Zeiad Mohammed',
@@ -618,19 +619,43 @@ export class CardSummonEngine implements Engine {
     };
     modal.addEventListener('pointerleave', this.boundOnPointerLeave);
 
-    // Subtle hint below card: "Click anywhere to close"
-    const hint = document.createElement('div');
-    hint.setAttribute('data-summon-hint', '');
-    hint.className =
-      'absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 pointer-events-none select-none opacity-0 font-mono text-[10px] sm:text-xs tracking-widest uppercase text-white/50 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg';
-    hint.innerHTML = `
-      <span class="w-1.5 h-1.5 rounded-full bg-amber-400/80 animate-pulse"></span>
-      <span>Click anywhere to close</span>
+    // Floating inspection controls (Flip Card & Toggle Mask)
+    const controls = document.createElement('div');
+    controls.setAttribute('data-summon-controls', '');
+    controls.className =
+      'absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 sm:gap-3 pointer-events-auto select-none opacity-0 transition-opacity duration-300';
+    controls.innerHTML = `
+      <button type="button" data-summon-flip-btn class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+        <span>Flip Card</span>
+        <span class="text-amber-400">↺</span>
+      </button>
+      <button type="button" data-summon-mask-toggle class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
+        <span>Toggle Concealment</span>
+        <span class="text-yellow-300">✦</span>
+      </button>
     `;
-    modal.appendChild(hint);
-    this.hintEl = hint;
+    modal.appendChild(controls);
+    this.controlsEl = controls;
 
-    // Clicking card directly flips between front face (0deg) and back sigil (180deg)
+    const flipBtn = controls.querySelector<HTMLButtonElement>('[data-summon-flip-btn]');
+    if (flipBtn) {
+      this.boundOnFlipBtnClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        this.flipCard();
+      };
+      flipBtn.addEventListener('click', this.boundOnFlipBtnClick);
+    }
+
+    const maskToggleBtn = controls.querySelector<HTMLButtonElement>('[data-summon-mask-toggle]');
+    if (maskToggleBtn) {
+      this.boundOnMaskToggleClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        this.toggleConcealment();
+      };
+      maskToggleBtn.addEventListener('click', this.boundOnMaskToggleClick);
+    }
+
+    // Clicking card directly flips it
     this.boundOnCardClick = (e: MouseEvent) => {
       if (!this.cardEl || !this.isSettled) return;
       if ((e.target as HTMLElement).closest('button')) return;
@@ -642,34 +667,20 @@ export class CardSummonEngine implements Engine {
     const prefersReducedMotion = typeof window !== 'undefined' &&
       (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
 
-    // Conceal front face during ascent to eliminate GPU compositor blur bleed onto card back
-    if (this.cardFaceEl) {
-      this.cardFaceEl.style.visibility = prefersReducedMotion ? 'visible' : 'hidden';
-    }
-
     // Build entrance timeline
     this.openTimeline = gsap.timeline({
       onComplete: () => {
         this.isSettled = true;
-        this.isFlipped = false;
-        this.isMaskConcealedState = false;
-        if (this.cardFaceEl) {
-          this.cardFaceEl.style.visibility = 'visible';
-        }
-        if (this.hintEl && !prefersReducedMotion) {
-          this.hintTween = gsap.fromTo(
-            this.hintEl,
-            { opacity: 0, filter: 'blur(8px)', y: 6 },
-            { opacity: 0.75, filter: 'blur(0px)', y: 0, duration: 0.7, ease: 'power2.out', delay: 1.2 }
-          );
+        this.isFlipped = true;
+        if (this.controlsEl) {
+          this.controlsEl.style.opacity = '1';
         }
       },
     });
 
     if (prefersReducedMotion) {
       this.isSettled = true;
-      this.isFlipped = false;
-      this.isMaskConcealedState = false;
+      this.isFlipped = true;
       this.openTimeline.set(this.backdropEl, { autoAlpha: 1 });
       this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 0, scaleY: 1, scaleX: 1 });
       if (this.flashVeilEl) {
@@ -681,14 +692,21 @@ export class CardSummonEngine implements Engine {
       if (this.cardAuraEl) {
         this.openTimeline.set(this.cardAuraEl, { opacity: 0, scale: 1 });
       }
-      if (this.frontMaskEl) {
-        this.frontMaskEl.style.opacity = '0';
-        this.openTimeline.set(this.frontMaskEl, { opacity: 0 });
-      }
       if (this.cardEl) {
+        gsap.set(this.cardEl, {
+          yPercent: 0,
+          rotationY: 180,
+          rotationX: 0,
+          rotationZ: 0,
+          opacity: 1,
+          scale: 1,
+          scaleX: 1,
+          scaleY: 1,
+          x: 0,
+        });
         this.openTimeline.set(this.cardEl, {
           yPercent: 0,
-          rotationY: 0,
+          rotationY: 180,
           rotationX: 0,
           rotationZ: 0,
           opacity: 1,
@@ -698,22 +716,6 @@ export class CardSummonEngine implements Engine {
           x: 0,
         });
       }
-      const stars = modal.querySelectorAll<HTMLElement>('[data-summon-star]');
-      if (stars.length > 0) {
-        this.openTimeline.set(stars, { scale: 1, opacity: 1 });
-      }
-      const statFills = modal.querySelectorAll<HTMLElement>('[data-summon-stat-bar-fill]');
-      statFills.forEach((fill) => {
-        const targetWidth = fill.getAttribute('data-target-width') ?? '100';
-        fill.style.width = `${targetWidth}%`;
-        this.openTimeline?.set(fill, { width: `${targetWidth}%` });
-      });
-      if (this.hintEl) {
-        this.hintEl.style.opacity = '0.75';
-        this.hintEl.style.filter = 'none';
-        this.openTimeline.set(this.hintEl, { opacity: 0.75, filter: 'none', y: 0 });
-      }
-      this.openTimeline.progress(1);
     } else {
       this.openTimeline.fromTo(
         this.backdropEl,
@@ -746,14 +748,14 @@ export class CardSummonEngine implements Engine {
 
       if (this.cardEl) {
         // Card ascent (0.35s to 1.10s, duration 0.75s)
-        // Card emerges and ascends with mystic back sigil strictly facing camera (-180deg)
+        // Spins 3 full turns (1080°) from -900° to conclude squarely facing the front face at 180°
         this.openTimeline.fromTo(
           this.cardEl,
           {
             yPercent: 120,
-            rotationY: -180,
-            rotationX: 18,
-            rotationZ: -8,
+            rotationY: -900,
+            rotationX: 0,
+            rotationZ: 12,
             opacity: 0,
             scale: 0.55,
             scaleX: 1,
@@ -762,9 +764,8 @@ export class CardSummonEngine implements Engine {
           },
           {
             yPercent: -3,
-            rotationY: -180,
-            rotationX: 0,
-            rotationZ: 1.5,
+            rotationY: 180,
+            rotationZ: 0,
             opacity: 1,
             scale: 1.020,
             duration: 0.75,
@@ -786,43 +787,24 @@ export class CardSummonEngine implements Engine {
           0.75
         );
 
-        // The Fermata Freeze (1.10s to 1.30s: 200ms dead-still spatial freeze)
+        // The 150ms Fermata Freeze (1.10s to 1.25s)
         this.openTimeline.set(this.cardEl, { x: 0 }, 1.10);
         this.openTimeline.to(
           this.cardEl,
           {
             scale: 1.025,
-            duration: 0.20,
+            duration: 0.15,
             ease: 'none',
           },
           1.10
         );
 
-        // Climax Apex Rupture: 3D Flip Reveal (1.30s to 1.60s: smooth power3.out flip from -180 to 0)
-        // Reveal cardFace at exact moment optical burst begins
-        if (this.cardFaceEl) {
-          this.openTimeline.set(this.cardFaceEl, { visibility: 'visible' }, 1.30);
-        }
-        this.openTimeline.to(
-          this.cardEl,
-          {
-            rotationY: 0,
-            rotationX: 0,
-            rotationZ: 0,
-            duration: 0.30,
-            ease: 'power3.out',
-          },
-          1.30
-        );
-        this.openTimeline.to(this.cardEl, { scale: 1.08, duration: 0.08, ease: 'power4.out' }, 1.30);
-        this.openTimeline.to(this.cardEl, { scale: 1.02, duration: 0.12, ease: 'power2.out' }, 1.38);
-
-        // Card graceful descent to center (1.50s to 2.00s, duration 0.50s)
+        // Card graceful descent to center (1.45s to 1.95s, duration 0.50s)
         this.openTimeline.to(
           this.cardEl,
           {
             yPercent: 0,
-            rotationY: 0,
+            rotationY: 180,
             rotationZ: 0,
             scale: 1.0,
             scaleX: 1.0,
@@ -830,7 +812,7 @@ export class CardSummonEngine implements Engine {
             duration: 0.50,
             ease: 'power2.out',
           },
-          1.50
+          1.45
         );
       }
 
@@ -853,7 +835,7 @@ export class CardSummonEngine implements Engine {
           0.70
         );
 
-        // Aura soft dissipation during graceful descent (1.50s to 2.00s)
+        // Aura soft dissipation during graceful descent (1.45s to 1.95s)
         this.openTimeline.to(
           this.cardAuraEl,
           {
@@ -862,29 +844,21 @@ export class CardSummonEngine implements Engine {
             duration: 0.50,
             ease: 'power2.out',
           },
-          1.50
+          1.45
         );
       }
 
-      // Climax optical flash veil & shockwave (1.30s to 1.48s)
-      // Screen is blinded in white light as the card crosses -90deg edge-on,
-      // and when the light clears (1.40s - 1.48s), the card is ALREADY on the front face!
+      // Climax optical flash veil & shockwave (1.25s)
       if (this.flashVeilEl) {
-        this.openTimeline.fromTo(
+        this.openTimeline.to(
           this.flashVeilEl,
-          { opacity: 0 },
-          { opacity: 0.95, duration: 0.04, ease: 'power3.in' },
-          1.30
+          { opacity: 0.95, duration: 0.03, ease: 'power2.out' },
+          1.25
         );
         this.openTimeline.to(
           this.flashVeilEl,
-          { opacity: 0.95, duration: 0.04, ease: 'none' },
-          1.34
-        );
-        this.openTimeline.to(
-          this.flashVeilEl,
-          { opacity: 0, duration: 0.10, ease: 'expo.out' },
-          1.38
+          { opacity: 0, duration: 0.17, ease: 'power2.out' },
+          1.28
         );
       }
 
@@ -892,63 +866,10 @@ export class CardSummonEngine implements Engine {
         this.openTimeline.fromTo(
           this.shockwaveEl,
           { scale: 0.2, opacity: 1 },
-          { scale: 2.8, opacity: 0, duration: 0.20, ease: 'power4.out' },
-          1.30
+          { scale: 2.8, opacity: 0, duration: 0.22, ease: 'power4.out' },
+          1.25
         );
       }
-
-      // Phase 6 Reveal: Frosted concealment veil dissolve (1.35s to 1.75s)
-      if (this.frontMaskEl) {
-        this.openTimeline.to(
-          this.frontMaskEl,
-          {
-            opacity: 0,
-            duration: 0.40,
-            ease: 'power2.inOut',
-          },
-          1.35
-        );
-      }
-
-      // Specular Sheen Sweep across revealed face (1.35s to 1.85s)
-      if (this.sheenEl) {
-        this.openTimeline.fromTo(
-          this.sheenEl,
-          { xPercent: -120 },
-          { xPercent: 180, duration: 0.50, ease: 'power2.inOut' },
-          1.35
-        );
-      }
-
-      // Star stamp cascade (1.45s to 1.70s)
-      const stars = modal.querySelectorAll<HTMLElement>('[data-summon-star]');
-      if (stars.length > 0) {
-        this.openTimeline.fromTo(
-          stars,
-          { scale: 2.2, opacity: 0 },
-          { scale: 1.0, opacity: 1, duration: 0.16, stagger: 0.04, ease: 'back.out(2.5)' },
-          1.45
-        );
-      }
-
-      // Stat progress bars fill animation (1.45s to 1.90s)
-      const statFills = modal.querySelectorAll<HTMLElement>('[data-summon-stat-bar-fill]');
-      if (statFills.length > 0) {
-        statFills.forEach((fill, index) => {
-          const targetWidth = fill.getAttribute('data-target-width') ?? '100';
-          this.openTimeline?.fromTo(
-            fill,
-            { width: '0%' },
-            { width: `${targetWidth}%`, duration: 0.45, ease: 'power2.out' },
-            1.45 + index * 0.04
-          );
-        });
-      }
-
-      // Settle transition mark
-      this.openTimeline.add(() => {
-        this.isMaskConcealedState = false;
-      }, 1.75);
 
       // Pad timeline total duration to 2.0s
       this.openTimeline.set({}, {}, 2.0);
@@ -1012,6 +933,8 @@ export class CardSummonEngine implements Engine {
       this.cardEl.removeEventListener('click', this.boundOnCardClick);
       this.boundOnCardClick = null;
     }
+    this.boundOnFlipBtnClick = null;
+    this.boundOnMaskToggleClick = null;
     this.isSettled = false;
     this.isFlipped = false;
     this.isMaskConcealedState = true;
@@ -1023,13 +946,9 @@ export class CardSummonEngine implements Engine {
       this.maskTween.kill();
       this.maskTween = null;
     }
-    if (this.hintTween) {
-      this.hintTween.kill();
-      this.hintTween = null;
-    }
-    if (this.hintEl) {
-      this.hintEl.remove();
-      this.hintEl = null;
+    if (this.controlsEl) {
+      this.controlsEl.remove();
+      this.controlsEl = null;
     }
     if (this.openTimeline) {
       this.openTimeline.kill();

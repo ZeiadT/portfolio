@@ -1,6 +1,6 @@
 # Card Summon - Phase 5: Front Card Design & Concealment Sheen Implementation Plan
 
-- **Status**: Completed (Task 11: 10% Zoom Reduction, Boxed Identity & Icon Skills, Expanded Portrait & Numbers Typography)
+- **Status**: Completed (Task 12: Spin Landing Directly on Blurred Front Face)
 - **Created**: 2026-10-31
 - **Last Updated**: 2026-10-31
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Tailwind CSS v4, Inline SVG / HTML Vectors, Vitest
@@ -380,3 +380,38 @@
 - [x] **Step 3: Update `EditorialCardFaceRenderer.ts` with boxed identity, icon skills, expanded portrait, and increased stats title typography**
 - [x] **Step 4: Verify full test suite and TypeScript production build**
 - [x] **Step 5: Visually inspect and commit with git**
+
+---
+
+### Task 12: Spin Landing Directly on Blurred Front Face
+
+**Files:**
+- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
+- Modify: `portfolio/src/engines/card/__tests__/CardSummonEngine.test.ts`
+
+**Requirements:**
+1. **Spin Animation Rest Target Calibration**:
+   - Card entrance spin now concludes directly facing the **front face** (`rotationY: 180`).
+   - Card ascent timeline: spins from `rotationY: -900` to `rotationY: 180` (total angular distance = $180 - (-900) = 1080^\circ$, exactly 3 full $360^\circ$ spins) into apex slow-motion hover.
+   - 150ms Fermata freeze holds at apex at `rotationY: 180`.
+   - Graceful descent locks card landing into resting state at `rotationY: 180` and `yPercent: 0`.
+   - `prefers-reduced-motion` resting state sets `rotationY: 180` directly.
+2. **Landing on Blurred Front Face**:
+   - The front face lands directly facing the viewer, blurred by the Frosted Obsidian Glass Concealment Veil (`[data-summon-card-front-mask]`, `backdrop-blur-xl bg-neutral-950/80`) with animated holographic specular sheen.
+   - Eliminates delayed post-landing auto-flip jump: card lands already front-facing and mysterious.
+   - `this.isFlipped` state initialized to `true` upon open and confirmed on landing (`isCardFlipped()` returns `true`).
+3. **Interactive Flip & Parallax Recalibration**:
+   - 3D parallax tilt dynamically tilts around `baseRotY = 180` while front-facing, and resets to `rotationY: 180` on pointer leave.
+   - Clicking the card or clicking `Flip Card` button smoothly flips from front (`180deg`) to back sigil (`0deg`), and vice versa.
+   - Clicking `Toggle Concealment` smoothly toggles the blur mask opacity between 1 and 0 to reveal the card contents.
+4. **TDD Protocol**:
+   - Update and add unit test specifications in `CardSummonEngine.test.ts` (RED phase).
+   - Implement motion and state updates in `CardSummonEngine.ts` (GREEN phase).
+   - Verify complete Vitest suite (200+ tests) and production build.
+   - Git commit.
+
+- [x] **Step 1: Update unit test specifications in `CardSummonEngine.test.ts` (RED phase)**
+- [x] **Step 2: Update ascent and descent spin rotation to end at `rotationY: 180` on blurred front face in `CardSummonEngine.ts`**
+- [x] **Step 3: Verify all test suites pass (GREEN phase)**
+- [x] **Step 4: Verify TypeScript compilation and production build**
+- [x] **Step 5: Mark Task 12 completed and commit changes with git**
