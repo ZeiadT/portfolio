@@ -33,6 +33,7 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
     const coreColor = theme.coreColor || '#ffffff';
 
     const starCount = Math.max(0, Math.floor(data.stars || 5));
+    const starChar = '\u2605';
     const perf = data.stats?.perf ?? 99;
     const arch = data.stats?.arch ?? 98;
     const code = data.stats?.code ?? 95;
@@ -85,9 +86,7 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
 
           <!-- Stars on right side filling previous position -->
           <div class="flex items-center shrink-0">
-            <span data-summon-face-stars class="inline-flex items-center gap-0.5 text-amber-400 text-xs sm:text-sm tracking-widest select-none drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
-              ${Array.from({ length: starCount }, () => `<span data-summon-star class="inline-block transform-gpu">★</span>`).join('')}
-            </span>
+            <span data-summon-face-stars class="inline-flex items-center gap-0.5 text-amber-400 text-xs sm:text-sm tracking-widest select-none drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">${Array.from({ length: starCount }, () => `<span data-summon-star class="inline-block transform-gpu">${starChar}</span>`).join('')}</span>
           </div>
         </div>
 

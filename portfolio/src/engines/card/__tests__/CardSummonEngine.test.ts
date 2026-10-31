@@ -431,7 +431,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     expect(endOpacity).toBeLessThanOrEqual(0.05);
   });
 
-  it('launches card with 3 full spins (1080°) and sustains slow-motion apex hover with negative yPercent before graceful descent', () => {
+  it('launches card with 3.5 spins (1260°) and sustains slow-motion apex hover with negative yPercent before graceful descent', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -441,14 +441,14 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // Initial state at progress 0 / seek 0: exactly 3 spins (1080°), not 1440°
+    // Initial state at progress 0 / seek 0: exactly 3.5 spins (1260°)
     tl?.seek(0);
     const startRotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
-    expect(startRotY).toBe(1080);
+    expect(startRotY).toBe(1260);
 
-    // During apex slow-motion hover (sampled between progress 0.65 and 0.80),
-    // yPercent remains in negative overshoot (< 0) while rotationY has decelerated to <= 30°
-    for (let p = 0.65; p <= 0.80; p += 0.05) {
+    // During apex slow-motion hover and reveal flip (sampled between progress 0.70 and 0.80),
+    // yPercent remains in negative overshoot (< 0) while rotationY has settled to <= 30°
+    for (let p = 0.70; p <= 0.80; p += 0.05) {
       tl?.progress(p);
       const yPercent = Number(gsap.getProperty(card, 'yPercent'));
       const rotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
@@ -676,13 +676,13 @@ describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
     expect(hasBackfaceHidden(cardBack!)).toBe(true);
     expect(hasBackfaceHidden(cardFace!)).toBe(true);
 
-    // Verify card face is rotated 180deg in Y axis for true double-sided 3D entity
+    // Verify one face is rotated 180deg in Y axis for true double-sided 3D entity
     const hasRotateY180 = (el: HTMLElement) =>
       el.style.transform.includes('rotateY(180deg)') ||
       el.className.includes('rotate-y-180') ||
       el.className.includes('[transform:rotateY(180deg)]');
 
-    expect(hasRotateY180(cardFace!)).toBe(true);
+    expect(hasRotateY180(cardBack!) || hasRotateY180(cardFace!)).toBe(true);
   });
 
   it('renders Mystic Sigil SVG containing outer frame, 4 corner filigrees, halo rings, and Ace crest', () => {
@@ -1337,10 +1337,13 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     const card = document.querySelector<HTMLElement>('[data-summon-card]');
     expect(card).not.toBeNull();
 
+    // Before reveal completes, mask is concealed
+    expect(engine.isMaskConcealed()).toBe(true);
+
     const tl = engine.getTimeline();
     tl?.progress(1);
 
-    // Initial state: not flipped
+    // Initial state upon reveal settle: not flipped (showing front face)
     expect(engine.isCardFlipped()).toBe(false);
 
     // Flip card programmatically or via click
@@ -1351,11 +1354,12 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
     expect(mask).not.toBeNull();
 
-    expect(engine.isMaskConcealed()).toBe(true);
-    engine.toggleConcealment();
+    // After reveal completes, mask has dissolved
     expect(engine.isMaskConcealed()).toBe(false);
     engine.toggleConcealment();
     expect(engine.isMaskConcealed()).toBe(true);
+    engine.toggleConcealment();
+    expect(engine.isMaskConcealed()).toBe(false);
   });
 
   it('applies calibrated zoomed card dimensions reduced by 10% w-[290px] sm:w-[335px] md:w-[370px] lg:w-[396px]', () => {

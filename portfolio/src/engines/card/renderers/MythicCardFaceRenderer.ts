@@ -31,6 +31,7 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
     const coreColor = theme.coreColor || '#ffffff';
 
     const starCount = Math.max(0, Math.floor(data.stars || 0));
+    const starChar = '\u2605';
     const perf = data.stats?.perf ?? 99;
     const arch = data.stats?.arch ?? 98;
     const code = data.stats?.code ?? 95;
@@ -95,9 +96,7 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
           <span data-summon-face-rarity class="text-[9px] sm:text-[10px] font-black tracking-widest uppercase bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm font-mono truncate">
             ${escapeHtml(data.rarity)}
           </span>
-          <span data-summon-face-stars class="inline-flex items-center gap-0.5 text-amber-400 text-[10px] sm:text-xs tracking-tighter drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] select-none">
-            ${Array.from({ length: starCount }, () => `<span data-summon-star class="inline-block transform-gpu">★</span>`).join('')}
-          </span>
+          <span data-summon-face-stars class="inline-flex items-center gap-0.5 text-amber-400 text-[10px] sm:text-xs tracking-tighter drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] select-none">${Array.from({ length: starCount }, () => `<span data-summon-star class="inline-block transform-gpu">${starChar}</span>`).join('')}</span>
         </div>
         <div class="flex items-center shrink-0">
           <span data-summon-face-class class="text-[8px] sm:text-[8.5px] font-medium tracking-wide uppercase px-1.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-neutral-200 backdrop-blur-sm shadow-sm truncate max-w-[110px] sm:max-w-[130px]">
