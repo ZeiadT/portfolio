@@ -152,12 +152,14 @@ export class ThreeCardModel {
       map: this.frontTexture,
       roughness: 0.35,
       metalness: 0.1,
-      transparent: true,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
     });
 
     const frontMesh = new THREE.Mesh(frontGeometry, frontMaterial);
     frontMesh.name = 'card-front';
-    frontMesh.position.z = 0.031;
+    frontMesh.position.z = 0.0425;
     this.cardGroup.add(frontMesh);
 
     // 3. Back Face (rotated 180° on Y)
@@ -169,12 +171,14 @@ export class ThreeCardModel {
       map: this.backTexture,
       roughness: 0.3,
       metalness: 0.3,
-      transparent: true,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
     });
 
     const backMesh = new THREE.Mesh(backGeometry, backMaterial);
     backMesh.name = 'card-back';
-    backMesh.position.z = -0.031;
+    backMesh.position.z = -0.0425;
     backMesh.rotation.y = Math.PI;
     this.cardGroup.add(backMesh);
 
@@ -183,14 +187,15 @@ export class ThreeCardModel {
     normalizeShapeUVs(veilGeometry, width, height);
 
     const veilMaterial = new THREE.MeshBasicMaterial({
-      color: 0x050508,
+      color: 0x0a0a14,
       transparent: true,
-      opacity: this.veilOpacity,
+      opacity: this.veilOpacity * 0.75,
+      depthWrite: false,
     });
 
     this.veilMesh = new THREE.Mesh(veilGeometry, veilMaterial);
     this.veilMesh.name = 'card-veil';
-    this.veilMesh.position.z = 0.032;
+    this.veilMesh.position.z = 0.0435;
     this.veilMesh.visible = this.veilOpacity > 0.001;
     this.cardGroup.add(this.veilMesh);
   }
@@ -338,7 +343,7 @@ export class ThreeCardModel {
     this.veilOpacity = Math.max(0, Math.min(1, o));
     if (this.veilMesh && this.veilMesh.material) {
       const mat = this.veilMesh.material as THREE.MeshBasicMaterial;
-      mat.opacity = this.veilOpacity;
+      mat.opacity = this.veilOpacity * 0.75;
       this.veilMesh.visible = this.veilOpacity > 0.001;
     }
   }
