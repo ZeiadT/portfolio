@@ -458,14 +458,14 @@ describe('CardSummonEngine & ThreeCardModel Empirical Stress & Lifecycle Suite',
       matDisposeSpies.forEach((spy) => expect(spy).toHaveBeenCalled());
     });
 
-    it('disposes celestial particle field geometries and materials without throwing', () => {
+    it('destroys ThreeCardModel cleanly without errors when celestial particles are absent', () => {
       const model = new ThreeCardModel();
       model.mount(container);
 
-      // Verify particles exist
+      // Verify particles do not exist in scene
       const particles = model.cardGroup.parent?.getObjectByName('celestial-particles') ||
-                        (model as unknown as { particleGroup: THREE.Group }).particleGroup;
-      expect(particles).toBeDefined();
+                        (model as unknown as { particleGroup?: THREE.Group }).particleGroup;
+      expect(particles).toBeUndefined();
 
       expect(() => {
         model.destroy();

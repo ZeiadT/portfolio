@@ -131,6 +131,15 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(container.contains(canvas)).toBe(true);
     });
 
+    it('positions perspective camera at Z = 10.0 (20% zoom out) on mount', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      const camera = (model as unknown as { camera: THREE.PerspectiveCamera }).camera;
+      expect(camera).toBeDefined();
+      expect(camera.position.z).toBeCloseTo(10.0, 1);
+    });
+
     it('updates camera aspect and renderer dimensions on resize(width, height)', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
       model.mount(container);
@@ -330,7 +339,7 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(model.getFoilWipeProgress()).toBeGreaterThanOrEqual(0.0);
     });
 
-    it('creates and attaches 48 3D celestial and sacred geometry particles orbiting in scene on mount', () => {
+    it('does not spawn celestial orbital particles to maintain clean visual focus on the 3D card slab', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
       model.mount(container);
 
@@ -339,32 +348,9 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
 
       const particleGroup = scene.children.find(
         (child) => child.name === 'celestial-particles'
-      ) as THREE.Group;
+      );
 
-      expect(particleGroup).toBeDefined();
-      expect(particleGroup.children).toHaveLength(48);
-    });
-
-    it('disposes all particle geometries and materials cleanly upon destroy()', () => {
-      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
-      model.mount(container);
-
-      const scene = (model as unknown as { scene: THREE.Scene }).scene;
-      const particleGroup = scene.children.find(
-        (child) => child.name === 'celestial-particles'
-      ) as THREE.Group;
-
-      expect(particleGroup).toBeDefined();
-
-      const firstMesh = particleGroup.children[0] as THREE.Mesh;
-      const geomSpy = vi.spyOn(firstMesh.geometry, 'dispose');
-      const matSpy = vi.spyOn(firstMesh.material as THREE.Material, 'dispose');
-
-      model.destroy();
-
-      expect(geomSpy).toHaveBeenCalled();
-      expect(matSpy).toHaveBeenCalled();
-      expect((model as unknown as { particleGroup: THREE.Group | null }).particleGroup).toBeNull();
+      expect(particleGroup).toBeUndefined();
     });
 
     it('setSheenProgress(p) updates holographic specular shimmer progress', () => {
@@ -519,18 +505,17 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       });
     });
 
-    describe('5. Celestial Particle Field Structure', () => {
-      it('initializes exactly 48 celestial orbital particles (16 stars, 16 diamonds, 16 motes)', () => {
+    describe('5. Clean Scene Hierarchy (No Orbiting Particles)', () => {
+      it('confirms scene contains no celestial particles or particle group reference', () => {
         model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
         model.mount(container);
 
         const scene = (model as unknown as { scene: THREE.Scene }).scene;
         const particleGroup = scene.children.find(
           (child) => child.name === 'celestial-particles'
-        ) as THREE.Group;
-
-        expect(particleGroup).toBeDefined();
-        expect(particleGroup.children.length).toBe(48);
+        );
+        expect(particleGroup).toBeUndefined();
+        expect((model as unknown as { particleGroup?: unknown }).particleGroup).toBeUndefined();
       });
     });
   });
