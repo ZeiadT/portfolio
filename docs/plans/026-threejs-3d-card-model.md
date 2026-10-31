@@ -134,3 +134,19 @@ portfolio/src/engines/card/
    - Verified that no looping light exists on \ThreeCardModel\.
    - Verified diffuse map offsets remain \(0, 0)\.
    - Full Vitest suite passing.
+
+---
+
+## Revision 5 (2026-10-31): Lighting Boost, Background Dim Reduction, Subtle Tension Hum, & Reveal Veil Dissolve
+
+### Requirements & Alignment
+1. **Scene Lighting:** Boost ambient light to 1.3 and add soft front fill light (intensity 0.8, \[0, 1, 6]\) in \ThreeCardModel\ so typography and portrait are crisp, bright, and legible.
+2. **Backdrop Dimming:** Reduce backdrop dimming by 10% (\g-black/85\ ? \g-black/75\).
+3. **Anticipation Shake:** Remake the pre-fermata vibration from violent \x: 2.5\ into a subtle, tight tension hum (\x: 0.8\, \otationZ: 0.5\, 20Hz, terminating cleanly at \x: 0\ into the 150ms fermata freeze) complying with \choreographing-reveal-animations\.
+4. **Front Face Reveal Dissolve:** Card starts concealed under the obsidian veil during spin (\eilOpacity = 1\), then at apex (1.30s ? 1.80s) smoothly dissolves to 0 so the card rests bright and clear, keeping the inspection button synchronized.
+
+### Test Specifications (TDD)
+- Test that \ThreeCardModel\ mounts with ambient light intensity >= 1.2 and contains a front fill light facing the card.
+- Test that backdrop element has \g-black/75\.
+- Test that \open()\ animates veil opacity from 1 down to 0 and ends in an unmasked state (\isMaskConcealed() === false\).
+- Test that shake vibration amplitude is calibrated ($\le 1.0\text{px}$) and resets to 0 at the fermata freeze.

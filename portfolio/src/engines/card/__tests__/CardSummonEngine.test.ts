@@ -104,9 +104,10 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       expect(modal?.getAttribute('role')).toBe('dialog');
       expect(modal?.getAttribute('aria-modal')).toBe('true');
 
-      // Backdrop element
+      // Backdrop element with reduced 10% dimming (bg-black/75)
       const backdrop = modal?.querySelector<HTMLElement>('[data-summon-backdrop]');
       expect(backdrop).not.toBeNull();
+      expect(backdrop?.className).toContain('bg-black/75');
 
       // Bottom curved hill glow element
       const bottomGlow = modal?.querySelector<HTMLElement>('[data-summon-bottom-glow]');
@@ -887,6 +888,31 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(maxScaleX).toBeGreaterThan(1.05);
   });
 
+  it('executes a subtle tension hum vibration (amplitude <= 1.0px) before terminating at the fermata freeze', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Sample during the pre-fermata vibration window (0.75s - 1.10s)
+    let maxAbsX = 0;
+    for (let t = 0.76; t <= 1.05; t += 0.02) {
+      tl?.seek(t);
+      const xVal = Math.abs(Number(gsap.getProperty(card!, 'x')) || 0);
+      if (xVal > maxAbsX) maxAbsX = xVal;
+    }
+
+    // Should have subtle tension hum (non-zero, but <= 1.0px to avoid violent jarring)
+    expect(maxAbsX).toBeGreaterThan(0.2);
+    expect(maxAbsX).toBeLessThanOrEqual(1.0);
+
+    // Terminates cleanly at x: 0 at the start of the 150ms fermata freeze (1.10s)
+    tl?.seek(1.10);
+    expect(Number(gsap.getProperty(card!, 'x'))).toBe(0);
+  });
+
   it('implements the 150ms Fermata freeze locking spatial translation while subtly expanding scale at apex', () => {
     engine = new CardSummonEngine();
     engine.open();
@@ -1416,11 +1442,12 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
     expect(mask).not.toBeNull();
 
-    expect(engine.isMaskConcealed()).toBe(true);
-    engine.toggleConcealment();
+    // Inspection controls: mask starts dissolved after reveal, button toggles it back on and off
     expect(engine.isMaskConcealed()).toBe(false);
     engine.toggleConcealment();
     expect(engine.isMaskConcealed()).toBe(true);
+    engine.toggleConcealment();
+    expect(engine.isMaskConcealed()).toBe(false);
   });
 
   it('concludes summon spin directly on the front card face (rotationY: 180) veiled by the frosted blur mask', () => {
@@ -1446,9 +1473,9 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(engine.isCardFlipped()).toBe(true);
 
-    // Front face is veiled in frosted obsidian blur
+    // During summon reveal, the veil dissolves (1 -> 0) so the card rests bright & clear
     expect(frontMask?.className).toContain('backdrop-blur-xl');
-    expect(engine.isMaskConcealed()).toBe(true);
+    expect(engine.isMaskConcealed()).toBe(false);
   });
 
   it('applies calibrated zoomed card dimensions reduced by 10% w-[290px] sm:w-[335px] md:w-[370px] lg:w-[396px]', () => {
@@ -1564,17 +1591,22 @@ describe('Three.js 3D Physical Card Model Integration', () => {
 
     const threeModel = engine.getThreeCardModel();
     expect(threeModel).not.toBeNull();
+    // At start of summon spin, the card is concealed under the dark veil
     expect(threeModel!.getVeilOpacity()).toBeCloseTo(1, 1);
 
-    // Toggle concealment off
-    engine.toggleConcealment();
-    gsap.globalTimeline.getChildren().forEach((child) => child.progress?.(1));
+    // Fast-forward timeline to completion: reveal dissolves the veil to 0
+    engine.getTimeline()?.progress(1);
     expect(threeModel!.getVeilOpacity()).toBeCloseTo(0, 1);
 
     // Toggle concealment on
     engine.toggleConcealment();
     gsap.globalTimeline.getChildren().forEach((child) => child.progress?.(1));
     expect(threeModel!.getVeilOpacity()).toBeCloseTo(1, 1);
+
+    // Toggle concealment off
+    engine.toggleConcealment();
+    gsap.globalTimeline.getChildren().forEach((child) => child.progress?.(1));
+    expect(threeModel!.getVeilOpacity()).toBeCloseTo(0, 1);
   });
 
   it('destroys ThreeCardModel cleanly upon close() and destroy()', () => {

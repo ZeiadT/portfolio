@@ -340,6 +340,25 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       const sheenLight = (model as unknown as { sheenLight?: THREE.PointLight }).sheenLight;
       expect(sheenLight).toBeUndefined();
     });
+
+    it('sets up bright studio lighting (ambient >= 1.2 and frontal fill light)', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      const scene = (model as unknown as { scene: THREE.Scene }).scene;
+      expect(scene).toBeDefined();
+
+      const ambient = scene.children.find((c) => (c as THREE.AmbientLight).isAmbientLight) as THREE.AmbientLight;
+      expect(ambient).toBeDefined();
+      expect(ambient.intensity).toBeGreaterThanOrEqual(1.2);
+
+      const directionalLights = scene.children.filter((c) => (c as THREE.DirectionalLight).isDirectionalLight) as THREE.DirectionalLight[];
+      // Should have key, rim, and front fill lights
+      expect(directionalLights.length).toBeGreaterThanOrEqual(3);
+      const frontFill = directionalLights.find((l) => l.position.z > 0 && Math.abs(l.position.x) < 2);
+      expect(frontFill).toBeDefined();
+      expect(frontFill?.intensity).toBeGreaterThanOrEqual(0.7);
+    });
   });
 
   describe('4. CardTextureGenerator', () => {

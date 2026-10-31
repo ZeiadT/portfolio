@@ -190,12 +190,16 @@ export class ThreeCardModel {
     this.camera.position.set(0, 0, 8);
 
     // Lighting setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.3);
     this.scene.add(ambientLight);
 
     const keyLight = new THREE.DirectionalLight(0xfff0dd, 1.2);
     keyLight.position.set(5, 5, 5);
     this.scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    fillLight.position.set(0, 1, 6);
+    this.scene.add(fillLight);
 
     const rimLight = new THREE.DirectionalLight(0xffd700, 1.5);
     rimLight.position.set(-5, 3, -5);

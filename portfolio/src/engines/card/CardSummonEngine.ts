@@ -235,7 +235,7 @@ export class CardSummonEngine implements Engine {
     const backdrop = document.createElement('div');
     backdrop.setAttribute('data-summon-backdrop', '');
     backdrop.setAttribute('aria-hidden', 'true');
-    backdrop.className = 'absolute inset-0 bg-black/85 backdrop-blur-xl';
+    backdrop.className = 'absolute inset-0 bg-black/75 backdrop-blur-xl';
     modal.appendChild(backdrop);
 
     // Fullscreen optical flash veil element
@@ -717,6 +717,7 @@ export class CardSummonEngine implements Engine {
       onComplete: () => {
         this.isSettled = true;
         this.isFlipped = true;
+        this.isMaskConcealedState = false;
         if (this.controlsEl) {
           this.controlsEl.style.opacity = '1';
         }
@@ -737,6 +738,13 @@ export class CardSummonEngine implements Engine {
       }
       if (this.cardAuraEl) {
         this.openTimeline.set(this.cardAuraEl, { opacity: 0, scale: 1 });
+      }
+      if (this.frontMaskEl) {
+        this.openTimeline.set(this.frontMaskEl, { opacity: 0 });
+        this.isMaskConcealedState = false;
+        if (this.threeCardModel) {
+          this.threeCardModel.setVeilOpacity(0);
+        }
       }
       if (this.cardEl) {
         gsap.set(this.cardEl, {
@@ -820,11 +828,11 @@ export class CardSummonEngine implements Engine {
           0.35
         );
 
-        // Pre-fermata 20Hz vibration (0.75s to 1.10s)
+        // Pre-fermata subtle tension hum vibration (0.75s to 1.10s)
         this.openTimeline.to(
           this.cardEl,
           {
-            x: 2.5,
+            x: 0.8,
             duration: 0.025,
             repeat: 13,
             yoyo: true,
@@ -914,6 +922,33 @@ export class CardSummonEngine implements Engine {
           { scale: 0.2, opacity: 1 },
           { scale: 2.8, opacity: 0, duration: 0.22, ease: 'power4.out' },
           1.25
+        );
+      }
+
+      // Phase 4 Reveal & Dissolve: Frosted obsidian veil dissolves at apex (1.30s to 1.75s)
+      if (this.frontMaskEl) {
+        this.openTimeline.fromTo(
+          this.frontMaskEl,
+          { opacity: 1 },
+          {
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+            onUpdate: () => {
+              if (this.threeCardModel && this.frontMaskEl) {
+                const currentOpacity = Number(gsap.getProperty(this.frontMaskEl, 'opacity')) || 0;
+                this.threeCardModel.setVeilOpacity(currentOpacity);
+                this.isMaskConcealedState = currentOpacity > 0.5;
+              }
+            },
+            onComplete: () => {
+              this.isMaskConcealedState = false;
+              if (this.threeCardModel) {
+                this.threeCardModel.setVeilOpacity(0);
+              }
+            },
+          },
+          1.30
         );
       }
 
