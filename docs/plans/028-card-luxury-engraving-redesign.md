@@ -56,20 +56,20 @@
   - Skills: "Hard worker" (★★★), "Passionate designer" (★★), "Perfection seeker" (★).
   - Monochrome gold engraved stat counters and progress bars.
 
-- [ ] **Step 1: Write failing tests in `CardTextureGenerator.test.ts`**
+- [x] **Step 1: Write failing tests in `CardTextureGenerator.test.ts`**
   Add unit tests for concentric corner radius calculation, grayscale conversion, updated skills text, static stars (3, 2, 1), and monochrome gold palette.
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
   `npm --prefix portfolio test -- src/engines/card/three/__tests__/CardTextureGenerator.test.ts`
-- [ ] **Step 3: Implement front face redesign in `CardTextureGenerator.ts`**
+- [x] **Step 3: Implement front face redesign in `CardTextureGenerator.ts`**
   Update `drawFrontCardContent`:
   - Calculate `innerRadius = Math.max(0, outerRadius - padding)`.
   - Draw grayscale portrait via pixel luminance or canvas filter `grayscale(100%)`.
   - Scale up name font to `bold 44px sans-serif`.
   - Render static golden 5-point stars (★★★, ★★, ★) for the 3 skills.
   - Render stat progress bars in warm gold (`#ffd700` and `#ffd70033`).
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
   `npm --prefix portfolio test -- src/engines/card/three/__tests__/CardTextureGenerator.test.ts`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "feat(card): front face luxury golden engraving, taller grayscale portrait, and 3/2/1 star skills"`
 
 ---
@@ -135,3 +135,4 @@
   Inspect `http://localhost:3000/` to verify the card appearance, cat logo crest, grayscale portrait, 20% zoom out, and blur-fade prompt.
 - [ ] **Step 4: Final commit**
   `git commit -m "chore(card): verify full test suite and clean production build"`
+

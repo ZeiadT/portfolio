@@ -20,6 +20,7 @@ if (typeof HTMLCanvasElement !== 'undefined') {
           textAlign: 'left',
           textBaseline: 'alphabetic',
           globalAlpha: 1,
+          filter: 'none',
           shadowColor: '',
           shadowBlur: 0,
           shadowOffsetX: 0,
@@ -370,6 +371,162 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         });
         expect(texture).toBeInstanceOf(THREE.CanvasTexture);
       }).not.toThrow();
+    });
+
+    describe('Task 2: Front Face Layout Redesign', () => {
+      it('computes concentric corner radii according to R_inner = max(0, R_outer - padding)', () => {
+        expect(CardTextureGenerator.computeConcentricRadius(48, 24)).toBe(24);
+        expect(CardTextureGenerator.computeConcentricRadius(24, 8)).toBe(16);
+        expect(CardTextureGenerator.computeConcentricRadius(16, 8)).toBe(8);
+        expect(CardTextureGenerator.computeConcentricRadius(16, 20)).toBe(0);
+      });
+
+      it('applies concentric radii to outer clip (R=48), inset frame (R=24), portrait (R=16), and lower boxes', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const spy = vi.spyOn(CardTextureGenerator, 'drawRoundedRect');
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme);
+
+        // 1. Outer card clip: (ctx, 0, 0, 1050, 1470, 48)
+        expect(spy).toHaveBeenCalledWith(expect.anything(), 0, 0, 1050, 1470, 48);
+
+        // 2. Inset frame: X=24, Y=24, W=1002, H=1422, R=24 (p=24 => 48 - 24 = 24)
+        expect(spy).toHaveBeenCalledWith(expect.anything(), 24, 24, 1002, 1422, 24);
+
+        // 3. Portrait container: X=56, Y=160, W=938, H=520, R=16 (p=8 => 24 - 8 = 16)
+        expect(spy).toHaveBeenCalledWith(expect.anything(), 56, 160, 938, 520, 16);
+
+        // 4. Boxed identity & skills: X=56, Y=704, W=938, H=376, R=16
+        expect(spy).toHaveBeenCalledWith(expect.anything(), 56, 704, 938, 376, 16);
+
+        // 5. Stat columns: statColW=298, statColH=196, R=16
+        expect(spy).toHaveBeenCalledWith(expect.anything(), 56, 1104, 298, 196, 16);
+
+        spy.mockRestore();
+      });
+
+      it('desaturates pixels using fine-art luminance formula L = 0.299R + 0.587G + 0.114B', () => {
+        const buffer = new Uint8ClampedArray([
+          255, 0, 0, 255,    // Pure Red: 0.299 * 255 = 76.245 -> 76
+          0, 255, 0, 255,    // Pure Green: 0.587 * 255 = 149.685 -> 150
+          0, 0, 255, 255,    // Pure Blue: 0.114 * 255 = 29.07 -> 29
+          100, 100, 100, 255 // Neutral Gray: stays 100
+        ]);
+
+        CardTextureGenerator.desaturatePixels(buffer);
+
+        expect(buffer[0]).toBe(76);
+        expect(buffer[1]).toBe(76);
+        expect(buffer[2]).toBe(76);
+        expect(buffer[3]).toBe(255);
+
+        expect(buffer[4]).toBe(150);
+        expect(buffer[5]).toBe(150);
+        expect(buffer[6]).toBe(150);
+
+        expect(buffer[8]).toBe(29);
+        expect(buffer[9]).toBe(29);
+        expect(buffer[10]).toBe(29);
+
+        expect(buffer[12]).toBe(100);
+        expect(buffer[13]).toBe(100);
+        expect(buffer[14]).toBe(100);
+      });
+
+      it('renders taller grayscale portrait with filter or luminance desaturation in 938x520 window', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d')!;
+        const drawImageSpy = vi.spyOn(ctx, 'drawImage');
+
+        const fakeImage = {
+          naturalWidth: 1000,
+          naturalHeight: 1000,
+          complete: true,
+        } as unknown as HTMLImageElement;
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
+          imageElement: fakeImage,
+        });
+
+        // Verify drawImage was called with destination inside expanded 938x520 portrait container at (56, 160)
+        expect(drawImageSpy).toHaveBeenCalled();
+        const call = drawImageSpy.mock.calls[0];
+        expect(call[0]).toBe(fakeImage);
+        expect(call[1]).toBe(56); // dx
+        expect(call[3]).toBe(938); // dw
+        expect(call[4]).toBe(938); // dh
+      });
+
+      it('renders enlarged candidate name typography (44px) and enlarged RARE EDITION badge (180x44)', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d')!;
+        const fillTextSpy = vi.spyOn(ctx, 'fillText');
+        const spyDrawRoundedRect = vi.spyOn(CardTextureGenerator, 'drawRoundedRect');
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme);
+
+        expect(fillTextSpy).toHaveBeenCalledWith(mockCardData.name, expect.any(Number), expect.any(Number));
+
+        // Verify RARE EDITION badge dimensions: 180x44
+        const badgeCall = spyDrawRoundedRect.mock.calls.find(
+          (c) => c[3] === 180 && c[4] === 44
+        );
+        expect(badgeCall).toBeDefined();
+
+        spyDrawRoundedRect.mockRestore();
+      });
+
+      it('renders skills with static 3/2/1 golden stars and eliminates old colored tags', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d')!;
+        const fillTextSpy = vi.spyOn(ctx, 'fillText');
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme);
+
+        const renderedTexts = fillTextSpy.mock.calls.map((call) => String(call[0]));
+
+        // 1. "Hard worker" with 3 golden stars (★★★)
+        expect(renderedTexts).toContain('Hard worker');
+        expect(renderedTexts).toContain('★★★');
+
+        // 2. "Passionate designer" with 2 golden stars (★★)
+        expect(renderedTexts).toContain('Passionate designer');
+        expect(renderedTexts).toContain('★★');
+
+        // 3. "Perfection seeker" with 1 golden star (★)
+        expect(renderedTexts).toContain('Perfection seeker');
+        expect(renderedTexts).toContain('★');
+
+        // Verify old colored tech tags are completely eliminated
+        expect(renderedTexts).not.toContain('COROUTINES');
+        expect(renderedTexts).not.toContain('SHARED');
+        expect(renderedTexts).not.toContain('COMPOSE');
+      });
+
+      it('renders monochrome gold stat tickers and progress tracks without cyan or emerald colors', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d')!;
+        const fillTextSpy = vi.spyOn(ctx, 'fillText');
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
+          barsProgress: 1.0,
+        });
+
+        const renderedTexts = fillTextSpy.mock.calls.map((call) => String(call[0]));
+        expect(renderedTexts).toContain('PERF // 60FPS');
+        expect(renderedTexts).toContain('ARCH // CLEAN');
+        expect(renderedTexts).toContain('CODE // KMP');
+      });
     });
   });
 });

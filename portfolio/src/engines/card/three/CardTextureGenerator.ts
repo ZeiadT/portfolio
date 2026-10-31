@@ -14,18 +14,7 @@ function drawRoundedRect(
   h: number,
   r: number
 ): void {
-  const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + w - radius, y);
-  ctx.arc(x + w - radius, y + radius, radius, -Math.PI / 2, 0);
-  ctx.lineTo(x + w, y + h - radius);
-  ctx.arc(x + w - radius, y + h - radius, radius, 0, Math.PI / 2);
-  ctx.lineTo(x + radius, y + h);
-  ctx.arc(x + r, y + h - radius, radius, Math.PI / 2, Math.PI);
-  ctx.lineTo(x, y + radius);
-  ctx.arc(x + radius, y + radius, radius, Math.PI, (3 * Math.PI) / 2);
-  ctx.closePath();
+  CardTextureGenerator.drawRoundedRect(ctx, x, y, w, h, r);
 }
 
 function drawQuadCurve(
@@ -71,6 +60,53 @@ export class CardTextureGenerator {
     'M 503.00 104.38 L 465.51 341.00 L 310.76 236.00 Z ' +
     'M 364.00 374.13 L 378.00 395.64 L 407.00 378.83 L 399.49 411.00 L 380.63 421.00 L 370.00 450.25 L 361.00 430.40 L 349.00 435.44 L 305.60 439.00 L 359.55 407.00 Z ' +
     'M 169.85 379.00 L 176.67 408.00 L 179.00 412.19 L 224.00 434.50 L 271.00 439.42 Z';
+
+  /**
+   * Helper to draw a rounded rectangle path using basic 2D context primitives
+   * (beginPath, moveTo, lineTo, arc, closePath) to ensure complete compatibility
+   * across headless mock contexts and real browser canvases.
+   */
+  public static drawRoundedRect(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r: number
+  ): void {
+    const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + w - radius, y);
+    ctx.arc(x + w - radius, y + radius, radius, -Math.PI / 2, 0);
+    ctx.lineTo(x + w, y + h - radius);
+    ctx.arc(x + w - radius, y + h - radius, radius, 0, Math.PI / 2);
+    ctx.lineTo(x + radius, y + h);
+    ctx.arc(x + radius, y + h - radius, radius, Math.PI / 2, Math.PI);
+    ctx.lineTo(x, y + radius);
+    ctx.arc(x + radius, y + radius, radius, Math.PI, (3 * Math.PI) / 2);
+    ctx.closePath();
+  }
+
+  /**
+   * Computes concentric inner corner radius using optical math:
+   * R_inner = max(0, R_outer - padding)
+   */
+  public static computeConcentricRadius(outerRadius: number, padding: number): number {
+    return Math.max(0, outerRadius - padding);
+  }
+
+  /**
+   * Applies fine-art grayscale desaturation formula L = 0.299R + 0.587G + 0.114B to pixel buffer.
+   */
+  public static desaturatePixels(data: Uint8ClampedArray | number[]): void {
+    for (let i = 0; i < data.length; i += 4) {
+      const l = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+      data[i] = l;
+      data[i + 1] = l;
+      data[i + 2] = l;
+    }
+  }
 
   /**
    * Generates a high-resolution (1050x1470) SVG string for the golden card back.
@@ -525,16 +561,13 @@ export class CardTextureGenerator {
   public static drawFrontCardContent(
     canvas: HTMLCanvasElement,
     data: CardSummonData,
-    theme: CardSummonTheme = {},
+    _theme: CardSummonTheme = {},
     options: FrontCardTextureOptions = {}
   ): void {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const primaryColor = theme.primaryColor ?? '#ff4421';
-    const coreColor = theme.coreColor ?? '#ffffff';
-
-      const roleTitle = data.role || 'Mobile Developer';
+    const roleTitle = data.role || 'Mobile Developer';
       const candidateName = data.name || 'Anonymous Candidate';
       const starCount = Math.max(0, Math.floor(data.stars ?? 5));
       const perfScore = Math.min(100, Math.max(0, data.stats?.perf ?? 99));
@@ -543,8 +576,8 @@ export class CardTextureGenerator {
 
       ctx.save();
 
-      // Rounded clip boundary (1050x1470, R=48)
-      drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
+      // Concentric outer card clip (1050x1470, R=48)
+      CardTextureGenerator.drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
       if (typeof ctx.clip === 'function') {
         ctx.clip();
       }
@@ -557,14 +590,14 @@ export class CardTextureGenerator {
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, 1050, 1470);
 
-      // 2. Monoline Hairline Border Frame with Corner Crosshairs
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      // 2. Monoline Hairline Border Frame with Corner Crosshairs (X=24, Y=24, W=1002, H=1422, p=24 => R=24)
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
       ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, 24, 24, 1002, 1422, 36);
+      CardTextureGenerator.drawRoundedRect(ctx, 24, 24, 1002, 1422, 24);
       ctx.stroke();
 
       // Corner Hairline Crosshairs (+)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
       ctx.font = '22px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -575,7 +608,7 @@ export class CardTextureGenerator {
 
       // 3. Header Block
       // Left Role Title with Primary Color Indicator Orb
-      ctx.fillStyle = primaryColor;
+      ctx.fillStyle = '#ffd700';
       ctx.beginPath();
       ctx.arc(58, 86, 7, 0, Math.PI * 2);
       ctx.fill();
@@ -586,7 +619,7 @@ export class CardTextureGenerator {
       ctx.fillStyle = '#fef08a'; // Amber-200 warm gold
       ctx.fillText(roleTitle.toUpperCase(), 76, 86);
 
-      // Right Stars (with animated sequential illumination)
+      // Right Stars (with animated sequential illumination in warm gold)
       const starsProgress = Math.max(0, Math.min(1, options.starsProgress ?? 1.0));
       const litCount = Math.min(starCount, Math.max(0, Math.round(starsProgress * starCount)));
       const unlitCount = Math.max(0, starCount - litCount);
@@ -595,21 +628,21 @@ export class CardTextureGenerator {
       ctx.textAlign = 'right';
 
       if (unlitCount === 0) {
-        ctx.fillStyle = '#fbbf24'; // Amber-400
-        ctx.shadowColor = 'rgba(251, 191, 36, 0.6)';
+        ctx.fillStyle = '#ffd700';
+        ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
         ctx.shadowBlur = 8;
         ctx.fillText('★'.repeat(starCount), 992, 86);
         ctx.shadowBlur = 0;
       } else {
         const dimStr = '★'.repeat(unlitCount);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
         ctx.shadowBlur = 0;
         ctx.fillText(dimStr, 992, 86);
 
         if (litCount > 0) {
           const dimWidth = ctx.measureText(dimStr).width;
-          ctx.fillStyle = '#fbbf24';
-          ctx.shadowColor = 'rgba(251, 191, 36, 0.6)';
+          ctx.fillStyle = '#ffd700';
+          ctx.shadowColor = 'rgba(255, 215, 0, 0.6)';
           ctx.shadowBlur = 8;
           ctx.fillText('★'.repeat(litCount), 992 - dimWidth, 86);
           ctx.shadowBlur = 0;
@@ -618,28 +651,29 @@ export class CardTextureGenerator {
 
       // Technical Coordinates Subheader
       ctx.font = '16px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
       ctx.textAlign = 'left';
       ctx.fillText('SPEC: 5x7 ARCHIVE', 50, 124);
       ctx.textAlign = 'right';
       ctx.fillText('LAT: 30.04° N // LON: 31.23° E', 992, 124);
 
-      // 4. Portrait Window Container
-      const portraitX = 48;
-      const portraitY = 152;
-      const portraitW = 954;
-      const portraitH = 475;
+      // 4. Portrait Window Container (X=56, Y=160, W=938, H=520, p=8 => R=16)
+      const portraitX = 56;
+      const portraitY = 160;
+      const portraitW = 938;
+      const portraitH = 520;
+      const portraitR = 16;
 
       ctx.save();
-      drawRoundedRect(ctx, portraitX, portraitY, portraitW, portraitH, 20);
+      CardTextureGenerator.drawRoundedRect(ctx, portraitX, portraitY, portraitW, portraitH, portraitR);
       if (typeof ctx.clip === 'function') {
         ctx.clip();
       }
 
       // Duotone background inside portrait
       const portraitGrad = ctx.createLinearGradient(0, portraitY, 0, portraitY + portraitH);
-      portraitGrad.addColorStop(0, '#101018');
-      portraitGrad.addColorStop(1, '#050508');
+      portraitGrad.addColorStop(0, '#121218');
+      portraitGrad.addColorStop(1, '#060609');
       ctx.fillStyle = portraitGrad;
       ctx.fillRect(portraitX, portraitY, portraitW, portraitH);
 
@@ -659,52 +693,69 @@ export class CardTextureGenerator {
           dh = portraitW / imgRatio;
           dy = portraitY + (portraitH - dh) / 2;
         }
+
+        ctx.save();
+        if ('filter' in ctx) {
+          ctx.filter = 'grayscale(100%)';
+        }
         ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.restore();
+
+        // Pixel luminance grayscale desaturation fallback
+        try {
+          if (ctx.filter !== 'grayscale(100%)' && typeof ctx.getImageData === 'function' && typeof ctx.putImageData === 'function') {
+            const imgData = ctx.getImageData(portraitX, portraitY, portraitW, portraitH);
+            CardTextureGenerator.desaturatePixels(imgData.data);
+            ctx.putImageData(imgData, portraitX, portraitY);
+          }
+        } catch {
+          // Silently ignore cross-origin taint
+        }
 
         // Soft dark vignette overlay
         const vignette = ctx.createLinearGradient(0, portraitY, 0, portraitY + portraitH);
-        vignette.addColorStop(0, 'rgba(10, 10, 16, 0.2)');
-        vignette.addColorStop(0.7, 'rgba(10, 10, 16, 0.1)');
-        vignette.addColorStop(1, 'rgba(10, 10, 16, 0.6)');
+        vignette.addColorStop(0, 'rgba(8, 8, 12, 0.25)');
+        vignette.addColorStop(0.7, 'rgba(8, 8, 12, 0.15)');
+        vignette.addColorStop(1, 'rgba(8, 8, 12, 0.7)');
         ctx.fillStyle = vignette;
         ctx.fillRect(portraitX, portraitY, portraitW, portraitH);
       } else {
         // Stylized Portrait Silhouette / Technical Geometry Fallback
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.08)';
         ctx.lineWidth = 1.5;
-        for (let r = 60; r <= 220; r += 40) {
+        for (let r = 60; r <= 240; r += 40) {
           ctx.beginPath();
           ctx.arc(portraitX + portraitW / 2, portraitY + portraitH / 2, r, 0, Math.PI * 2);
           ctx.stroke();
         }
 
         // Central Architectural Diamond Node
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.04)';
         ctx.beginPath();
-        ctx.moveTo(portraitX + portraitW / 2, portraitY + 120);
+        ctx.moveTo(portraitX + portraitW / 2, portraitY + 130);
         ctx.lineTo(portraitX + portraitW / 2 + 100, portraitY + portraitH / 2);
-        ctx.lineTo(portraitX + portraitW / 2, portraitY + portraitH - 120);
+        ctx.lineTo(portraitX + portraitW / 2, portraitY + portraitH - 130);
         ctx.lineTo(portraitX + portraitW / 2 - 100, portraitY + portraitH / 2);
         ctx.closePath();
         ctx.fill();
       }
 
-      // Portrait Hairline Border & Vignette
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      // Portrait Hairline Border
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
       ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, portraitX, portraitY, portraitW, portraitH, 20);
+      CardTextureGenerator.drawRoundedRect(ctx, portraitX, portraitY, portraitW, portraitH, portraitR);
       ctx.stroke();
 
-      // Corner Catalog Index Stamp
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-      drawRoundedRect(ctx, portraitX + portraitW - 164, portraitY + portraitH - 46, 150, 34, 8);
+      // Corner Catalog Index Stamp (concentric R=8)
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      CardTextureGenerator.drawRoundedRect(ctx, portraitX + portraitW - 164, portraitY + portraitH - 46, 150, 34, 8);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
       ctx.lineWidth = 1;
-      drawRoundedRect(ctx, portraitX + portraitW - 164, portraitY + portraitH - 46, 150, 34, 8);
+      CardTextureGenerator.drawRoundedRect(ctx, portraitX + portraitW - 164, portraitY + portraitH - 46, 150, 34, 8);
       ctx.stroke();
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+      ctx.fillStyle = '#fcd34d';
       ctx.font = '14px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -712,112 +763,100 @@ export class CardTextureGenerator {
 
       ctx.restore();
 
-      // 5. Boxed Identity & Skills Container
-      const boxX = 48;
-      const boxY = 650;
-      const boxW = 954;
-      const boxH = 430;
+      // 5. Boxed Identity & Skills Container (X=56, Y=704, W=938, H=376, R=16)
+      const boxX = 56;
+      const boxY = 704;
+      const boxW = 938;
+      const boxH = 376;
+      const boxR = 16;
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-      drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 20);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.02)';
+      CardTextureGenerator.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, boxR);
       ctx.fill();
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.15)';
       ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 20);
+      CardTextureGenerator.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, boxR);
       ctx.stroke();
 
-      // Candidate Name
+      // Candidate Name (bold 44px sans-serif)
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.font = 'bold 36px sans-serif';
+      ctx.font = 'bold 44px sans-serif';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(candidateName, boxX + 28, boxY + 44);
+      ctx.fillText(candidateName, boxX + 28, boxY + 46);
 
-      // "Rare Edition" Badge
-      const badgeW = 168;
-      const badgeH = 38;
+      // "RARE EDITION" Badge (enlarged to 180x44)
+      const badgeW = 180;
+      const badgeH = 44;
       const badgeX = boxX + boxW - badgeW - 28;
-      const badgeY = boxY + 25;
+      const badgeY = boxY + 24;
+      const badgeR = 8; // concentric: max(0, 16 - 8) = 8
 
-      ctx.fillStyle = 'rgba(251, 191, 36, 0.12)';
-      drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 8);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.08)';
+      CardTextureGenerator.drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, badgeR);
       ctx.fill();
 
-      ctx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
-      ctx.lineWidth = 1.2;
-      drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, 8);
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.4)';
+      ctx.lineWidth = 1.5;
+      CardTextureGenerator.drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, badgeR);
       ctx.stroke();
 
-      ctx.fillStyle = '#fcd34d';
+      ctx.fillStyle = '#ffd700';
       ctx.font = 'bold 16px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('RARE EDITION', badgeX + badgeW / 2, badgeY + badgeH / 2);
 
-      // Hairline Divider
+      // Gilded Hairline Divider
       const divGrad = ctx.createLinearGradient(boxX + 28, 0, boxX + boxW - 28, 0);
-      divGrad.addColorStop(0, `${coreColor}40`);
-      divGrad.addColorStop(0.5, `${primaryColor}60`);
-      divGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      divGrad.addColorStop(0, 'rgba(255, 215, 0, 0.6)');
+      divGrad.addColorStop(0.5, 'rgba(252, 211, 77, 0.3)');
+      divGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
       ctx.strokeStyle = divGrad;
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(boxX + 28, boxY + 84);
-      ctx.lineTo(boxX + boxW - 28, boxY + 84);
+      ctx.moveTo(boxX + 28, boxY + 92);
+      ctx.lineTo(boxX + boxW - 28, boxY + 92);
       ctx.stroke();
 
-      // Skills List
+      // Skills List with Static 3/2/1 Golden Stars
       const skills = [
-        {
-          name: 'Reactive State Flow',
-          tag: 'COROUTINES',
-          tagColor: '#fbbf24',
-          iconColor: '#fcd34d',
-        },
-        {
-          name: 'KMP Multiplatform Architecture',
-          tag: 'SHARED',
-          tagColor: '#38bdf8',
-          iconColor: '#38bdf8',
-        },
-        {
-          name: 'Kinetic 60FPS UI & Motion',
-          tag: 'COMPOSE',
-          tagColor: '#34d399',
-          iconColor: '#34d399',
-        },
+        { name: 'Hard worker', stars: '★★★' },
+        { name: 'Passionate designer', stars: '★★' },
+        { name: 'Perfection seeker', stars: '★' },
       ];
 
       skills.forEach((skill, index) => {
-        const rowY = boxY + 140 + index * 92;
+        const rowY = boxY + 144 + index * 80;
 
-        // Skill Vector Bullet
-        ctx.fillStyle = skill.iconColor;
+        // Skill Gold Bullet
+        ctx.fillStyle = '#ffd700';
         ctx.beginPath();
-        ctx.arc(boxX + 42, rowY, 7, 0, Math.PI * 2);
+        ctx.arc(boxX + 42, rowY, 6, 0, Math.PI * 2);
         ctx.fill();
 
         // Skill Name
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.font = '500 24px "JetBrains Mono", monospace';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
         ctx.fillText(skill.name, boxX + 68, rowY);
 
-        // Tech Tag on Right
+        // Golden 5-point Stars on Right
         ctx.textAlign = 'right';
-        ctx.font = 'bold 18px "JetBrains Mono", monospace';
-        ctx.fillStyle = skill.tagColor;
-        ctx.fillText(skill.tag, boxX + boxW - 32, rowY);
+        ctx.font = '26px sans-serif';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(skill.stars, boxX + boxW - 32, rowY);
       });
 
       // 6. Monospace Attribute Stats Tickers
       const barsProgress = Math.max(0, Math.min(1, options.barsProgress ?? 1.0));
       const statsY = 1104;
-      const statColW = 302;
+      const statColW = 298;
       const statColH = 196;
-      const statGap = 24;
+      const statGap = 22;
+      const statColR = 16;
 
       const statColumns = [
         { title: 'PERF // 60FPS', score: perfScore },
@@ -828,50 +867,51 @@ export class CardTextureGenerator {
       statColumns.forEach((stat, i) => {
         const colX = boxX + i * (statColW + statGap);
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.025)';
-        drawRoundedRect(ctx, colX, statsY, statColW, statColH, 16);
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.02)';
+        CardTextureGenerator.drawRoundedRect(ctx, colX, statsY, statColW, statColH, statColR);
         ctx.fill();
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.strokeStyle = 'rgba(255, 215, 0, 0.15)';
         ctx.lineWidth = 1.2;
-        drawRoundedRect(ctx, colX, statsY, statColW, statColH, 16);
+        CardTextureGenerator.drawRoundedRect(ctx, colX, statsY, statColW, statColH, statColR);
         ctx.stroke();
 
-        // Title
+        // Title (Warm champagne gold)
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = 'bold 18px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#d4d4d8';
+        ctx.fillStyle = '#fcd34d';
         ctx.fillText(stat.title, colX + statColW / 2, statsY + 38);
 
-        // Score (animated counting from 0 to target score)
+        // Score (animated counting from 0 to target score in pure warm gold)
         const currentScore = Math.round(stat.score * barsProgress);
         ctx.font = 'bold 44px "JetBrains Mono", monospace';
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#ffd700';
         ctx.fillText(String(currentScore), colX + statColW / 2, statsY + 104);
 
-        // Progress Bar Track
+        // Progress Bar Track (rgba(255, 215, 0, 0.15))
         const barMargin = 28;
         const barW = statColW - barMargin * 2;
         const barH = 10;
         const barX = colX + barMargin;
         const barY = statsY + 152;
+        const barR = 5;
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        drawRoundedRect(ctx, barX, barY, barW, barH, 5);
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
+        CardTextureGenerator.drawRoundedRect(ctx, barX, barY, barW, barH, barR);
         ctx.fill();
 
-        // Progress Bar Active Fill (animated expanding width)
+        // Progress Bar Active Fill (warm gold)
         const fillW = Math.max(0, Math.min(barW, ((stat.score * barsProgress) / 100) * barW));
         if (fillW > 0) {
-          ctx.fillStyle = '#fbbf24';
-          drawRoundedRect(ctx, barX, barY, fillW, barH, 5);
+          ctx.fillStyle = '#ffd700';
+          CardTextureGenerator.drawRoundedRect(ctx, barX, barY, fillW, barH, barR);
           ctx.fill();
         }
       });
 
       // 7. Accreditation Footer
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.15)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(boxX, 1342);
@@ -881,7 +921,7 @@ export class CardTextureGenerator {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.font = '15px "JetBrains Mono", monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
       ctx.fillText(
         'BENHA UNIVERSITY B.SC. (CS) • ITI SMART VILLAGE 9-MONTH DIPLOMA • 2026',
         525,
@@ -970,13 +1010,13 @@ export class CardTextureGenerator {
         } else if (foilWipeProgress <= 0) {
           // Fully shrouded state (before wipe starts)
           ctx.fillStyle = `rgba(7, 7, 11, ${veilOpacity * 0.98})`;
-          drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
+          CardTextureGenerator.drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
           ctx.fill();
 
-          // Golden hairline frame
+          // Golden hairline frame (p=28 => R=48-28=20)
           ctx.strokeStyle = `rgba(255, 215, 0, ${0.35 * veilOpacity})`;
           ctx.lineWidth = 2.5;
-          drawRoundedRect(ctx, 28, 28, 1050 - 56, 1470 - 56, 32);
+          CardTextureGenerator.drawRoundedRect(ctx, 28, 28, 1050 - 56, 1470 - 56, 20);
           ctx.stroke();
 
           // Golden Celestial Seal in Center (525, 735)
