@@ -85,8 +85,8 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
 
           <!-- Stars on right side filling previous position -->
           <div class="flex items-center shrink-0">
-            <span data-summon-face-stars class="text-amber-400 text-xs sm:text-sm tracking-widest select-none drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
-              ${'★'.repeat(starCount)}
+            <span data-summon-face-stars class="inline-flex items-center gap-0.5 text-amber-400 text-xs sm:text-sm tracking-widest select-none drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">
+              ${Array.from({ length: starCount }, () => `<span data-summon-star class="inline-block transform-gpu">★</span>`).join('')}
             </span>
           </div>
         </div>
@@ -181,8 +181,8 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
           <span data-summon-stat-perf class="text-sm sm:text-base font-bold text-white tracking-tight mt-1">
             ${escapeHtml(String(perf))}
           </span>
-          <div class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
-            <div class="h-full bg-amber-400" style="width: ${Math.min(100, Math.max(0, perf))}%;"></div>
+          <div data-summon-stat-bar class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
+            <div data-summon-stat-bar-fill data-target-width="${Math.min(100, Math.max(0, perf))}" class="h-full bg-amber-400 origin-left" style="width: 0%;"></div>
           </div>
         </div>
         <div class="flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-[6px] bg-white/[0.02] border border-white/10">
@@ -190,8 +190,8 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
           <span data-summon-stat-arch class="text-sm sm:text-base font-bold text-white tracking-tight mt-1">
             ${escapeHtml(String(arch))}
           </span>
-          <div class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
-            <div class="h-full bg-amber-400" style="width: ${Math.min(100, Math.max(0, arch))}%;"></div>
+          <div data-summon-stat-bar class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
+            <div data-summon-stat-bar-fill data-target-width="${Math.min(100, Math.max(0, arch))}" class="h-full bg-amber-400 origin-left" style="width: 0%;"></div>
           </div>
         </div>
         <div class="flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-[6px] bg-white/[0.02] border border-white/10">
@@ -199,8 +199,8 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
           <span data-summon-stat-code class="text-sm sm:text-base font-bold text-white tracking-tight mt-1">
             ${escapeHtml(String(code))}
           </span>
-          <div class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
-            <div class="h-full bg-amber-400" style="width: ${Math.min(100, Math.max(0, code))}%;"></div>
+          <div data-summon-stat-bar class="w-full bg-white/10 h-1 sm:h-1.5 rounded-full mt-1.5 overflow-hidden">
+            <div data-summon-stat-bar-fill data-target-width="${Math.min(100, Math.max(0, code))}" class="h-full bg-amber-400 origin-left" style="width: 0%;"></div>
           </div>
         </div>
       </div>
