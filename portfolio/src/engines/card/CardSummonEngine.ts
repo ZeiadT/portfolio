@@ -72,6 +72,7 @@ export class CardSummonEngine implements Engine {
   private frontMaskEl: HTMLElement | null = null;
   private sheenEl: HTMLElement | null = null;
   private sheenTween: gsap.core.Tween | null = null;
+  private idleFloatTween: gsap.core.Tween | null = null;
   private faceRenderer: CardFaceRenderer;
   private threeCardModel: ThreeCardModel | null = null;
   private closeBtnEl: HTMLButtonElement | null = null;
@@ -134,6 +135,13 @@ export class CardSummonEngine implements Engine {
    */
   public getThreeCardModel(): ThreeCardModel | null {
     return this.threeCardModel;
+  }
+
+  /**
+   * Returns the active continuous idle float breathing tween, if any.
+   */
+  public getIdleFloatTween(): gsap.core.Tween | null {
+    return this.idleFloatTween;
   }
 
   /**
@@ -262,11 +270,12 @@ export class CardSummonEngine implements Engine {
     backdrop.className = 'absolute inset-0 bg-black/75 backdrop-blur-xl';
     modal.appendChild(backdrop);
 
-    // Fullscreen optical flash veil element
+    // Fullscreen optical flash veil element (ethereal warm amber-gold radial bloom)
     const flashVeil = document.createElement('div');
     flashVeil.setAttribute('data-summon-flash-veil', '');
     flashVeil.setAttribute('aria-hidden', 'true');
-    flashVeil.className = 'pointer-events-none fixed inset-0 z-30 bg-white opacity-0 select-none';
+    flashVeil.className = 'pointer-events-none fixed inset-0 z-30 opacity-0 select-none';
+    flashVeil.style.background = 'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.98) 0%, rgba(255, 238, 195, 0.85) 30%, rgba(251, 191, 36, 0.4) 65%, transparent 100%)';
     modal.appendChild(flashVeil);
 
     // Close button
@@ -326,11 +335,11 @@ export class CardSummonEngine implements Engine {
     cardAura.style.background = `radial-gradient(circle at center, ${coreColor} 0%, ${primaryColor} 60%, transparent 100%)`;
     cardAura.style.boxShadow = `0 0 50px 10px ${primaryColor}80, 0 0 100px 30px ${primaryColor}40`;
 
-    // Radial shockwave ring element
+    // Radial shockwave ring element (luminous gilded halo wave)
     const shockwave = document.createElement('div');
     shockwave.setAttribute('data-summon-shockwave', '');
     shockwave.setAttribute('aria-hidden', 'true');
-    shockwave.className = 'pointer-events-none absolute w-[306px] sm:w-[360px] md:w-[405px] h-[306px] sm:h-[360px] md:h-[405px] rounded-full border-2 border-white/80 opacity-0 select-none';
+    shockwave.className = 'pointer-events-none absolute w-[306px] sm:w-[360px] md:w-[405px] h-[306px] sm:h-[360px] md:h-[405px] rounded-full border border-amber-300/80 opacity-0 select-none shadow-[0_0_40px_rgba(255,215,0,0.55)]';
 
     // Card element (preserve-3d container)
     const card = document.createElement('div');
@@ -653,14 +662,19 @@ export class CardSummonEngine implements Engine {
       if (rect.width === 0 || rect.height === 0) return;
       const x = (e.clientX - rect.left) / rect.width - 0.5;
       const y = (e.clientY - rect.top) / rect.height - 0.5;
-      const maxTilt = 12;
+      const maxTilt = 10;
       const baseRotY = this.isFlipped ? 180 : 0;
       const targetRotY = baseRotY + (this.isFlipped ? -x : x) * (maxTilt * 2);
       const targetRotX = (this.isFlipped ? y : -y) * (maxTilt * 2);
+
+      if (this.idleFloatTween && !this.idleFloatTween.paused()) {
+        this.idleFloatTween.pause();
+      }
+
       gsap.to(this.cardEl, {
         rotationY: targetRotY,
         rotationX: targetRotX,
-        duration: 0.3,
+        duration: 0.4,
         ease: 'power2.out',
         overwrite: 'auto',
         onUpdate: () => {
@@ -672,6 +686,9 @@ export class CardSummonEngine implements Engine {
 
     this.boundOnPointerLeave = () => {
       if (!this.cardEl) return;
+      if (this.idleFloatTween) {
+        this.idleFloatTween.resume();
+      }
       gsap.to(this.cardEl, {
         rotationY: this.isFlipped ? 180 : 0,
         rotationX: 0,
@@ -748,6 +765,7 @@ export class CardSummonEngine implements Engine {
         if (this.controlsEl) {
           this.controlsEl.style.opacity = '1';
         }
+        this.startIdleFloat();
         this.syncThreeCardModel();
       },
     });
@@ -815,10 +833,10 @@ export class CardSummonEngine implements Engine {
         0
       );
 
-      // Inhale squash on bottom glow (0.25s to 0.35s)
+      // Dignified gentle inhale breath on bottom glow (0.25s to 0.35s)
       this.openTimeline.to(
         this.bottomGlowEl,
-        { scaleY: 0.70, scaleX: 1.15, duration: 0.10, ease: 'power1.in' },
+        { scaleY: 0.86, scaleX: 1.08, duration: 0.10, ease: 'sine.inOut' },
         0.25
       );
 
@@ -846,7 +864,7 @@ export class CardSummonEngine implements Engine {
             x: 0,
           },
           {
-            yPercent: -3,
+            yPercent: -2.8,
             rotationY: 180,
             rotationZ: 0,
             opacity: 1,
@@ -857,11 +875,11 @@ export class CardSummonEngine implements Engine {
           0.35
         );
 
-        // Pre-fermata subtle tension hum vibration (0.75s to 1.10s)
+        // Pre-fermata subtle harmonic tension vibration hum (0.75s to 1.10s)
         this.openTimeline.to(
           this.cardEl,
           {
-            x: 0.8,
+            x: 0.45,
             duration: 0.025,
             repeat: 13,
             yoyo: true,
@@ -935,13 +953,13 @@ export class CardSummonEngine implements Engine {
       if (this.flashVeilEl) {
         this.openTimeline.to(
           this.flashVeilEl,
-          { opacity: 0.95, duration: 0.03, ease: 'power2.out' },
+          { opacity: 0.95, duration: 0.04, ease: 'power2.in' },
           1.25
         );
         this.openTimeline.to(
           this.flashVeilEl,
-          { opacity: 0, duration: 0.17, ease: 'power2.out' },
-          1.28
+          { opacity: 0, duration: 0.18, ease: 'expo.out' },
+          1.29
         );
       }
 
@@ -949,7 +967,7 @@ export class CardSummonEngine implements Engine {
         this.openTimeline.fromTo(
           this.shockwaveEl,
           { scale: 0.2, opacity: 1 },
-          { scale: 2.8, opacity: 0, duration: 0.22, ease: 'power4.out' },
+          { scale: 2.5, opacity: 0, duration: 0.24, ease: 'power3.out' },
           1.25
         );
       }
@@ -1041,6 +1059,10 @@ export class CardSummonEngine implements Engine {
    */
   public destroy(): void {
     this.close();
+    if (this.idleFloatTween) {
+      this.idleFloatTween.kill();
+      this.idleFloatTween = null;
+    }
     if (this.openTimeline) {
       this.openTimeline.kill();
       this.openTimeline = null;
@@ -1082,6 +1104,10 @@ export class CardSummonEngine implements Engine {
     this.isSettled = false;
     this.isFlipped = false;
     this.isMaskConcealedState = true;
+    if (this.idleFloatTween) {
+      this.idleFloatTween.kill();
+      this.idleFloatTween = null;
+    }
     if (this.flipTween) {
       this.flipTween.kill();
       this.flipTween = null;
@@ -1159,6 +1185,31 @@ export class CardSummonEngine implements Engine {
   }
 
   /**
+   * Initiates continuous floating celestial breathing loop on cardEl during rest.
+   */
+  private startIdleFloat(): void {
+    if (!this.cardEl) return;
+    const isReducedMotion = typeof window !== 'undefined' &&
+      (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
+    if (isReducedMotion) return;
+
+    if (this.idleFloatTween) {
+      this.idleFloatTween.kill();
+    }
+    this.idleFloatTween = gsap.to(this.cardEl, {
+      y: '+=6',
+      rotationZ: 0.5,
+      duration: 3.6,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+      onUpdate: () => {
+        this.syncThreeCardModel();
+      },
+    });
+  }
+
+  /**
    * Synchronizes the 3D ThreeCardModel transforms and position with active GSAP cardEl properties.
    */
   private syncThreeCardModel(): void {
@@ -1168,10 +1219,11 @@ export class CardSummonEngine implements Engine {
     const rotZDeg = (gsap.getProperty(this.cardEl, 'rotationZ') as number) ?? 0;
     const scale = (gsap.getProperty(this.cardEl, 'scale') as number) ?? 1;
     const yPercent = (gsap.getProperty(this.cardEl, 'yPercent') as number) ?? 0;
+    const y = (gsap.getProperty(this.cardEl, 'y') as number) ?? 0;
     const x = (gsap.getProperty(this.cardEl, 'x') as number) ?? 0;
 
     const degToRad = Math.PI / 180;
-    const posY = -(yPercent / 100) * 4.5;
+    const posY = -(yPercent / 100) * 4.5 - (y * 0.05);
     const posX = x * 0.05;
 
     this.threeCardModel.setRotation(rotXDeg * degToRad, rotYDeg * degToRad, rotZDeg * degToRad);

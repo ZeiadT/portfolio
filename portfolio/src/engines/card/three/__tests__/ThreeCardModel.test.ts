@@ -505,6 +505,34 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
           CardTextureGenerator.generateFrontCardTexture(minimalData);
         }).not.toThrow();
       });
+
+      it('renders intermediate diagonal foil wipe with champagne-gold gradient without throwing', () => {
+        expect(() => {
+          const texture = CardTextureGenerator.generateFrontCardTexture(mockCardData, mockTheme, {
+            veilOpacity: 0.8,
+            foilWipeProgress: 0.5,
+            starsProgress: 0.5,
+            barsProgress: 0.5,
+          });
+          expect(texture).toBeInstanceOf(THREE.Texture);
+        }).not.toThrow();
+      });
+    });
+
+    describe('5. Celestial Particle Field Structure', () => {
+      it('initializes exactly 48 celestial orbital particles (16 stars, 16 diamonds, 16 motes)', () => {
+        model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+        model.mount(container);
+
+        const scene = (model as unknown as { scene: THREE.Scene }).scene;
+        const particleGroup = scene.children.find(
+          (child) => child.name === 'celestial-particles'
+        ) as THREE.Group;
+
+        expect(particleGroup).toBeDefined();
+        expect(particleGroup.children.length).toBe(48);
+      });
     });
   });
 });
+

@@ -916,7 +916,7 @@ export class CardTextureGenerator {
 
           ctx.restore();
 
-          // Diagonal Holographic Foil Gleam along the wipe boundary
+          // Diagonal Holographic Foil Gleam along the wipe boundary (graceful champagne-gold specular sweep)
           ctx.save();
           ctx.translate(525, 735);
           ctx.rotate(rad);
@@ -929,17 +929,17 @@ export class CardTextureGenerator {
             0
           );
           grad.addColorStop(0, 'rgba(255, 215, 0, 0)');
-          grad.addColorStop(0.2, `rgba(255, 215, 0, ${0.45 * veilOpacity})`);
-          grad.addColorStop(0.5, `rgba(255, 255, 255, ${0.98 * veilOpacity})`);
-          grad.addColorStop(0.8, `rgba(251, 191, 36, ${0.65 * veilOpacity})`);
+          grad.addColorStop(0.25, `rgba(255, 215, 0, ${0.35 * veilOpacity})`);
+          grad.addColorStop(0.5, `rgba(255, 255, 255, ${0.95 * veilOpacity})`);
+          grad.addColorStop(0.75, `rgba(251, 191, 36, ${0.50 * veilOpacity})`);
           grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
 
           ctx.fillStyle = grad;
           ctx.fillRect(localCut - foilBandWidth / 2, -1800, foilBandWidth, 3600);
 
-          // Specular hairline on the leading cut
-          ctx.strokeStyle = `rgba(255, 255, 255, ${0.9 * veilOpacity})`;
-          ctx.lineWidth = 3.5;
+          // Softened specular hairline on the leading cut
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.65 * veilOpacity})`;
+          ctx.lineWidth = 1.8;
           ctx.beginPath();
           ctx.moveTo(localCut, -1800);
           ctx.lineTo(localCut, 1800);

@@ -1148,6 +1148,211 @@ describe('Gacha Psychology & Motion Redesign', () => {
   });
 });
 
+describe('Graceful Luxury Reveal Choreography (5 Phases)', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  it('Phase 1: executes dignified gentle inhale breath (scaleY in [0.82, 0.88], scaleX in [1.06, 1.12]) avoiding cartoon squash', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const bottomGlow = document.querySelector<HTMLElement>('[data-summon-bottom-glow]');
+    expect(bottomGlow).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    let minScaleY = 1.0;
+    let maxScaleX = 1.0;
+
+    for (let p = 0.12; p <= 0.20; p += 0.01) {
+      tl?.progress(p);
+      const sY = Number(gsap.getProperty(bottomGlow, 'scaleY'));
+      const sX = Number(gsap.getProperty(bottomGlow, 'scaleX'));
+      if (sY < minScaleY) minScaleY = sY;
+      if (sX > maxScaleX) maxScaleX = sX;
+    }
+
+    // Refined luxury breath: scaleY ~ 0.86, scaleX ~ 1.08 (avoids cartoonish 0.70 / 1.15)
+    expect(minScaleY).toBeGreaterThanOrEqual(0.82);
+    expect(minScaleY).toBeLessThanOrEqual(0.88);
+    expect(maxScaleX).toBeGreaterThanOrEqual(1.06);
+    expect(maxScaleX).toBeLessThanOrEqual(1.12);
+  });
+
+  it('Phase 2: executes decelerating liquid ascent with calibrated harmonic tension vibration (~0.45px) and 150ms fermata freeze', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Sample pre-fermata vibration window (0.76s - 1.05s)
+    let maxAbsX = 0;
+    for (let t = 0.76; t <= 1.05; t += 0.02) {
+      tl?.seek(t);
+      const xVal = Math.abs(Number(gsap.getProperty(card!, 'x')) || 0);
+      if (xVal > maxAbsX) maxAbsX = xVal;
+    }
+
+    // Calibrated harmonic micro-resonance ~0.45px (well below jarring 0.8px)
+    expect(maxAbsX).toBeGreaterThanOrEqual(0.35);
+    expect(maxAbsX).toBeLessThanOrEqual(0.55);
+
+    // Terminates strictly at x: 0 at 1.10s
+    tl?.seek(1.10);
+    expect(Number(gsap.getProperty(card!, 'x'))).toBe(0);
+
+    // 150ms fermata freeze: translation locked, subtle scale swell (1.020 -> 1.025)
+    tl?.seek(1.25);
+    expect(Number(gsap.getProperty(card!, 'x'))).toBe(0);
+    expect(Number(gsap.getProperty(card!, 'scale'))).toBeCloseTo(1.025, 2);
+  });
+
+  it('Phase 3: styles flash veil with warm amber-gold radial bloom and shockwave with gilded golden halo', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const flashVeil = document.querySelector<HTMLElement>('[data-summon-flash-veil]');
+    const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
+    expect(flashVeil).not.toBeNull();
+    expect(shockwave).not.toBeNull();
+
+    // Warm radial bloom styling instead of flat white
+    const bgStyle = flashVeil?.style.background || flashVeil?.className || '';
+    expect(bgStyle).toMatch(/radial-gradient|amber|gold|rgba\(255,\s*2[0-9]{2}/i);
+
+    // Gilded golden halo wave styling on shockwave
+    const swStyle = (shockwave?.className || '') + (shockwave?.style.cssText || '');
+    expect(swStyle).toMatch(/amber|gold|rgba\(255,\s*215|shadow/i);
+
+    const tl = engine.getTimeline();
+    let peakOpacity = 0;
+    let maxScale = 0;
+    for (let p = 0; p <= 1; p += 0.02) {
+      tl?.progress(p);
+      const op = Number(gsap.getProperty(flashVeil, 'opacity'));
+      const sc = Number(gsap.getProperty(shockwave, 'scale'));
+      if (op > peakOpacity) peakOpacity = op;
+      if (sc > maxScale) maxScale = sc;
+    }
+    expect(peakOpacity).toBeGreaterThanOrEqual(0.9);
+    expect(maxScale).toBeGreaterThanOrEqual(2.0);
+  });
+
+  it('Phase 4: descends smoothly without squash (scaleY >= 0.98) and completes diagonal foil wipe', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Sample descent window (from apex 1.45s to landing 1.95s)
+    let minScaleY = 1.0;
+    for (let t = 1.45; t <= 1.95; t += 0.05) {
+      tl?.seek(t);
+      const sY = Number(gsap.getProperty(card, 'scaleY'));
+      if (sY < minScaleY) minScaleY = sY;
+    }
+    expect(minScaleY).toBeGreaterThanOrEqual(0.98);
+
+    tl?.progress(1);
+    expect(Number(gsap.getProperty(card, 'yPercent'))).toBe(0);
+    expect(Number(gsap.getProperty(card, 'scale'))).toBe(1);
+  });
+
+  it('Phase 5: initiates continuous floating celestial breathing loop on cardEl and controls via parallax hover', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+    expect(card).not.toBeNull();
+    expect(modal).not.toBeNull();
+
+    vi.spyOn(modal!, 'getBoundingClientRect').mockReturnValue({
+      left: 0,
+      top: 0,
+      width: 1000,
+      height: 800,
+      right: 1000,
+      bottom: 800,
+      x: 0,
+      y: 0,
+      toJSON: () => {},
+    });
+
+    const tl = engine.getTimeline();
+    tl?.progress(1);
+
+    // Continuous floating idle breathing loop is active on card
+    const idleTween = engine.getIdleFloatTween();
+    expect(idleTween).not.toBeNull();
+    expect(idleTween?.paused()).toBe(false);
+    expect(idleTween?.vars.repeat).toBe(-1);
+    expect(idleTween?.vars.yoyo).toBe(true);
+
+    // On pointermove, idle float tween pauses for tactile agency
+    modal?.dispatchEvent(new PointerEvent('pointermove', { clientX: 700, clientY: 500, bubbles: true }));
+    expect(idleTween?.paused()).toBe(true);
+
+    // Parallax tilt is refined (maxTilt = 10, strictly within +/- 10 deg)
+    gsap.getTweensOf(card).forEach((tw) => {
+      if (tw !== idleTween) tw.progress(1);
+    });
+    const tiltedRotY = Number(gsap.getProperty(card, 'rotationY'));
+    expect(Math.abs(tiltedRotY - 180)).toBeLessThanOrEqual(10.5);
+
+    // On pointerleave, returns to resting center and resumes idle float
+    modal?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+    expect(idleTween?.paused()).toBe(false);
+  });
+
+  it('Lifecycle: completely destroys idleFloatTween, timelines, event listeners, and WebGL resources on destroy() and close()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const tl = engine.getTimeline();
+    tl?.progress(1);
+
+    const idleTween = engine.getIdleFloatTween();
+    expect(idleTween).not.toBeNull();
+
+    engine.close();
+
+    // idle float tween killed and nullified
+    expect(engine.getIdleFloatTween()).toBeNull();
+    expect(engine.isOpen()).toBe(false);
+
+    // Re-open and verify destroy()
+    engine.open();
+    engine.getTimeline()?.progress(1);
+    expect(engine.getIdleFloatTween()).not.toBeNull();
+
+    engine.destroy();
+    expect(engine.getIdleFloatTween()).toBeNull();
+    expect(engine.getTimeline()).toBeNull();
+    expect(engine.getThreeCardModel()).toBeNull();
+  });
+});
+
+
 describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () => {
   let engine: CardSummonEngine;
   let container: HTMLElement;
