@@ -1,6 +1,6 @@
 # Card Summon - Phase 5: Front Card Design & Concealment Sheen Implementation Plan
 
-- **Status**: Completed (Task 9: Proportional Content Rescaling)
+- **Status**: Completed (Task 10: Card Zoom, Concentric Radius & Creature Skills Redesign)
 - **Created**: 2026-10-31
 - **Last Updated**: 2026-10-31
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Tailwind CSS v4, Inline SVG / HTML Vectors, Vitest
@@ -281,3 +281,57 @@
 - [x] **Step 3: Run Vitest test suite and TypeScript production build**
 - [x] **Step 4: Launch Vite dev server and visually inspect front card layout**
 - [x] **Step 5: Commit changes with git and document completion**
+
+---
+
+### Task 10: Card Zoom Restoration, Concentric Border Radius & Creature Skills Redesign
+
+**Files:**
+- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
+- Modify: `portfolio/src/engines/card/renderers/EditorialCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/renderers/MythicCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/renderers/__tests__/EditorialCardFaceRenderer.test.ts`
+- Modify: `portfolio/src/engines/card/__tests__/CardSummonEngine.test.ts`
+
+**Requirements:**
+1. **Restore Card Zoom Dimensions**:
+   - `cardEl` & `cardAuraEl`: `w-[320px] sm:w-[370px] md:w-[410px] lg:w-[440px] max-w-[90vw] max-h-[84vh] aspect-[5/7]`
+   - `shockwaveEl`: `w-[340px] sm:w-[400px] md:w-[450px] h-[340px] sm:h-[400px] md:h-[450px]`
+   - Both card back and front face maintain strict $5:7$ aspect ratio with expansive canvas space.
+2. **Concentric Border Radius ($R_{\text{inner}} = R_{\text{outer}} - \text{padding}$)**:
+   - Outer card radius $R_{\text{outer}} = 24\text{px}$ (`rounded-3xl` or `rounded-[24px]`).
+   - Hairline border frame margin = $6\text{px}$ (`m-1.5`): $R_{\text{inner}} = 24 - 6 = 18\text{px}$ (`rounded-[18px]`).
+   - Card container padding = $16\text{px}$ (`p-4` / `sm:p-5`):
+     - Portrait window radius: $R_{\text{inner}} = 24 - 16 = 8\text{px}$ (`rounded-[8px]`).
+     - Inner skill containers: $R_{\text{inner}} = 8\text{px}$ or $6\text{px}$.
+     - Monospace stat metric boxes: $R_{\text{inner}} = 6\text{px}$ (`rounded-[6px]`).
+   - In `MythicCardFaceRenderer` SVG bevel frame:
+     - Outer rect: `x="6" y="6" rx="20"`
+     - Inner rect: `x="9" y="9" rx="17"` updated to concentric $rx = 20 - 3 = 17$ (or outer $rx="24"$, margin 3 $\implies$ $rx="21"$).
+3. **Card Front Data Redesign**:
+   - Header:
+     - Left side: Role "Mobile Developer" (or candidate role) rendered in golden font (`text-amber-200/90 font-mono font-bold uppercase tracking-wider`). "Portfolio Edition" title removed.
+     - Right side: Role badge removed. Golden stars (`★★★★★`) moved to right side filling that position.
+   - Portrait:
+     - Remove `ACTIVE // CAIRO` image overlay.
+     - Remove `KOTLIN • COMPOSE • MVI` image overlay.
+     - Duotone grayscale-to-color interactive portrait window with sleek hairline framing.
+   - Lore Header:
+     - Next to Candidate Name (`[data-summon-face-name]`), replace "Clean Reactive Architecture" with `"Rare Edition"` badge (`[data-summon-face-rarity-badge]`).
+   - Creature-Style Unique Skills:
+     - Remove generic summary paragraph and static keyword tags.
+     - Replace with 2-3 RPG / TCG creature-style unique skills related to mobile engineering and design:
+       1. **Skill 1: [PASSIVE] Reactive Flow** - *Unidirectional state streams via Kotlin Coroutines & Flow; renders zero-recomposition 60fps frames.*
+       2. **Skill 2: [ACTIVE] KMP Synthesis** - *Transmutes Kotlin logic across Android and iOS targets with zero architectural leakage.*
+       3. **Skill 3: [ULTIMATE] Kinetic Precision** - *Hardware-accelerated shaders and interruptible micro-gestures with sub-millisecond tactile response.*
+4. **Testing & TDD**:
+   - Update unit test assertions in `EditorialCardFaceRenderer.test.ts` and `CardSummonEngine.test.ts` (RED phase).
+   - Implement changes in `EditorialCardFaceRenderer.ts`, `MythicCardFaceRenderer.ts`, and `CardSummonEngine.ts` (GREEN phase).
+   - Verify Vitest suite (198+ tests) and production build.
+   - Visually inspect in browser.
+
+- [x] **Step 1: Write/update unit test specifications for Task 10 requirements (RED phase)**
+- [x] **Step 2: Implement card zoom in `CardSummonEngine.ts`**
+- [x] **Step 3: Implement concentric radii and front data redesign in `EditorialCardFaceRenderer.ts` and `MythicCardFaceRenderer.ts`**
+- [x] **Step 4: Verify test suite and TypeScript production build**
+- [x] **Step 5: Visually inspect and commit with git**

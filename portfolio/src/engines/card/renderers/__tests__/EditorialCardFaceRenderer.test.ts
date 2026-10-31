@@ -47,48 +47,63 @@ describe('EditorialCardFaceRenderer', () => {
     expect(container.classList.contains('flex')).toBe(true);
     expect(container.classList.contains('flex-col')).toBe(true);
     expect(container.classList.contains('justify-between')).toBe(true);
-    expect(container.classList.contains('p-3')).toBe(true);
-    expect(container.classList.contains('sm:p-3.5')).toBe(true);
+    expect(container.classList.contains('p-4')).toBe(true);
+    expect(container.classList.contains('sm:p-5')).toBe(true);
   });
 
-  it('renders sleek monoline hairline border frame [data-summon-face-frame]', () => {
+  it('renders sleek monoline hairline border frame [data-summon-face-frame] with concentric radius', () => {
     renderer.render(container, mockData, mockTheme);
 
     const frame = container.querySelector<HTMLElement>('[data-summon-face-frame]');
     expect(frame).not.toBeNull();
-    expect(frame?.querySelector('svg') || frame?.className.includes('border')).toBeTruthy();
+    // Concentric radius: outer (24px) - margin (6px) = 18px
+    expect(frame?.className).toContain('rounded-[18px]');
   });
 
-  it('renders header with edition title, bullet divider, and class badge inside [data-summon-face-header]', () => {
+  it('renders header with role on left in golden font and stars on right filling position', () => {
     renderer.render(container, mockData, mockTheme);
 
     const header = container.querySelector<HTMLElement>('[data-summon-face-header]');
     expect(header).not.toBeNull();
 
-    const rarity = header?.querySelector<HTMLElement>('[data-summon-face-rarity]');
-    expect(rarity).not.toBeNull();
-    expect(rarity?.textContent).toContain('PORTFOLIO EDITION // 2026');
+    const role = header?.querySelector<HTMLElement>('[data-summon-face-role]');
+    expect(role).not.toBeNull();
+    expect(role?.textContent).toContain('Android Application Developer');
+    expect(role?.className).toContain('text-amber-200');
 
-    const classBadge = header?.querySelector<HTMLElement>('[data-summon-face-class]');
-    expect(classBadge).not.toBeNull();
-    expect(classBadge?.textContent).toContain('Android Application Developer');
+    // Portfolio edition text should be replaced
+    expect(header?.textContent).not.toContain('PORTFOLIO EDITION');
+
+    // Stars should be on the right side
+    const stars = header?.querySelector<HTMLElement>('[data-summon-face-stars]');
+    expect(stars).not.toBeNull();
+    expect(stars?.textContent).toContain('★★★★★');
+
+    // Previous right-side class badge should be removed
+    const oldClassBadge = header?.querySelector<HTMLElement>('[data-summon-face-class]');
+    expect(oldClassBadge).toBeNull();
   });
 
-  it('renders rectangular duotone portrait window [data-summon-face-portrait-window] with avatar', () => {
+  it('renders rectangular duotone portrait window [data-summon-face-portrait-window] with avatar and concentric radius, free of active cairo or kotlin/compose overlays', () => {
     renderer.render(container, mockData, mockTheme);
 
     const windowEl = container.querySelector<HTMLElement>('[data-summon-face-portrait-window]');
     expect(windowEl).not.toBeNull();
-    expect(windowEl?.className).toContain('aspect-[16/10]');
+    // Concentric radius: outer (24px) - padding (16px) = 8px
+    expect(windowEl?.className).toContain('rounded-[8px]');
 
     const avatar = windowEl?.querySelector<HTMLImageElement>('[data-summon-face-avatar]');
     expect(avatar).not.toBeNull();
     expect(avatar?.getAttribute('src')).toBe('/profile.jpg');
     expect(avatar?.getAttribute('alt')).toBe('Zeiad Mohammed Profile Portrait');
     expect(avatar?.className).toContain('grayscale');
+
+    // Check overlays are removed
+    expect(windowEl?.textContent).not.toContain('ACTIVE // CAIRO');
+    expect(windowEl?.textContent).not.toContain('KOTLIN • COMPOSE • MVI');
   });
 
-  it('renders grid-aligned identity and lore block inside [data-summon-face-lore]', () => {
+  it('renders grid-aligned identity with Rare Edition badge next to candidate name', () => {
     renderer.render(container, mockData, mockTheme);
 
     const lore = container.querySelector<HTMLElement>('[data-summon-face-lore]');
@@ -98,13 +113,31 @@ describe('EditorialCardFaceRenderer', () => {
     expect(name).not.toBeNull();
     expect(name?.textContent).toContain('Zeiad Mohammed');
 
-    const skillTitle = lore?.querySelector<HTMLElement>('[data-summon-face-skill-title]');
-    expect(skillTitle).not.toBeNull();
-    expect(skillTitle?.textContent).toContain('Clean Reactive Architecture');
+    const rarityBadge = lore?.querySelector<HTMLElement>('[data-summon-face-rarity-badge]');
+    expect(rarityBadge).not.toBeNull();
+    expect(rarityBadge?.textContent?.toUpperCase()).toContain('RARE EDITION');
 
-    const skillDesc = lore?.querySelector<HTMLElement>('[data-summon-face-skill-desc]');
-    expect(skillDesc).not.toBeNull();
-    expect(skillDesc?.textContent).toContain('Engineers offline-first Android & KMP');
+    // Clean Reactive Architecture removed from next to name
+    expect(lore?.querySelector('[data-summon-face-skill-title]')).toBeNull();
+  });
+
+  it('renders creature-style unique skills related to mobile development and design [data-summon-face-skills]', () => {
+    renderer.render(container, mockData, mockTheme);
+
+    const skills = container.querySelector<HTMLElement>('[data-summon-face-skills]');
+    expect(skills).not.toBeNull();
+
+    // Creature unique skills
+    expect(skills?.textContent).toContain('REACTIVE FLOW');
+    expect(skills?.textContent).toContain('[PASSIVE]');
+    expect(skills?.textContent).toContain('KMP SYNTHESIS');
+    expect(skills?.textContent).toContain('[ACTIVE]');
+    expect(skills?.textContent).toContain('KINETIC PRECISION');
+    expect(skills?.textContent).toContain('[ULTIMATE]');
+
+    // Old summary description and generic tags must be removed
+    expect(container.querySelector('[data-summon-face-skill-desc]')).toBeNull();
+    expect(container.querySelector('[data-summon-face-pillars]')).toBeNull();
   });
 
   it('renders high-contrast monospace attribute stats tickers inside [data-summon-face-stats]', () => {
@@ -145,36 +178,28 @@ describe('EditorialCardFaceRenderer', () => {
     expect(container.innerHTML).toContain('&lt;script&gt;');
   });
 
-  it('renders core engineering pillar tags [data-summon-face-pillars] and accreditation footer [data-summon-face-accreditation]', () => {
+  it('renders accreditation footer [data-summon-face-accreditation]', () => {
     renderer.render(container, mockData, mockTheme);
-
-    const pillars = container.querySelector<HTMLElement>('[data-summon-face-pillars]');
-    expect(pillars).not.toBeNull();
-    expect(pillars?.textContent).toContain('Native Android & KMP');
 
     const accreditation = container.querySelector<HTMLElement>('[data-summon-face-accreditation]');
     expect(accreditation).not.toBeNull();
     expect(accreditation?.textContent).toContain('ITI');
   });
 
-  it('proportionally scales typography and components to fit normal 280-340px dimensions', () => {
+  it('applies concentric border radius formula across nested containers (inner = outer - padding)', () => {
     renderer.render(container, mockData, mockTheme);
 
-    const name = container.querySelector<HTMLElement>('[data-summon-face-name]');
-    expect(name?.className).toContain('text-sm');
-    expect(name?.className).toContain('sm:text-base');
+    // Frame: outer 24px - margin 6px = 18px
+    const frame = container.querySelector<HTMLElement>('[data-summon-face-frame]');
+    expect(frame?.className).toContain('rounded-[18px]');
 
-    const pillars = container.querySelector<HTMLElement>('[data-summon-face-pillars]');
-    const pillarTags = pillars?.querySelectorAll('span');
-    expect(pillarTags && pillarTags.length > 0).toBe(true);
-    expect(pillarTags?.[0].className).toContain('text-[7px]');
+    // Portrait: outer 24px - padding 16px = 8px
+    const portrait = container.querySelector<HTMLElement>('[data-summon-face-portrait-window]');
+    expect(portrait?.className).toContain('rounded-[8px]');
 
+    // Stat cards: concentric inner radius
     const stats = container.querySelector<HTMLElement>('[data-summon-face-stats]');
-    const statCards = stats?.children;
-    expect(statCards && statCards.length === 3).toBe(true);
-    expect(statCards?.[0].className).toContain('p-1');
-
-    const accreditation = container.querySelector<HTMLElement>('[data-summon-face-accreditation]');
-    expect(accreditation?.className).toContain('text-[6.5px]');
+    const statCard = stats?.firstElementChild as HTMLElement;
+    expect(statCard?.className).toContain('rounded-[6px]');
   });
 });

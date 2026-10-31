@@ -48,8 +48,8 @@ describe('MythicCardFaceRenderer', () => {
     expect(container.classList.contains('flex')).toBe(true);
     expect(container.classList.contains('flex-col')).toBe(true);
     expect(container.classList.contains('justify-between')).toBe(true);
-    expect(container.classList.contains('p-3')).toBe(true);
-    expect(container.classList.contains('sm:p-3.5')).toBe(true);
+    expect(container.classList.contains('p-4')).toBe(true);
+    expect(container.classList.contains('sm:p-5')).toBe(true);
   });
 
   it('renders multi-layer metallic bevel frame [data-summon-face-frame]', () => {

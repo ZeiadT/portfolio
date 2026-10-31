@@ -268,7 +268,7 @@ export class CardSummonEngine implements Engine {
     const cardAura = document.createElement('div');
     cardAura.setAttribute('data-summon-card-aura', '');
     cardAura.setAttribute('aria-hidden', 'true');
-    cardAura.className = 'pointer-events-none absolute w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7] rounded-3xl blur-xl';
+    cardAura.className = 'pointer-events-none absolute w-[320px] sm:w-[370px] md:w-[410px] lg:w-[440px] max-w-[90vw] max-h-[84vh] aspect-[5/7] rounded-3xl blur-xl';
     cardAura.style.opacity = '0';
     cardAura.style.background = `radial-gradient(circle at center, ${coreColor} 0%, ${primaryColor} 60%, transparent 100%)`;
     cardAura.style.boxShadow = `0 0 50px 10px ${primaryColor}80, 0 0 100px 30px ${primaryColor}40`;
@@ -277,12 +277,12 @@ export class CardSummonEngine implements Engine {
     const shockwave = document.createElement('div');
     shockwave.setAttribute('data-summon-shockwave', '');
     shockwave.setAttribute('aria-hidden', 'true');
-    shockwave.className = 'pointer-events-none absolute w-[280px] h-[280px] rounded-full border-2 border-white/80 opacity-0 select-none';
+    shockwave.className = 'pointer-events-none absolute w-[340px] sm:w-[400px] md:w-[450px] h-[340px] sm:h-[400px] md:h-[450px] rounded-full border-2 border-white/80 opacity-0 select-none';
 
     // Card element (preserve-3d container)
     const card = document.createElement('div');
     card.setAttribute('data-summon-card', '');
-    card.className = 'pointer-events-auto relative w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7] rounded-3xl shadow-2xl [transform-style:preserve-3d]';
+    card.className = 'pointer-events-auto relative w-[320px] sm:w-[370px] md:w-[410px] lg:w-[440px] max-w-[90vw] max-h-[84vh] aspect-[5/7] rounded-3xl shadow-2xl [transform-style:preserve-3d]';
     card.style.transformStyle = 'preserve-3d';
 
     const sigilId = `sigil-${Math.random().toString(36).slice(2, 9)}`;

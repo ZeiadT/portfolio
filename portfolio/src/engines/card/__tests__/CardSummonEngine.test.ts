@@ -1357,4 +1357,24 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     engine.toggleConcealment();
     expect(engine.isMaskConcealed()).toBe(true);
   });
+
+  it('applies restored zoomed card dimensions w-[320px] sm:w-[370px] md:w-[410px] lg:w-[440px]', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+    expect(card?.className).toContain('w-[320px]');
+    expect(card?.className).toContain('sm:w-[370px]');
+    expect(card?.className).toContain('md:w-[410px]');
+    expect(card?.className).toContain('lg:w-[440px]');
+
+    const cardAura = document.querySelector<HTMLElement>('[data-summon-card-aura]');
+    expect(cardAura?.className).toContain('w-[320px]');
+    expect(cardAura?.className).toContain('lg:w-[440px]');
+
+    const shockwave = document.querySelector<HTMLElement>('[data-summon-shockwave]');
+    expect(shockwave?.className).toContain('w-[340px]');
+    expect(shockwave?.className).toContain('md:w-[450px]');
+  });
 });

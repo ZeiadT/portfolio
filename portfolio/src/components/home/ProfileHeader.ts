@@ -91,12 +91,12 @@ export class ProfileHeader {
       autoFlipToFront: true,
       cardData: {
         name: 'Zeiad Mohammed',
-        rarity: 'PORTFOLIO EDITION // 2026',
+        rarity: 'Rare Edition',
         stars: 5,
-        role: 'Android Application Developer',
+        role: 'Mobile Developer',
         imageSrc: this.data.avatar.src,
         imageAlt: this.data.avatar.alt,
-        skillName: 'Clean Reactive Architecture',
+        skillName: 'Rare Edition',
         skillDescription:
           'Engineers offline-first Android & KMP platforms with Kotlin Coroutines, Jetpack Compose, and robust Clean Architecture.',
         stats: {
