@@ -81,7 +81,7 @@ export class CardSummonEngine implements Engine {
   private isSettled: boolean = false;
   private isFlipped: boolean = false;
   private isMaskConcealedState: boolean = true;
-  private controlsEl: HTMLElement | null = null;
+  private dismissHintEl: HTMLElement | null = null;
   private flipTween: gsap.core.Tween | null = null;
   private maskTween: gsap.core.Tween | null = null;
   private options: CardSummonOptions;
@@ -92,9 +92,8 @@ export class CardSummonEngine implements Engine {
   private boundOnCloseClick: ((e: MouseEvent) => void) | null = null;
   private boundOnPointerMove: ((e: PointerEvent) => void) | null = null;
   private boundOnPointerLeave: (() => void) | null = null;
+  private boundOnModalClick: ((e: MouseEvent) => void) | null = null;
   private boundOnCardClick: ((e: MouseEvent) => void) | null = null;
-  private boundOnFlipBtnClick: ((e: MouseEvent) => void) | null = null;
-  private boundOnMaskToggleClick: ((e: MouseEvent) => void) | null = null;
 
   constructor(options: CardSummonOptions = {}) {
     this.options = options;
@@ -637,6 +636,15 @@ export class CardSummonEngine implements Engine {
     };
     closeBtn.addEventListener('click', this.boundOnCloseClick);
 
+    this.boundOnModalClick = (e: MouseEvent) => {
+      if (!this.isSettled) return;
+      if ((e.target as HTMLElement).closest('[data-summon-close]') || (e.target as HTMLElement).closest('[data-summon-backdrop]')) {
+        return;
+      }
+      this.close();
+    };
+    modal.addEventListener('click', this.boundOnModalClick);
+
     this.boundOnKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
@@ -702,47 +710,19 @@ export class CardSummonEngine implements Engine {
     };
     modal.addEventListener('pointerleave', this.boundOnPointerLeave);
 
-    // Floating inspection controls (Flip Card & Toggle Mask)
-    const controls = document.createElement('div');
-    controls.setAttribute('data-summon-controls', '');
-    controls.className =
-      'absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 sm:gap-3 pointer-events-auto select-none opacity-0 transition-opacity duration-300';
-    controls.innerHTML = `
-      <button type="button" data-summon-flip-btn class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-        <span>Flip Card</span>
-        <span class="text-amber-400">↺</span>
-      </button>
-      <button type="button" data-summon-mask-toggle class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium tracking-wider uppercase bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white">
-        <span>Toggle Concealment</span>
-        <span class="text-yellow-300">✦</span>
-      </button>
-    `;
-    modal.appendChild(controls);
-    this.controlsEl = controls;
+    // Dismissal prompt ("Click anywhere to close")
+    const dismissHint = document.createElement('div');
+    dismissHint.setAttribute('data-summon-dismiss-hint', '');
+    dismissHint.className =
+      'absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none select-none px-4 py-2 rounded-full font-mono text-xs tracking-widest uppercase text-amber-200/60 backdrop-blur-md bg-black/30 border border-amber-500/10 opacity-0';
+    dismissHint.textContent = 'Click anywhere to close';
+    modal.appendChild(dismissHint);
+    this.dismissHintEl = dismissHint;
 
-    const flipBtn = controls.querySelector<HTMLButtonElement>('[data-summon-flip-btn]');
-    if (flipBtn) {
-      this.boundOnFlipBtnClick = (e: MouseEvent) => {
-        e.stopPropagation();
-        this.flipCard();
-      };
-      flipBtn.addEventListener('click', this.boundOnFlipBtnClick);
-    }
-
-    const maskToggleBtn = controls.querySelector<HTMLButtonElement>('[data-summon-mask-toggle]');
-    if (maskToggleBtn) {
-      this.boundOnMaskToggleClick = (e: MouseEvent) => {
-        e.stopPropagation();
-        this.toggleConcealment();
-      };
-      maskToggleBtn.addEventListener('click', this.boundOnMaskToggleClick);
-    }
-
-    // Clicking card directly flips it
-    this.boundOnCardClick = (e: MouseEvent) => {
-      if (!this.cardEl || !this.isSettled) return;
-      if ((e.target as HTMLElement).closest('button')) return;
-      this.flipCard();
+    // Clicking card directly closes the dialog once settled
+    this.boundOnCardClick = () => {
+      if (!this.isSettled) return;
+      this.close();
     };
     card.addEventListener('click', this.boundOnCardClick);
 
@@ -762,9 +742,6 @@ export class CardSummonEngine implements Engine {
         if (this.threeCardModel) {
           this.threeCardModel.setStatsAnimationProgress(1, 1);
         }
-        if (this.controlsEl) {
-          this.controlsEl.style.opacity = '1';
-        }
         this.startIdleFloat();
         this.syncThreeCardModel();
       },
@@ -775,6 +752,10 @@ export class CardSummonEngine implements Engine {
       this.isFlipped = true;
       this.openTimeline.set(this.backdropEl, { autoAlpha: 1 });
       this.openTimeline.set(this.bottomGlowEl, { xPercent: -50, yPercent: 0, opacity: 0, scaleY: 1, scaleX: 1 });
+      if (this.dismissHintEl) {
+        gsap.set(this.dismissHintEl, { opacity: 1, filter: 'blur(0px)' });
+        this.openTimeline.set(this.dismissHintEl, { opacity: 1, filter: 'blur(0px)' });
+      }
       if (this.flashVeilEl) {
         this.openTimeline.set(this.flashVeilEl, { opacity: 0 });
       }
@@ -1030,8 +1011,15 @@ export class CardSummonEngine implements Engine {
         1.45
       );
 
-      // Pad timeline total duration to 2.2s
-      this.openTimeline.set({}, {}, 2.2);
+      // Phase 5: Blur-fade entrance of dismissal prompt (2.05s to 2.85s)
+      if (this.dismissHintEl) {
+        this.openTimeline.fromTo(
+          this.dismissHintEl,
+          { opacity: 0, filter: 'blur(10px)' },
+          { opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out' },
+          2.05
+        );
+      }
     }
 
     // Initial sync of ThreeCardModel state
@@ -1095,12 +1083,14 @@ export class CardSummonEngine implements Engine {
       this.modalEl.removeEventListener('pointerleave', this.boundOnPointerLeave);
       this.boundOnPointerLeave = null;
     }
+    if (this.modalEl && this.boundOnModalClick) {
+      this.modalEl.removeEventListener('click', this.boundOnModalClick);
+      this.boundOnModalClick = null;
+    }
     if (this.cardEl && this.boundOnCardClick) {
       this.cardEl.removeEventListener('click', this.boundOnCardClick);
       this.boundOnCardClick = null;
     }
-    this.boundOnFlipBtnClick = null;
-    this.boundOnMaskToggleClick = null;
     this.isSettled = false;
     this.isFlipped = false;
     this.isMaskConcealedState = true;
@@ -1116,9 +1106,10 @@ export class CardSummonEngine implements Engine {
       this.maskTween.kill();
       this.maskTween = null;
     }
-    if (this.controlsEl) {
-      this.controlsEl.remove();
-      this.controlsEl = null;
+    if (this.dismissHintEl) {
+      gsap.killTweensOf(this.dismissHintEl);
+      this.dismissHintEl.remove();
+      this.dismissHintEl = null;
     }
     if (this.openTimeline) {
       this.openTimeline.kill();

@@ -254,6 +254,122 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
     });
   });
 
+  describe('Blur-Fade Dismissal Hint & Click-Anywhere-To-Close UX', () => {
+    it('does not render the old action controls button bar', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+
+      expect(document.querySelector('[data-summon-controls]')).toBeNull();
+      expect(document.querySelector('[data-summon-flip-btn]')).toBeNull();
+      expect(document.querySelector('[data-summon-mask-toggle]')).toBeNull();
+    });
+
+    it('renders the serene blur-fade dismissal hint pill with correct attributes and styling', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+
+      const hint = document.querySelector<HTMLElement>('[data-summon-dismiss-hint]');
+      expect(hint).not.toBeNull();
+      expect(hint?.textContent?.trim()).toBe('Click anywhere to close');
+      expect(hint?.className).toContain('absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2');
+      expect(hint?.className).toContain('pointer-events-none select-none');
+      expect(hint?.className).toContain('text-amber-200/60');
+      expect(hint?.className).toContain('backdrop-blur-md');
+      expect(hint?.className).toContain('bg-black/30');
+      expect(hint?.className).toContain('border-amber-500/10');
+      expect(hint?.className).toContain('opacity-0');
+    });
+
+    it('animates dismiss hint pill entrance with blur-fade at t = 2.05s', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+
+      const hint = document.querySelector<HTMLElement>('[data-summon-dismiss-hint]');
+      expect(hint).not.toBeNull();
+
+      const tl = engine.getTimeline();
+      expect(tl).not.toBeNull();
+
+      // Prior to t = 2.05s, dismiss hint remains concealed (opacity 0)
+      tl?.seek(2.0);
+      expect(Number(gsap.getProperty(hint!, 'opacity'))).toBe(0);
+
+      // At end of timeline, dismiss hint is fully revealed with blur(0px) and opacity 1
+      tl?.progress(1);
+      expect(Number(gsap.getProperty(hint!, 'opacity'))).toBe(1);
+      expect(gsap.getProperty(hint!, 'filter')).toBe('blur(0px)');
+    });
+
+    it('immediately sets dismiss hint to visible with blur(0px) in prefers-reduced-motion', () => {
+      const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      } as unknown as MediaQueryList));
+
+      engine = new CardSummonEngine();
+      engine.open();
+
+      const hint = document.querySelector<HTMLElement>('[data-summon-dismiss-hint]');
+      expect(hint).not.toBeNull();
+      expect(Number(gsap.getProperty(hint!, 'opacity'))).toBe(1);
+      expect(gsap.getProperty(hint!, 'filter')).toBe('blur(0px)');
+
+      matchMediaSpy.mockRestore();
+    });
+
+    it('closes the modal dialog when clicking anywhere on the card', () => {
+      const onClose = vi.fn();
+      engine = new CardSummonEngine({ onClose });
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      const card = document.querySelector<HTMLElement>('[data-summon-card]');
+      expect(card).not.toBeNull();
+
+      card?.click();
+
+      expect(engine.isOpen()).toBe(false);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the modal dialog when clicking anywhere on the modal stage or backdrop', () => {
+      const onClose = vi.fn();
+      engine = new CardSummonEngine({ onClose });
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      const modal = document.querySelector<HTMLElement>('[data-card-summon-modal]');
+      expect(modal).not.toBeNull();
+
+      modal?.click();
+
+      expect(engine.isOpen()).toBe(false);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('cleans up dismiss hint element and its tweens on close() and destroy()', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+
+      expect(document.querySelector('[data-summon-dismiss-hint]')).not.toBeNull();
+
+      engine.close();
+      expect(document.querySelector('[data-summon-dismiss-hint]')).toBeNull();
+
+      engine.open();
+      expect(document.querySelector('[data-summon-dismiss-hint]')).not.toBeNull();
+
+      engine.destroy();
+      expect(document.querySelector('[data-summon-dismiss-hint]')).toBeNull();
+    });
+  });
+
   describe('Lifecycle Cleanup & Edge Cases', () => {
     it('kills active GSAP timelines and removes elements on destroy', () => {
       engine = new CardSummonEngine();
@@ -505,9 +621,9 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     const startRotY = Number(gsap.getProperty(card, 'rotationY'));
     expect(startRotY).toBe(-900);
 
-    // During apex slow-motion hover (sampled between progress 0.65 and 0.80),
+    // During apex slow-motion hover (sampled between progress 0.50 and 0.60, t ~ 1.43s to 1.71s),
     // yPercent remains in negative overshoot (< 0) while rotationY has decelerated to <= 30° from 180°
-    for (let p = 0.65; p <= 0.80; p += 0.05) {
+    for (let p = 0.50; p <= 0.60; p += 0.05) {
       tl?.progress(p);
       const yPercent = Number(gsap.getProperty(card, 'yPercent'));
       const rotY = Number(gsap.getProperty(card, 'rotationY'));
@@ -923,14 +1039,14 @@ describe('Gacha Psychology & Motion Redesign', () => {
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // Sample card motion at start and end of the 150ms Fermata freeze window (p ~ 0.55 - 0.65)
-    tl?.progress(0.55);
+    // Sample card motion at start and end of the 150ms Fermata freeze window (t ~ 1.10s to 1.25s, p ~ 0.39 to 0.44)
+    tl?.progress(0.39);
     const startX = Number(gsap.getProperty(card, 'x'));
     const startRotY = Number(gsap.getProperty(card, 'rotationY'));
     const startRotZ = Number(gsap.getProperty(card, 'rotationZ'));
     const startScale = Number(gsap.getProperty(card, 'scale'));
 
-    tl?.progress(0.65);
+    tl?.progress(0.44);
     const endX = Number(gsap.getProperty(card, 'x'));
     const endRotY = Number(gsap.getProperty(card, 'rotationY'));
     const endRotZ = Number(gsap.getProperty(card, 'rotationZ'));
@@ -1179,7 +1295,8 @@ describe('Graceful Luxury Reveal Choreography (5 Phases)', () => {
     let minScaleY = 1.0;
     let maxScaleX = 1.0;
 
-    for (let p = 0.12; p <= 0.20; p += 0.01) {
+    // Sample gentle inhale breath (t ~ 0.25s to 0.35s, p ~ 0.09 to 0.12)
+    for (let p = 0.09; p <= 0.12; p += 0.01) {
       tl?.progress(p);
       const sY = Number(gsap.getProperty(bottomGlow, 'scaleY'));
       const sX = Number(gsap.getProperty(bottomGlow, 'scaleX'));

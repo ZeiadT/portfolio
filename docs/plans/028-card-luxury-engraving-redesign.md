@@ -106,19 +106,19 @@
 - Consumes: Modal DOM elements and GSAP timeline.
 - Produces: `data-summon-dismiss-hint` element that blur-fades in after Phase 4, with click-anywhere dismissal.
 
-- [ ] **Step 1: Write failing tests in `CardSummonEngine.test.ts`**
+- [x] **Step 1: Write failing tests in `CardSummonEngine.test.ts`**
   Verify `data-summon-controls` is removed, `data-summon-dismiss-hint` is created with text `"Click anywhere to close"`, blur-fades in after reveal, and clicking on modal or card closes the dialog.
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
   `npm --prefix portfolio test -- src/engines/card/__tests__/CardSummonEngine.test.ts`
-- [ ] **Step 3: Implement dismissal prompt & click-anywhere in `CardSummonEngine.ts`**
+- [x] **Step 3: Implement dismissal prompt & click-anywhere in `CardSummonEngine.ts`**
   - Remove `controlsEl` button bar.
   - Create `dismissHintEl` with classes `text-xs font-mono tracking-widest uppercase text-amber-200/60 backdrop-blur-md px-4 py-2 rounded-full`.
   - Add GSAP tween to `openTimeline` at $t = 2.05\text{s}$: `fromTo(dismissHintEl, { opacity: 0, filter: 'blur(10px)' }, { opacity: 1, filter: 'blur(0px)', duration: 0.8, ease: 'power2.out' })`.
   - Wire click on modal container and card directly to `this.close()`.
   - Clean up `dismissHintEl` on `destroy()` and `close()`.
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
   `npm --prefix portfolio test -- src/engines/card/__tests__/CardSummonEngine.test.ts`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "feat(card): blur-fade dismissal hint and click-anywhere-to-close UX"`
 
 ---
