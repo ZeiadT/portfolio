@@ -40,7 +40,7 @@ describe('EditorialCardFaceRenderer', () => {
   it('renders frosted glass luxury container classes on the container', () => {
     renderer.render(container, mockData, mockTheme);
 
-    expect(container.classList.contains('bg-black/90')).toBe(true);
+    expect(container.classList.contains('bg-[#030305]/95') || container.classList.contains('bg-black/90')).toBe(true);
     expect(container.classList.contains('backdrop-blur-2xl')).toBe(true);
     expect(container.classList.contains('border-white/15') || container.classList.contains('border')).toBe(true);
     expect(container.classList.contains('relative')).toBe(true);

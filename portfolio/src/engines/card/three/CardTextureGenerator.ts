@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { CardSummonData, CardSummonTheme } from '@/engines/card/CardSummonEngine';
+import { CARD_BACK_PATTERN_PATH } from './CardPatternPath';
 
 /**
  * Helper to draw a rounded rectangle path using basic 2D context primitives
@@ -15,20 +16,6 @@ function drawRoundedRect(
   r: number
 ): void {
   CardTextureGenerator.drawRoundedRect(ctx, x, y, w, h, r);
-}
-
-function drawQuadCurve(
-  ctx: CanvasRenderingContext2D,
-  cpx: number,
-  cpy: number,
-  x: number,
-  y: number
-): void {
-  if (typeof ctx.quadraticCurveTo === 'function') {
-    ctx.quadraticCurveTo(cpx, cpy, x, y);
-  } else {
-    ctx.lineTo(x, y);
-  }
 }
 
 export interface FrontCardTextureOptions {
@@ -73,6 +60,12 @@ export class CardTextureGenerator {
   public static readonly STAR_CREST_PATH =
     'M 76.79 418.88 L 161.38 378.22 L 176.38 369.55 L 292.18 311.88 L 242.85 320.88 L 209.38 324.12 L 198.38 323.94 L 192.38 322.50 L 188.38 319.97 L 187.40 316.88 L 187.97 312.88 L 192.25 305.88 L 209.30 289.88 L 237.38 269.55 L 268.38 250.41 L 267.78 251.88 L 242.38 270.24 L 228.35 281.88 L 218.16 293.88 L 216.71 300.88 L 218.38 303.46 L 223.38 305.57 L 233.38 305.81 L 257.38 299.12 L 278.23 289.88 L 279.13 288.88 L 277.38 288.30 L 255.38 290.96 L 250.38 289.99 L 248.01 286.88 L 252.25 279.88 L 261.55 271.88 L 351.88 207.88 L 313.51 113.88 L 310.79 107.88 L 306.88 103.88 L 298.38 101.49 L 292.01 103.88 L 288.38 107.98 L 240.28 224.88 L 233.38 232.20 L 225.38 235.11 L 103.38 243.71 L 98.38 245.16 L 94.38 248.88 L 91.89 256.88 L 92.26 260.88 L 94.72 264.88 L 157.66 319.88 L 163.41 327.88 L 164.05 333.88 L 161.45 340.88 L 151.38 352.88 L 137.38 365.41 L 82.38 409.39 L 73.25 418.88 L 76.79 418.88 Z ' +
     'M 423.42 497.88 L 427.38 496.14 L 431.60 491.88 L 433.00 488.88 L 433.28 483.88 L 406.34 370.88 L 405.86 364.88 L 407.18 355.88 L 410.81 347.88 L 416.78 340.88 L 504.57 264.88 L 507.42 258.88 L 507.66 254.88 L 505.38 249.27 L 499.38 244.34 L 451.66 239.88 L 517.38 190.46 L 524.07 184.88 L 526.38 181.17 L 521.43 181.88 L 512.38 185.50 L 362.38 251.54 L 330.38 266.34 L 308.47 277.88 L 362.38 268.50 L 393.38 268.37 L 406.38 271.47 L 413.38 275.64 L 417.23 281.88 L 417.80 290.88 L 416.26 296.88 L 410.91 304.88 L 402.51 312.88 L 391.38 320.57 L 402.89 307.88 L 405.90 302.88 L 407.16 295.88 L 404.38 291.11 L 398.38 287.59 L 385.38 284.72 L 358.40 284.88 L 367.38 289.77 L 370.76 292.88 L 371.50 299.88 L 368.50 305.88 L 362.73 312.88 L 345.38 328.11 L 321.38 345.15 L 285.38 367.59 L 242.38 392.10 L 180.96 424.88 L 176.93 436.88 L 165.89 484.88 L 167.15 490.88 L 171.47 495.88 L 178.38 498.53 L 184.38 497.27 L 290.38 432.81 L 296.38 429.46 L 301.38 429.20 L 307.38 431.52 L 414.38 497.03 L 418.38 498.43 L 423.42 497.88 Z';
+
+  /**
+   * Vector path for the etched card background doodle pattern.
+   * ViewBox 0 0 736 1104.
+   */
+  public static readonly CARD_BACK_PATTERN_PATH = CARD_BACK_PATTERN_PATH;
 
   /**
    * Helper to draw a rounded rectangle path using basic 2D context primitives
@@ -124,11 +117,10 @@ export class CardTextureGenerator {
   /**
    * Generates a high-resolution (1050x1470) SVG string for the golden card back.
    * Features:
-   * - Concentric guilloche sacred geometry pattern
-   * - 4 Symmetrical ornate corner filigree flourishes
-   * - Astronomical celestial halo rings and cardinal diamond star nodes
-   * - Central glowing Ace crest with starburst core
-   * - Metallic gold gradient definitions integrating custom theme colors
+   * - Faded metallic etched doodle pattern with tactile deboss shadow
+   * - Radial fade-out mask smoothly clearing space around the central crest
+   * - Centered signature star logo with vibrant multi-tier golden glow aura
+   * - Gilded metallic gold border frames with concentric corner radii
    */
   public static generateGoldenCardBackSvg(theme: CardSummonTheme = {}): string {
     const primaryColor = theme.primaryColor ?? '#ff4421';
@@ -163,165 +155,72 @@ export class CardTextureGenerator {
       <stop offset="100%" stop-color="#d4af37" />
     </linearGradient>
 
-    <!-- Celestial Energy Glow -->
-    <radialGradient id="gold-crest-glow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="${coreColor}" stop-opacity="0.95" />
-      <stop offset="30%" stop-color="${accentColor}" stop-opacity="0.75" />
-      <stop offset="70%" stop-color="${primaryColor}" stop-opacity="0.35" />
-      <stop offset="100%" stop-color="${primaryColor}" stop-opacity="0" />
-    </radialGradient>
-
-    <!-- Primary Accent Flare -->
+    <!-- Theme Energy Palette Integration -->
     <linearGradient id="primary-energy-grad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="${primaryColor}" stop-opacity="0.9" />
       <stop offset="50%" stop-color="${coreColor}" stop-opacity="1" />
       <stop offset="100%" stop-color="${accentColor}" stop-opacity="0.9" />
     </linearGradient>
 
-    <!-- Concentric Guilloche Sacred Geometry Pattern -->
-    <pattern id="guilloche-sacred-pattern" width="84" height="84" patternUnits="userSpaceOnUse" data-guilloche="true">
-      <path d="M 0 42 L 42 0 L 84 42 L 42 84 Z" fill="none" stroke="#d4af37" stroke-opacity="0.14" stroke-width="1.8" />
-      <circle cx="42" cy="42" r="4.5" fill="#ffd700" fill-opacity="0.3" />
-      <path d="M 0 0 L 84 84 M 84 0 L 0 84" stroke="#e5b85c" stroke-opacity="0.08" stroke-width="1.2" />
-      <circle cx="42" cy="42" r="28" fill="none" stroke="#ffd700" stroke-opacity="0.09" stroke-width="1.2" stroke-dasharray="4 6" />
-      <circle cx="42" cy="42" r="38" fill="none" stroke="${primaryColor}" stroke-opacity="0.06" stroke-width="0.8" />
-    </pattern>
+    <!-- Mysterious Dark Obsidian Etched Pattern Gradient (Black-on-Black Debossed Engraving) -->
+    <linearGradient id="dark-etched-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050508" stop-opacity="0.95" />
+      <stop offset="50%" stop-color="#030305" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#020204" stop-opacity="0.85" />
+    </linearGradient>
+
+    <!-- Reflective Golden Paper Foil Gradient with Specular Sheen Peak -->
+    <linearGradient id="gold-paper-foil-grad" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#735518" />
+      <stop offset="18%" stop-color="#b88d2c" />
+      <stop offset="35%" stop-color="#fdf0a6" />
+      <stop offset="48%" stop-color="#ffffff" />
+      <stop offset="55%" stop-color="#fff4b8" />
+      <stop offset="72%" stop-color="#cda036" />
+      <stop offset="88%" stop-color="#8f6b1e" />
+      <stop offset="100%" stop-color="#5a4110" />
+    </linearGradient>
+
+    <!-- Tactile Golden Paper Emboss / Deboss Drop Shadow (No Neon Bloom Glow) -->
+    <filter id="gold-paper-emboss" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3.5" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.85" />
+    </filter>
+
+    <!-- Smooth Continuous Inward Radial Fade Mask: Naturally dissipates toward the logo without hard crop -->
+    <radialGradient id="pattern-radial-fade-grad" cx="525" cy="735" r="580" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#000000" />
+      <stop offset="15%" stop-color="#141414" />
+      <stop offset="35%" stop-color="#454545" />
+      <stop offset="60%" stop-color="#8a8a8a" />
+      <stop offset="85%" stop-color="#d0d0d0" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </radialGradient>
+    <mask id="card-pattern-radial-mask">
+      <rect width="1050" height="1470" fill="url(#pattern-radial-fade-grad)" />
+    </mask>
   </defs>
 
-  <!-- Obsidian Base Surface (1050x1470, R=48) -->
-  <rect width="1050" height="1470" rx="48" fill="url(#gold-back-bg)" />
+  <!-- Obsidian Base Surface (1050x1470, R=72 synchronized with CARD_CORNER_RADIUS) -->
+  <rect width="1050" height="1470" rx="${CardTextureGenerator.CARD_CORNER_RADIUS}" fill="url(#gold-back-bg)" />
 
-  <!-- Concentric Guilloche Inset Grid (p=24 => rx=24) -->
-  <rect x="24" y="24" width="1002" height="1422" rx="24" fill="url(#guilloche-sacred-pattern)" />
-
-  <!-- Outer Gilded Metallic Borders (Concentric: R_inner = R_outer - padding) -->
+  <!-- Outer Gilded Metallic Borders (Concentric: R_inner = 72 - padding => 48, 36, 30) -->
   <g data-summon-card-back-frame="true">
-    <rect x="24" y="24" width="1002" height="1422" rx="24" fill="none" stroke="url(#gold-foil-grad)" stroke-width="4.5" />
-    <rect x="36" y="36" width="978" height="1398" rx="12" fill="none" stroke="#ffd700" stroke-opacity="0.45" stroke-width="2.5" stroke-dasharray="16 10" />
-    <rect x="42" y="42" width="966" height="1386" rx="6" fill="none" stroke="#d4af37" stroke-opacity="0.25" stroke-width="1.5" />
+    <rect x="24" y="24" width="1002" height="1422" rx="48" fill="none" stroke="url(#gold-foil-grad)" stroke-width="4.5" />
+    <rect x="36" y="36" width="978" height="1398" rx="36" fill="none" stroke="#ffd700" stroke-opacity="0.45" stroke-width="2.5" stroke-dasharray="16 10" />
+    <rect x="42" y="42" width="966" height="1386" rx="30" fill="none" stroke="#d4af37" stroke-opacity="0.25" stroke-width="1.5" />
   </g>
 
-  <!-- Radiating Celestial Rays and Constellations -->
-  <g data-summon-card-pattern="true">
-    <!-- Center Cardinal Rays -->
-    <g stroke="url(#gold-rim-grad)" stroke-width="1.5" stroke-dasharray="8 12" opacity="0.4">
-      <line x1="525" y1="735" x2="135" y2="225" />
-      <line x1="525" y1="735" x2="915" y2="225" />
-      <line x1="525" y1="735" x2="135" y2="1245" />
-      <line x1="525" y1="735" x2="915" y2="1245" />
-      <line x1="525" y1="735" x2="525" y2="120" />
-      <line x1="525" y1="735" x2="525" y2="1350" />
-      <line x1="525" y1="735" x2="90" y2="735" />
-      <line x1="525" y1="735" x2="960" y2="735" />
-    </g>
-
-    <!-- Outer Celestial Orbit Arcs -->
-    <circle cx="525" cy="735" r="375" fill="none" stroke="${primaryColor}" stroke-opacity="0.22" stroke-width="2" stroke-dasharray="24 16" />
-    <circle cx="525" cy="735" r="444" fill="none" stroke="#ffd700" stroke-opacity="0.18" stroke-width="1.8" stroke-dasharray="6 24" />
-
-    <!-- Top-Left Quadrant Constellation -->
-    <g transform="translate(255, 345)">
-      <path d="M 0 -24 L 6 -6 L 24 0 L 6 6 L 0 24 L -6 6 L -24 0 L -6 -6 Z" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="4.5" fill="${coreColor}" />
-      <line x1="0" y1="0" x2="105" y2="75" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.8" stroke-dasharray="6 8" />
-      <line x1="0" y1="0" x2="-75" y2="120" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="1.8" stroke-dasharray="6 8" />
-      <circle cx="105" cy="75" r="5" fill="#ffd700" />
-      <circle cx="-75" cy="120" r="6" fill="${primaryColor}" />
-    </g>
-
-    <!-- Top-Right Quadrant Constellation -->
-    <g transform="translate(795, 345) scale(-1, 1)">
-      <path d="M 0 -24 L 6 -6 L 24 0 L 6 6 L 0 24 L -6 6 L -24 0 L -6 -6 Z" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="4.5" fill="${coreColor}" />
-      <line x1="0" y1="0" x2="105" y2="75" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.8" stroke-dasharray="6 8" />
-      <line x1="0" y1="0" x2="-75" y2="120" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="1.8" stroke-dasharray="6 8" />
-      <circle cx="105" cy="75" r="5" fill="#ffd700" />
-      <circle cx="-75" cy="120" r="6" fill="${primaryColor}" />
-    </g>
-
-    <!-- Bottom-Left Quadrant Constellation -->
-    <g transform="translate(255, 1125) scale(1, -1)">
-      <path d="M 0 -24 L 6 -6 L 24 0 L 6 6 L 0 24 L -6 6 L -24 0 L -6 -6 Z" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="4.5" fill="${coreColor}" />
-      <line x1="0" y1="0" x2="105" y2="75" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.8" stroke-dasharray="6 8" />
-      <line x1="0" y1="0" x2="-75" y2="120" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="1.8" stroke-dasharray="6 8" />
-      <circle cx="105" cy="75" r="5" fill="#ffd700" />
-      <circle cx="-75" cy="120" r="6" fill="${primaryColor}" />
-    </g>
-
-    <!-- Bottom-Right Quadrant Constellation -->
-    <g transform="translate(795, 1125) scale(-1, -1)">
-      <path d="M 0 -24 L 6 -6 L 24 0 L 6 6 L 0 24 L -6 6 L -24 0 L -6 -6 Z" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="4.5" fill="${coreColor}" />
-      <line x1="0" y1="0" x2="105" y2="75" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.8" stroke-dasharray="6 8" />
-      <line x1="0" y1="0" x2="-75" y2="120" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="1.8" stroke-dasharray="6 8" />
-      <circle cx="105" cy="75" r="5" fill="#ffd700" />
-      <circle cx="-75" cy="120" r="6" fill="${primaryColor}" />
-    </g>
-
-    <!-- Cardinal Diamond Star Nodes -->
-    <g transform="translate(144, 735)">
-      <polygon points="0,-21 10.5,0 0,21 -10.5,0" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="3.5" fill="${coreColor}" />
-      <line x1="0" y1="-42" x2="0" y2="42" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.5" />
-    </g>
-    <g transform="translate(906, 735)">
-      <polygon points="0,-21 10.5,0 0,21 -10.5,0" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="3.5" fill="${coreColor}" />
-      <line x1="0" y1="-42" x2="0" y2="42" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.5" />
-    </g>
-    <g transform="translate(525, 144)">
-      <polygon points="0,-21 10.5,0 0,21 -10.5,0" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="3.5" fill="${coreColor}" />
-      <line x1="-42" y1="0" x2="42" y2="0" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.5" />
-    </g>
-    <g transform="translate(525, 1326)">
-      <polygon points="0,-21 10.5,0 0,21 -10.5,0" fill="url(#gold-foil-grad)" />
-      <circle cx="0" cy="0" r="3.5" fill="${coreColor}" />
-      <line x1="-42" y1="0" x2="42" y2="0" stroke="#ffd700" stroke-opacity="0.4" stroke-width="1.5" />
-    </g>
+  <!-- Etched Doodle Pattern Background with Smooth Inward Radial Fade (Black-on-Black) -->
+  <g data-summon-card-etched-pattern="true" mask="url(#card-pattern-radial-mask)">
+    <!-- Debossed shadow groove pass -->
+    <path d="${CardTextureGenerator.CARD_BACK_PATTERN_PATH}" transform="translate(1.5, -51) scale(1.42663)" fill="#000000" fill-opacity="0.85" fill-rule="evenodd" />
+    <!-- Mysterious Dark Obsidian etched stroke pass -->
+    <path d="${CardTextureGenerator.CARD_BACK_PATTERN_PATH}" transform="translate(0, -52.5) scale(1.42663)" fill="url(#dark-etched-grad)" fill-rule="evenodd" />
   </g>
 
-  <!-- 4 Symmetrical Corner Filigrees -->
-  <g data-summon-card-filigree="true" class="filigree-corner" transform="translate(72, 72)">
-    <path d="M 0 105 L 0 30 Q 0 0 30 0 L 105 0 Q 45 15 30 30 Q 15 45 0 105 Z" fill="url(#gold-foil-grad)" fill-opacity="0.6" />
-    <path d="M 12 84 C 12 42 42 12 84 12 M 30 54 C 30 36 36 30 54 30" stroke="#ffd700" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.9" />
-    <circle cx="24" cy="24" r="7.5" fill="url(#gold-foil-grad)" />
-    <circle cx="24" cy="24" r="14" fill="none" stroke="#d4af37" stroke-width="1.5" />
-  </g>
-  <g data-summon-card-filigree="true" class="filigree-corner" transform="translate(978, 72) scale(-1, 1)">
-    <path d="M 0 105 L 0 30 Q 0 0 30 0 L 105 0 Q 45 15 30 30 Q 15 45 0 105 Z" fill="url(#gold-foil-grad)" fill-opacity="0.6" />
-    <path d="M 12 84 C 12 42 42 12 84 12 M 30 54 C 30 36 36 30 54 30" stroke="#ffd700" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.9" />
-    <circle cx="24" cy="24" r="7.5" fill="url(#gold-foil-grad)" />
-    <circle cx="24" cy="24" r="14" fill="none" stroke="#d4af37" stroke-width="1.5" />
-  </g>
-  <g data-summon-card-filigree="true" class="filigree-corner" transform="translate(72, 1398) scale(1, -1)">
-    <path d="M 0 105 L 0 30 Q 0 0 30 0 L 105 0 Q 45 15 30 30 Q 15 45 0 105 Z" fill="url(#gold-foil-grad)" fill-opacity="0.6" />
-    <path d="M 12 84 C 12 42 42 12 84 12 M 30 54 C 30 36 36 30 54 30" stroke="#ffd700" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.9" />
-    <circle cx="24" cy="24" r="7.5" fill="url(#gold-foil-grad)" />
-    <circle cx="24" cy="24" r="14" fill="none" stroke="#d4af37" stroke-width="1.5" />
-  </g>
-  <g data-summon-card-filigree="true" class="filigree-corner" transform="translate(978, 1398) scale(-1, -1)">
-    <path d="M 0 105 L 0 30 Q 0 0 30 0 L 105 0 Q 45 15 30 30 Q 15 45 0 105 Z" fill="url(#gold-foil-grad)" fill-opacity="0.6" />
-    <path d="M 12 84 C 12 42 42 12 84 12 M 30 54 C 30 36 36 30 54 30" stroke="#ffd700" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.9" />
-    <circle cx="24" cy="24" r="7.5" fill="url(#gold-foil-grad)" />
-    <circle cx="24" cy="24" r="14" fill="none" stroke="#d4af37" stroke-width="1.5" />
-  </g>
-
-  <!-- Concentric Halo Rings & Radiating Celestial Notches -->
-  <g data-summon-card-halo="true" transform="translate(525, 735)">
-    <circle cx="0" cy="0" r="285" fill="none" stroke="url(#gold-rim-grad)" stroke-opacity="0.4" stroke-width="3" stroke-dasharray="9 18" />
-    <circle cx="0" cy="0" r="246" fill="none" stroke="#ffd700" stroke-opacity="0.7" stroke-width="3.6" />
-    <circle cx="0" cy="0" r="204" fill="none" stroke="url(#gold-foil-grad)" stroke-opacity="0.8" stroke-width="3" stroke-dasharray="36 12 12 12" />
-    <circle cx="0" cy="0" r="156" fill="none" stroke="${coreColor}" stroke-opacity="0.5" stroke-width="2.5" />
-    <path d="M 0 -294 L 0 -264 M 0 264 L 0 294 M -294 0 L -264 0 M 264 0 L 294 0" stroke="#ffd700" stroke-width="4.5" stroke-linecap="round" />
-    <path d="M -207 -207 L -186 -186 M 186 186 L 207 207 M 207 -207 L 186 -186 M -186 186 L -207 207" stroke="${primaryColor}" stroke-width="3.6" stroke-linecap="round" />
-  </g>
-
-  <!-- Central Glowing Star Crest -->
-  <g data-summon-card-crest="true">
-    <circle cx="525" cy="735" r="132" fill="url(#gold-crest-glow)" />
-    <path d="${CardTextureGenerator.STAR_CREST_PATH}" transform="translate(525, 735) scale(0.48) translate(-300, -300)" fill="url(#gold-foil-grad)" stroke="#ffd700" stroke-width="2" fill-rule="evenodd" />
+  <!-- Central Reflective Golden Paper Star Crest (Tactile Emboss without Neon Bloom) -->
+  <g data-summon-card-crest="true" filter="url(#gold-paper-emboss)">
+    <path d="${CardTextureGenerator.STAR_CREST_PATH}" transform="translate(525, 735) scale(0.528) translate(-300, -300)" fill="url(#gold-paper-foil-grad)" stroke="#ffd700" stroke-width="1.3636" fill-rule="evenodd" />
   </g>
 </svg>`;
   }
@@ -331,19 +230,15 @@ export class CardTextureGenerator {
    */
   public static drawGoldenCardBackContent(
     target: HTMLCanvasElement | CanvasRenderingContext2D,
-    theme: CardSummonTheme = {}
+    _theme: CardSummonTheme = {}
   ): void {
     const ctx = 'getContext' in target ? target.getContext('2d') : target;
     if (!ctx) return;
 
-    const primaryColor = theme.primaryColor ?? '#ff4421';
-    const coreColor = theme.coreColor ?? '#ffffff';
-    const accentColor = theme.accentColor ?? '#ffd700';
-
     ctx.save();
 
-    // Rounded clip boundary (1050x1470, R=48)
-    drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
+    // Rounded clip boundary (1050x1470, R=72 synchronized with CARD_CORNER_RADIUS)
+    drawRoundedRect(ctx, 0, 0, 1050, 1470, CardTextureGenerator.CARD_CORNER_RADIUS);
     if (typeof ctx.clip === 'function') {
       ctx.clip();
     }
@@ -356,21 +251,59 @@ export class CardTextureGenerator {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 1050, 1470);
 
-    // 2. Guilloche Geometric Lattice
-    ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
-    ctx.lineWidth = 1.5;
-    const step = 84;
-    for (let y = 36; y <= 1434; y += step) {
-      ctx.beginPath();
-      for (let x = 36; x <= 1014; x += step) {
-        ctx.moveTo(x + step / 2, y);
-        ctx.lineTo(x + step, y + step / 2);
-        ctx.lineTo(x + step / 2, y + step);
-        ctx.lineTo(x, y + step / 2);
-        ctx.closePath();
+    // 2. Faded Metallic Etched Pattern with Radial Fade-Out around Center Crest
+    ctx.save();
+    const patternScale = 1.42663;
+    const patternOffsetY = (1470 - 1104 * patternScale) / 2; // -52.5
+
+    if (typeof Path2D !== 'undefined') {
+      try {
+        const patternPath = new Path2D(CardTextureGenerator.CARD_BACK_PATTERN_PATH);
+
+        // Mysterious Dark Obsidian Etched Palette (Black-on-Black Debossed Engraving)
+        const darkEtchedGrad = ctx.createLinearGradient(0, 0, 1050, 1470);
+        darkEtchedGrad.addColorStop(0, 'rgba(5, 5, 8, 0.95)');
+        darkEtchedGrad.addColorStop(0.5, 'rgba(3, 3, 5, 0.9)');
+        darkEtchedGrad.addColorStop(1, 'rgba(2, 2, 4, 0.85)');
+
+        // Pass A: Debossed inner groove (tactile engraved depth)
+        ctx.save();
+        ctx.translate(1.5, patternOffsetY + 1.5);
+        ctx.scale(patternScale, patternScale);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        if (typeof (ctx as unknown as { fill: (p: Path2D, fillRule?: CanvasFillRule) => void }).fill === 'function') {
+          (ctx as unknown as { fill: (p: Path2D, fillRule?: CanvasFillRule) => void }).fill(patternPath, 'evenodd');
+        }
+        ctx.restore();
+
+        // Pass B: Mysterious Dark Obsidian stroke pass
+        ctx.save();
+        ctx.translate(0, patternOffsetY);
+        ctx.scale(patternScale, patternScale);
+        ctx.fillStyle = darkEtchedGrad;
+        if (typeof (ctx as unknown as { fill: (p: Path2D, fillRule?: CanvasFillRule) => void }).fill === 'function') {
+          (ctx as unknown as { fill: (p: Path2D, fillRule?: CanvasFillRule) => void }).fill(patternPath, 'evenodd');
+        }
+        ctx.restore();
+
+        // Smooth Continuous Inward Radial Fade Mask (Naturally dissipates toward the logo without hard crop)
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        const radialFade = ctx.createRadialGradient(525, 735, 0, 525, 735, 580);
+        radialFade.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        radialFade.addColorStop(0.15, 'rgba(0, 0, 0, 0.9)');
+        radialFade.addColorStop(0.35, 'rgba(0, 0, 0, 0.65)');
+        radialFade.addColorStop(0.6, 'rgba(0, 0, 0, 0.35)');
+        radialFade.addColorStop(0.85, 'rgba(0, 0, 0, 0.1)');
+        radialFade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = radialFade;
+        ctx.fillRect(0, 0, 1050, 1470);
+        ctx.restore();
+      } catch {
+        // Fallback for headless environments without full Path2D support
       }
-      ctx.stroke();
     }
+    ctx.restore();
 
     // 3. Multi-tier Gilded Gold Borders (concentric: R_inner = R_outer - padding)
     const goldFoil = ctx.createLinearGradient(0, 0, 1050, 1470);
@@ -382,112 +315,46 @@ export class CardTextureGenerator {
 
     ctx.strokeStyle = goldFoil;
     ctx.lineWidth = 4.5;
-    drawRoundedRect(ctx, 24, 24, 1002, 1422, CardTextureGenerator.computeConcentricRadius(48, 24)); // 24
+    drawRoundedRect(ctx, 24, 24, 1002, 1422, CardTextureGenerator.computeConcentricRadius(CardTextureGenerator.CARD_CORNER_RADIUS, 24)); // 48
     ctx.stroke();
 
     ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
     ctx.lineWidth = 2.5;
-    drawRoundedRect(ctx, 36, 36, 978, 1398, CardTextureGenerator.computeConcentricRadius(48, 36)); // 12
+    drawRoundedRect(ctx, 36, 36, 978, 1398, CardTextureGenerator.computeConcentricRadius(CardTextureGenerator.CARD_CORNER_RADIUS, 36)); // 36
     ctx.stroke();
 
     ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
     ctx.lineWidth = 1.5;
-    drawRoundedRect(ctx, 42, 42, 966, 1386, CardTextureGenerator.computeConcentricRadius(48, 42)); // 6
+    drawRoundedRect(ctx, 42, 42, 966, 1386, CardTextureGenerator.computeConcentricRadius(CardTextureGenerator.CARD_CORNER_RADIUS, 42)); // 30
     ctx.stroke();
 
-    // 4. Corner Filigree Flourishes (4 Quadrants)
-    const cornerCoords = [
-      { x: 72, y: 72, sx: 1, sy: 1 },
-      { x: 978, y: 72, sx: -1, sy: 1 },
-      { x: 72, y: 1398, sx: 1, sy: -1 },
-      { x: 978, y: 1398, sx: -1, sy: -1 },
-    ];
-
-    for (const c of cornerCoords) {
-      ctx.save();
-      ctx.translate(c.x, c.y);
-      ctx.scale(c.sx, c.sy);
-
-      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
-      ctx.beginPath();
-      ctx.moveTo(0, 105);
-      ctx.lineTo(0, 30);
-      drawQuadCurve(ctx, 0, 0, 30, 0);
-      ctx.lineTo(105, 0);
-      drawQuadCurve(ctx, 45, 15, 30, 30);
-      drawQuadCurve(ctx, 15, 45, 0, 105);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.arc(24, 24, 8, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
-    // 5. Concentric Halo Rings & Radiating Lines
+    // 4. Central Star Crest (Tactile Reflective Golden Paper Emblem without Neon Halo)
     ctx.save();
     ctx.translate(525, 735);
 
-    ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(0, 0, 285, 0, Math.PI * 2);
-    ctx.stroke();
+    // Reflective golden paper foil gradient with high specular sheen peak
+    const goldPaperFoil = ctx.createLinearGradient(-150, -150, 150, 150);
+    goldPaperFoil.addColorStop(0, '#735518');
+    goldPaperFoil.addColorStop(0.18, '#b88d2c');
+    goldPaperFoil.addColorStop(0.35, '#fdf0a6');
+    goldPaperFoil.addColorStop(0.48, '#ffffff');
+    goldPaperFoil.addColorStop(0.55, '#fff4b8');
+    goldPaperFoil.addColorStop(0.72, '#cda036');
+    goldPaperFoil.addColorStop(0.88, '#8f6b1e');
+    goldPaperFoil.addColorStop(1, '#5a4110');
 
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 3.6;
-    ctx.beginPath();
-    ctx.arc(0, 0, 246, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = primaryColor;
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, 204, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = coreColor;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, 0, 156, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Cardinal Starburst Lines
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(0, -294);
-    ctx.lineTo(0, -264);
-    ctx.moveTo(0, 264);
-    ctx.lineTo(0, 294);
-    ctx.moveTo(-294, 0);
-    ctx.lineTo(-264, 0);
-    ctx.moveTo(264, 0);
-    ctx.lineTo(294, 0);
-    ctx.stroke();
-
-    // 6. Central Star Crest
-    const crestGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 132);
-    crestGlow.addColorStop(0, coreColor);
-    crestGlow.addColorStop(0.3, accentColor);
-    crestGlow.addColorStop(0.7, primaryColor);
-    crestGlow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = crestGlow;
-    ctx.beginPath();
-    ctx.arc(0, 0, 132, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Star Vector Logo Crest
     ctx.save();
-    ctx.scale(0.48, 0.48);
+    ctx.scale(0.528, 0.528);
     ctx.translate(-300, -300);
-    ctx.fillStyle = goldFoil;
+    ctx.fillStyle = goldPaperFoil;
     ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.3636;
+    // Tactile physical paper deboss / drop shadow underneath (zero neon glow blur)
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3.5;
+
     if (typeof Path2D !== 'undefined') {
       try {
         const path = new Path2D(CardTextureGenerator.STAR_CREST_PATH);
@@ -596,11 +463,11 @@ export class CardTextureGenerator {
         ctx.clip();
       }
 
-      // 1. Crisp Obsidian Dark Background with Subtle Vignette
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, 1470);
-      bgGrad.addColorStop(0, '#0d0d12');
-      bgGrad.addColorStop(0.5, '#09090d');
-      bgGrad.addColorStop(1, '#050508');
+      // 1. Dark Obsidian Gradient Surface matching the back side
+      const bgGrad = ctx.createRadialGradient(525, 735, 120, 525, 735, 800);
+      bgGrad.addColorStop(0, '#08080b');
+      bgGrad.addColorStop(0.5, '#040406');
+      bgGrad.addColorStop(1, '#010102');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, 1050, 1470);
 
@@ -686,8 +553,8 @@ export class CardTextureGenerator {
 
       // Duotone background inside portrait
       const portraitGrad = ctx.createLinearGradient(0, portraitY, 0, portraitY + portraitH);
-      portraitGrad.addColorStop(0, '#121218');
-      portraitGrad.addColorStop(1, '#060609');
+      portraitGrad.addColorStop(0, '#040406');
+      portraitGrad.addColorStop(1, '#010102');
       ctx.fillStyle = portraitGrad;
       ctx.fillRect(portraitX, portraitY, portraitW, portraitH);
 
@@ -705,7 +572,8 @@ export class CardTextureGenerator {
           dx = portraitX + (portraitW - dw) / 2;
         } else {
           dh = portraitW / imgRatio;
-          dy = portraitY + (portraitH - dh) / 2;
+          const faceOffsetY = (portraitH - dh) * 0.20;
+          dy = portraitY + faceOffsetY;
         }
 
         const hasNativeFilter = 'filter' in ctx && typeof ctx.filter === 'string';
@@ -733,7 +601,7 @@ export class CardTextureGenerator {
         const vignette = ctx.createLinearGradient(0, portraitY, 0, portraitY + portraitH);
         vignette.addColorStop(0, 'rgba(8, 8, 12, 0.25)');
         vignette.addColorStop(0.7, 'rgba(8, 8, 12, 0.15)');
-        vignette.addColorStop(1, 'rgba(8, 8, 12, 0.7)');
+        vignette.addColorStop(1, 'rgba(1, 1, 2, 0.85)');
         ctx.fillStyle = vignette;
         ctx.fillRect(portraitX, portraitY, portraitW, portraitH);
       } else {
@@ -787,7 +655,7 @@ export class CardTextureGenerator {
       const boxH = 376;
       const boxR = 16;
 
-      ctx.fillStyle = 'rgba(255, 215, 0, 0.02)';
+      ctx.fillStyle = 'rgba(2, 2, 4, 0.88)';
       CardTextureGenerator.drawRoundedRect(ctx, boxX, boxY, boxW, boxH, boxR);
       ctx.fill();
 
@@ -810,7 +678,7 @@ export class CardTextureGenerator {
       const badgeY = boxY + 24;
       const badgeR = 8; // concentric: max(0, 16 - 8) = 8
 
-      ctx.fillStyle = 'rgba(255, 215, 0, 0.08)';
+      ctx.fillStyle = 'rgba(6, 6, 9, 0.90)';
       CardTextureGenerator.drawRoundedRect(ctx, badgeX, badgeY, badgeW, badgeH, badgeR);
       ctx.fill();
 
@@ -884,7 +752,7 @@ export class CardTextureGenerator {
       statColumns.forEach((stat, i) => {
         const colX = boxX + i * (statColW + statGap);
 
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.02)';
+        ctx.fillStyle = 'rgba(2, 2, 4, 0.88)';
         CardTextureGenerator.drawRoundedRect(ctx, colX, statsY, statColW, statColH, statColR);
         ctx.fill();
 
@@ -993,7 +861,7 @@ export class CardTextureGenerator {
           }
 
           // Frosted obsidian base fill
-          ctx.fillStyle = `rgba(7, 7, 11, ${veilOpacity * 0.98})`;
+          ctx.fillStyle = `rgba(2, 2, 4, ${veilOpacity * 0.98})`;
           ctx.fillRect(-2000, -2000, 4000, 4000);
 
           ctx.restore();
@@ -1029,14 +897,14 @@ export class CardTextureGenerator {
           ctx.restore();
         } else if (foilWipeProgress <= 0) {
           // Fully shrouded state (before wipe starts)
-          ctx.fillStyle = `rgba(7, 7, 11, ${veilOpacity * 0.98})`;
-          CardTextureGenerator.drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
+          ctx.fillStyle = `rgba(2, 2, 4, ${veilOpacity * 0.98})`;
+          CardTextureGenerator.drawRoundedRect(ctx, 0, 0, 1050, 1470, CardTextureGenerator.CARD_CORNER_RADIUS);
           ctx.fill();
 
-          // Golden hairline frame (p=28 => R=48-28=20)
+          // Golden hairline frame (p=28 => R=72-28=44)
           ctx.strokeStyle = `rgba(255, 215, 0, ${0.35 * veilOpacity})`;
           ctx.lineWidth = 2.5;
-          CardTextureGenerator.drawRoundedRect(ctx, 28, 28, 1050 - 56, 1470 - 56, 20);
+          CardTextureGenerator.drawRoundedRect(ctx, 28, 28, 1050 - 56, 1470 - 56, CardTextureGenerator.computeConcentricRadius(CardTextureGenerator.CARD_CORNER_RADIUS, 28));
           ctx.stroke();
 
           // Golden Celestial Seal in Center (525, 735)

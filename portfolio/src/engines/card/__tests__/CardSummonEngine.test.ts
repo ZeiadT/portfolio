@@ -326,7 +326,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       matchMediaSpy.mockRestore();
     });
 
-    it('closes the modal dialog when clicking anywhere on the card', () => {
+    it('flips the card when clicking the card instead of dismissing the modal', () => {
       const onClose = vi.fn();
       engine = new CardSummonEngine({ onClose });
       engine.open();
@@ -335,11 +335,15 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       const card = document.querySelector<HTMLElement>('[data-summon-card]');
       expect(card).not.toBeNull();
 
-      card?.click();
-      engine.getCloseTimeline()?.progress(1);
+      expect(engine.isCardFlipped()).toBe(true);
 
-      expect(engine.isOpen()).toBe(false);
-      expect(onClose).toHaveBeenCalledTimes(1);
+      card?.click();
+
+      // Card must flip, NOT close
+      expect(engine.isCardFlipped()).toBe(false);
+      expect(engine.isOpen()).toBe(true);
+      expect(engine.getCloseTimeline()).toBeNull();
+      expect(onClose).not.toHaveBeenCalled();
     });
 
     it('closes the modal dialog when clicking anywhere on the modal stage or backdrop', () => {
@@ -883,17 +887,41 @@ describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
     const frame = cardBack?.querySelector('[data-summon-card-back-frame]');
     expect(frame).not.toBeNull();
 
-    const filigrees = cardBack?.querySelectorAll('[data-summon-card-filigree]');
-    expect(filigrees?.length).toBe(4);
-
-    const halo = cardBack?.querySelector('[data-summon-card-halo]');
-    expect(halo).not.toBeNull();
-
     const crest = cardBack?.querySelector('[data-summon-card-crest]');
     expect(crest).not.toBeNull();
 
-    const patterns = cardBack?.querySelector('[data-summon-card-pattern]');
-    expect(patterns).not.toBeNull();
+    const etchedPattern = cardBack?.querySelector('[data-summon-card-etched-pattern]');
+    expect(etchedPattern).not.toBeNull();
+
+    const filigrees = cardBack?.querySelectorAll('[data-summon-card-filigree]');
+    expect(filigrees?.length).toBe(0);
+
+    const halo = cardBack?.querySelector('[data-summon-card-halo]');
+    expect(halo).toBeNull();
+  });
+
+  it('renders concentric border radii and reflective golden paper crest on DOM card back', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const cardBack = document.querySelector<HTMLElement>('[data-summon-card-back]');
+    expect(cardBack).not.toBeNull();
+    const svg = cardBack?.querySelector('svg');
+    expect(svg).not.toBeNull();
+
+    // Outer rect has rx="24" (concentric in 350x490 space)
+    const baseRect = svg?.querySelector('svg > rect');
+    expect(baseRect?.getAttribute('rx')).toBe('24');
+
+    // Inner frame at gap 8 (x=8, y=8, w=334, h=474) has rx="16" (24 - 8 = 16)
+    const frameRect = svg?.querySelector('[data-summon-card-back-frame] rect');
+    expect(frameRect?.getAttribute('rx')).toBe('16');
+
+    // Crest uses reflective gold paper gradient rather than vermilion primary color
+    const crestPath = svg?.querySelector('[data-summon-card-crest] path');
+    expect(crestPath?.getAttribute('fill')).toMatch(/gold|foil/i);
+    expect(crestPath?.getAttribute('transform')).toContain('scale(0.176)');
+    expect(crestPath?.getAttribute('stroke-width')).toBe('0.91');
   });
 
   it('renders default theme colors in the Mystic Sigil SVG definitions', () => {
@@ -1101,7 +1129,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(Number(gsap.getProperty(flashVeil, 'opacity'))).toBeLessThanOrEqual(0.05);
   });
 
-  it('activates interactive 3D pointer parallax tilt on settled state and resets on pointer leave', () => {
+  it('activates interactive 3D pointer parallax tilt only when hovering over card and resets on card pointer leave', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -1110,7 +1138,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(modal).not.toBeNull();
     expect(card).not.toBeNull();
 
-    // Mock modal bounds for deterministic parallax calculations
+    // Mock modal and card bounds for deterministic parallax calculations
     vi.spyOn(modal!, 'getBoundingClientRect').mockReturnValue({
       left: 0,
       top: 0,
@@ -1120,6 +1148,17 @@ describe('Gacha Psychology & Motion Redesign', () => {
       height: 800,
       x: 0,
       y: 0,
+      toJSON: () => {},
+    });
+    vi.spyOn(card!, 'getBoundingClientRect').mockReturnValue({
+      left: 350,
+      top: 150,
+      right: 650,
+      bottom: 650,
+      width: 300,
+      height: 500,
+      x: 350,
+      y: 150,
       toJSON: () => {},
     });
 
@@ -1133,11 +1172,23 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
     expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
 
-    // Dispatch pointermove away from center (bottom-right offset)
+    // Pointermove on modal outside card (e.g. at 100, 100) does NOT tilt card
     modal?.dispatchEvent(
       new PointerEvent('pointermove', {
-        clientX: 800,
-        clientY: 650,
+        clientX: 100,
+        clientY: 100,
+        bubbles: true,
+      })
+    );
+    gsap.getTweensOf(card).forEach((tween) => tween.progress(1));
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
+    expect(Number(gsap.getProperty(card, 'rotationX'))).toBe(0);
+
+    // Dispatch pointermove on cardEl (bottom-right offset of card)
+    card?.dispatchEvent(
+      new PointerEvent('pointermove', {
+        clientX: 550,
+        clientY: 500,
         bubbles: true,
       })
     );
@@ -1154,8 +1205,8 @@ describe('Gacha Psychology & Motion Redesign', () => {
     expect(movedRotX).not.toBe(0);
     expect(Math.abs(movedRotX)).toBeLessThanOrEqual(15);
 
-    // Dispatch pointerleave on modal - restores card rotation back towards 180
-    modal?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+    // Dispatch pointerleave on cardEl - restores card rotation back towards 180
+    card?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
     gsap.getTweensOf(card).forEach((tween) => tween.progress(1));
 
     expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
@@ -1405,6 +1456,17 @@ describe('Graceful Luxury Reveal Choreography (5 Phases)', () => {
       y: 0,
       toJSON: () => {},
     });
+    vi.spyOn(card!, 'getBoundingClientRect').mockReturnValue({
+      left: 350,
+      top: 150,
+      right: 650,
+      bottom: 650,
+      width: 300,
+      height: 500,
+      x: 350,
+      y: 150,
+      toJSON: () => {},
+    });
 
     const tl = engine.getTimeline();
     tl?.progress(1);
@@ -1416,8 +1478,13 @@ describe('Graceful Luxury Reveal Choreography (5 Phases)', () => {
     expect(idleTween?.vars.repeat).toBe(-1);
     expect(idleTween?.vars.yoyo).toBe(true);
 
-    // On pointermove, idle float tween pauses for tactile agency
-    modal?.dispatchEvent(new PointerEvent('pointermove', { clientX: 700, clientY: 500, bubbles: true }));
+    // Pointermove on modal outside card does NOT pause idleFloatTween or tilt the card
+    modal?.dispatchEvent(new PointerEvent('pointermove', { clientX: 100, clientY: 100, bubbles: true }));
+    expect(idleTween?.paused()).toBe(false);
+    expect(Number(gsap.getProperty(card, 'rotationY'))).toBe(180);
+
+    // On pointermove on cardEl, idle float tween pauses for tactile agency
+    card?.dispatchEvent(new PointerEvent('pointermove', { clientX: 550, clientY: 500, bubbles: true }));
     expect(idleTween?.paused()).toBe(true);
 
     // Parallax tilt is refined (maxTilt = 10, strictly within +/- 10 deg)
@@ -1427,8 +1494,8 @@ describe('Graceful Luxury Reveal Choreography (5 Phases)', () => {
     const tiltedRotY = Number(gsap.getProperty(card, 'rotationY'));
     expect(Math.abs(tiltedRotY - 180)).toBeLessThanOrEqual(10.5);
 
-    // On pointerleave, returns to resting center and resumes idle float
-    modal?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+    // On pointerleave from cardEl, returns to resting center and resumes idle float
+    card?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
     expect(idleTween?.paused()).toBe(false);
   });
 
@@ -2013,12 +2080,13 @@ describe('Three.js 3D Physical Card Model Integration', () => {
       expect(document.querySelector('[data-summon-backdrop]')).toBeNull();
     });
 
-    it('animates card down to where it came from (yPercent: 120, scale: 0.6, opacity: 0) and syncs ThreeCardModel', () => {
+    it('animates card sliding straight down without transforming size or fading and syncs ThreeCardModel', () => {
       engine = new CardSummonEngine();
       engine.open();
       engine.getTimeline()?.progress(1);
 
       const card = document.querySelector<HTMLElement>('[data-summon-card]');
+      const cardStage = document.querySelector<HTMLElement>('[data-summon-card-stage]');
       const threeModel = engine.getThreeCardModel();
       expect(card).not.toBeNull();
       expect(threeModel).not.toBeNull();
@@ -2030,11 +2098,19 @@ describe('Three.js 3D Physical Card Model Integration', () => {
       // Halfway through dismiss
       closeTl?.progress(0.5);
       const midYPercent = gsap.getProperty(card!, 'yPercent') as number;
+      const midScale = gsap.getProperty(card!, 'scale') as number;
+      const midCardOpacity = gsap.getProperty(card!, 'opacity') as number;
+      const midStageOpacity = gsap.getProperty(cardStage!, 'opacity') as number;
+
       expect(midYPercent).toBeGreaterThan(0);
+      // Must NOT shrink scale
+      expect(midScale).toBe(1);
+      // Must NOT fade opacity
+      expect(midCardOpacity).toBe(1);
+      expect(midStageOpacity).toBe(1);
 
       // At completion of dismiss
       closeTl?.progress(1);
-      // Elements cleaned up on complete
       expect(engine.getThreeCardModel()).toBeNull();
     });
 

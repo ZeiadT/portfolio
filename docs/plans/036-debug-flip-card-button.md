@@ -30,3 +30,4 @@ Provide a temporary, sleek floating debug button `[data-summon-flip]` inside the
 3. **Lifecycle & Cleanup**:
    - Fade out button in `closeTimeline`.
    - Cleanly detach event listener and remove DOM element in `cleanupDomAndListeners()`.
+

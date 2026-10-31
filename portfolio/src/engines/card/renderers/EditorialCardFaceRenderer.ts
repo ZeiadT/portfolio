@@ -39,7 +39,7 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
 
     // Apply frosted glass container styling
     const baseClasses = [
-      'bg-black/90',
+      'bg-[#030305]/95',
       'backdrop-blur-2xl',
       'border',
       'border-white/15',
@@ -95,7 +95,7 @@ export class EditorialCardFaceRenderer implements CardFaceRenderer {
       <!-- Razor-sharp rectangular duotone portrait window with vertical space aspect-[4/3] and concentric radius: 24px - 16px = 8px -->
       <div data-summon-face-portrait-window class="relative z-10 w-full aspect-[4/3] rounded-[8px] overflow-hidden border border-white/20 bg-neutral-950 shadow-2xl group my-1 sm:my-1.5">
         <!-- Avatar image with monochrome duotone treatment -->
-        <img data-summon-face-avatar src="${escapeHtml(data.imageSrc)}" alt="${escapeHtml(data.imageAlt)}" class="w-full h-full object-cover grayscale contrast-125 group-hover:grayscale-0 transition-all duration-700 select-none relative z-10" />
+        <img data-summon-face-avatar src="${escapeHtml(data.imageSrc)}" alt="${escapeHtml(data.imageAlt)}" class="w-full h-full object-cover object-[center_20%] grayscale contrast-125 group-hover:grayscale-0 transition-all duration-700 select-none relative z-10" />
 
         <!-- Editorial hairline frame overlay & vignette -->
         <div class="absolute inset-0 border border-white/10 pointer-events-none z-20"></div>

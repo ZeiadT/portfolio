@@ -25,7 +25,7 @@ const DEFAULT_CARD_DATA: CardSummonData = {
   },
 };
 
-const VEIL_COLOR = new THREE.Color(0x0a0a14);
+const VEIL_COLOR = new THREE.Color(0x020204);
 
 /**
  * Creates a centered 2D rounded rectangle shape.
@@ -168,8 +168,8 @@ export class ThreeCardModel {
     this.backTexture = CardTextureGenerator.generateGoldenCardBackTexture(this.theme);
     this.frontMaterial = new THREE.MeshStandardMaterial({
       map: this.frontTexture,
-      roughness: 0.88, // Luxury satin/matte print - zero mirror reflection or specular glare!
-      metalness: 0.0,
+      roughness: 0.35,
+      metalness: 0.15,
     });
 
     this.frontMaterial.onBeforeCompile = (shader: THREE.WebGLProgramParametersWithUniforms) => {
@@ -203,7 +203,7 @@ export class ThreeCardModel {
 
           // Ahead of wipe line: dark frosted obsidian veil
           if (dist > 0.0) {
-            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.027, 0.027, 0.043), uVeilOpacity * 0.96);
+            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.008, 0.008, 0.015), uVeilOpacity * 0.98);
           }
           // Diagonal foil specular gleam band: only active while the wipe is in motion (uFoilWipeProgress > 0.001 && uFoilWipeProgress < 0.999)
           if (uFoilWipeProgress > 0.001 && uFoilWipeProgress < 0.999 && abs(dist) < band) {
@@ -275,16 +275,16 @@ export class ThreeCardModel {
     this.camera.position.set(0, 0, 10.0);
 
     // Distributed studio lighting setup (soft diffuse front illumination, no direct flashlight hotspot)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     this.scene.add(ambientLight);
 
     // Angled key light (top-right high angle)
-    const keyLight = new THREE.DirectionalLight(0xfff8ee, 0.9);
+    const keyLight = new THREE.DirectionalLight(0xfff8ee, 0.80);
     keyLight.position.set(4, 6, 4);
     this.scene.add(keyLight);
 
     // Soft bounce fill light (bottom-left)
-    const bounceLight = new THREE.DirectionalLight(0xeeefff, 0.5);
+    const bounceLight = new THREE.DirectionalLight(0xeeefff, 0.40);
     bounceLight.position.set(-4, -3, 3);
     this.scene.add(bounceLight);
 

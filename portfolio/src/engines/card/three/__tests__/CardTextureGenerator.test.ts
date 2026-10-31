@@ -108,30 +108,54 @@ describe('CardTextureGenerator (Unit Tests)', () => {
       expect(svg).toContain('height="1470"');
     });
 
-    it('contains concentric guilloche pattern and sacred geometry', () => {
+    it('contains etched doodle pattern with radial fade mask and removes legacy guilloche', () => {
       const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
 
-      expect(svg).toMatch(/guilloche/i);
-      expect(svg).toContain('<pattern');
-      expect(svg).toContain('</pattern>');
+      expect(CardTextureGenerator.CARD_BACK_PATTERN_PATH).toBeDefined();
+      expect(CardTextureGenerator.CARD_BACK_PATTERN_PATH.length).toBeGreaterThan(100);
+      expect(svg).toContain('data-summon-card-etched-pattern');
+      expect(svg).toContain('card-pattern-radial-mask');
+      expect(svg).not.toContain('guilloche-sacred-pattern');
+      expect(svg).not.toContain('<pattern');
     });
 
-    it('contains 4 symmetrical corner filigree flourishes', () => {
+    it('removes legacy corner filigrees and celestial halo patterns from card back', () => {
       const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
 
-      expect(svg).toMatch(/filigree|corner/i);
-      // Symmetrical 4 quadrants should be represented
-      expect(svg).toMatch(/scale\(-1,\s*1\)/);
-      expect(svg).toMatch(/scale\(1,\s*-1\)/);
-      expect(svg).toMatch(/scale\(-1,\s*-1\)/);
+      expect(svg).not.toContain('data-summon-card-filigree');
+      expect(svg).not.toContain('data-summon-card-halo');
+      expect(svg).not.toMatch(/Quadrant Constellation/i);
     });
 
-    it('contains celestial halo rings, cardinal diamond nodes, and central Ace crest', () => {
+    it('contains reflective golden paper central star crest with emboss shadow and no neon bloom glow', () => {
       const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
 
-      expect(svg).toMatch(/crest|celestial|ring/i);
       expect(svg).toContain('data-summon-card-crest');
-      expect(svg).toContain('data-summon-card-halo');
+      // Neon glow filter and blur should be completely removed
+      expect(svg).not.toContain('id="golden-glow"');
+      expect(svg).not.toContain('<feGaussianBlur');
+
+      // Reflective golden paper deboss/emboss drop shadow and specular foil gradient
+      expect(svg).toMatch(/gold-paper-emboss|feDropShadow/i);
+      expect(svg).toContain('gold-paper-foil-grad');
+      expect(svg).toMatch(/<stop[^>]+stop-color=["']#ffffff["']/i);
+      expect(svg).toContain('filter="url(#gold-paper-emboss)"');
+      expect(svg).toContain('fill="url(#gold-paper-foil-grad)"');
+
+      // Bright circle disk under the logo should remain removed
+      expect(svg).not.toMatch(/<circle[^>]+fill=["']url\(#gold-crest-glow\)["']/);
+      expect(svg).not.toMatch(/<circle[^>]+r=["']160["']/);
+      expect(svg).not.toMatch(/<circle[^>]+r=["']90["']/);
+    });
+
+    it('uses mysterious dark obsidian tones in the etched pattern instead of white highlights', () => {
+      const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
+
+      expect(svg).toContain('data-summon-card-etched-pattern');
+      // Should feature deep dark obsidian tones for debossed etching
+      expect(svg).toMatch(/#020204|#030305|#050508|#08080c|#040406/i);
+      // Radial mask should provide continuous inward fade
+      expect(svg).toContain('card-pattern-radial-mask');
     });
 
     it('incorporates rich metallic gold palette and theme colors', () => {
@@ -163,49 +187,71 @@ describe('CardTextureGenerator (Unit Tests)', () => {
       expect(svg).toContain('#e0a020');
     });
 
-    it('integrates the vector star crest and replaces the legacy cat mask crest on card back', () => {
+    it('integrates the vector star crest scaled 10% larger (scale 0.528) with calibrated stroke-width="1.3636" on card back', () => {
       const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
 
       // Verify the vector star crest path is present
       expect(CardTextureGenerator.STAR_CREST_PATH).toBeDefined();
       expect(svg).toContain(CardTextureGenerator.STAR_CREST_PATH);
       expect(svg).toContain('fill-rule="evenodd"');
-      expect(svg).toContain('fill="url(#gold-foil-grad)"');
+      expect(svg).toContain('fill="url(#gold-paper-foil-grad)"');
       expect(svg).toContain('stroke="#ffd700"');
-      expect(svg).toContain('stroke-width="2"');
+      expect(svg).toContain('scale(0.528)');
+      expect(svg).toMatch(/stroke-width=["']1\.36(36)?["']/);
 
       // Verify old Ace diamond polygon is cleanly removed
       expect(svg).not.toContain('polygon points="0,-126 84,0 0,126 -84,0"');
     });
 
-    it('enforces optical concentric corner radius formula (R_inner = R_outer - padding) for all back frames', () => {
+    it('enforces optical concentric corner radius formula (R_inner = R_outer - padding) for all back frames synchronized with front face', () => {
       const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
 
-      // Outer base card is rx="48"
-      expect(svg).toContain('rx="48"');
+      // Outer base card is rx="72" (matching CARD_CORNER_RADIUS)
+      expect(svg).toContain(`rx="${CardTextureGenerator.CARD_CORNER_RADIUS}"`);
 
-      // Primary frame at padding 24 has rx="24" (48 - 24 = 24), frame at padding 36 has rx="12" (48 - 36 = 12)
-      expect(svg).toMatch(/rx=["']24["']|rx=["']12["']/);
-      // No non-concentric rx="36" on an inner frame with padding 36!
-      expect(svg).not.toMatch(/<rect\s+x=["']36["']\s+y=["']36["'][^>]*rx=["']36["']/);
+      // Frame at padding 24: 72 - 24 = 48
+      expect(svg).toMatch(/<rect\s+x=["']24["']\s+y=["']24["'][^>]*rx=["']48["']/);
+      // Frame at padding 36: 72 - 36 = 36
+      expect(svg).toMatch(/<rect\s+x=["']36["']\s+y=["']36["'][^>]*rx=["']36["']/);
+      // Frame at padding 42: 72 - 42 = 30
+      expect(svg).toMatch(/<rect\s+x=["']42["']\s+y=["']42["'][^>]*rx=["']30["']/);
     });
   });
 
   describe('drawGoldenCardBackContent', () => {
-    it('renders golden card back onto canvas context without throwing and draws central crest', () => {
+    it('renders golden card back onto canvas context with concentric radii and reflective gold crest', () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1050;
       canvas.height = 1470;
       const ctx = canvas.getContext('2d')!;
+      const spy = vi.spyOn(CardTextureGenerator, 'drawRoundedRect');
 
       expect(() => {
         CardTextureGenerator.drawGoldenCardBackContent(canvas, mockTheme);
       }).not.toThrow();
 
+      // Outer clip boundary at R=72 (CARD_CORNER_RADIUS)
+      expect(spy).toHaveBeenCalledWith(expect.anything(), 0, 0, 1050, 1470, 72);
+      // Concentric borders: gap 24 -> 48, gap 36 -> 36, gap 42 -> 30
+      expect(spy).toHaveBeenCalledWith(expect.anything(), 24, 24, 1002, 1422, 48);
+      expect(spy).toHaveBeenCalledWith(expect.anything(), 36, 36, 978, 1398, 36);
+      expect(spy).toHaveBeenCalledWith(expect.anything(), 42, 42, 966, 1386, 30);
+
+      // Crest must not use neon shadowBlur=16 or neon gold glow
+      expect(ctx.shadowBlur).not.toBe(16);
+      expect(ctx.shadowColor).not.toBe('rgba(255, 215, 0, 0.65)');
+
       expect(ctx.fillRect).toHaveBeenCalled();
       expect(ctx.stroke).toHaveBeenCalled();
       expect(ctx.save).toHaveBeenCalled();
       expect(ctx.restore).toHaveBeenCalled();
+
+      // Back crest scale & stroke thickness in Canvas 2D
+      expect(ctx.scale).toHaveBeenCalledWith(0.528, 0.528);
+      expect(ctx.lineWidth).toBeGreaterThanOrEqual(1.36);
+      expect(ctx.lineWidth).toBeLessThanOrEqual(1.37);
+
+      spy.mockRestore();
     });
 
     it('accepts a direct CanvasRenderingContext2D target', () => {
@@ -321,8 +367,15 @@ describe('CardTextureGenerator (Unit Tests)', () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1050;
       canvas.height = 1470;
-      const ctx = canvas.getContext('2d');
-      const fillTextSpy = vi.spyOn(ctx!, 'fillText');
+      const ctx = canvas.getContext('2d')!;
+      const fillTextSpy = vi.spyOn(ctx, 'fillText');
+
+      const fillStylesUsed: string[] = [];
+      const originalDrawRoundedRect = CardTextureGenerator.drawRoundedRect;
+      vi.spyOn(CardTextureGenerator, 'drawRoundedRect').mockImplementation((...args) => {
+        fillStylesUsed.push(String(ctx.fillStyle));
+        return originalDrawRoundedRect.apply(CardTextureGenerator, args);
+      });
 
       CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
         veilOpacity: 1.0,
@@ -335,14 +388,33 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         expect.any(Number),
         expect.any(Number)
       );
+
+      // Frosted shroud overlay fill must use deep pitch obsidian rgba(2, 2, 4, ...) instead of outdated rgba(7, 7, 11, ...)
+      const usesDeepPitchObsidianShroud = fillStylesUsed.some((style) =>
+        /rgba\(\s*2,\s*2,\s*4\s*,/i.test(style)
+      );
+      expect(usesDeepPitchObsidianShroud).toBe(true);
+
+      const usesOutdatedShading = fillStylesUsed.some((style) =>
+        /rgba\(\s*7,\s*7,\s*11\s*,/i.test(style)
+      );
+      expect(usesOutdatedShading).toBe(false);
+
+      vi.restoreAllMocks();
     });
 
     it('renders diagonal holographic foil wipe when foilWipeProgress is active (0 < p < 1)', () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1050;
       canvas.height = 1470;
-      const ctx = canvas.getContext('2d');
-      const createLinearGradientSpy = vi.spyOn(ctx!, 'createLinearGradient');
+      const ctx = canvas.getContext('2d')!;
+      const createLinearGradientSpy = vi.spyOn(ctx, 'createLinearGradient');
+
+      const fillStylesUsed: string[] = [];
+      const originalFillRect = ctx.fillRect;
+      ctx.fillRect = vi.fn((..._args: unknown[]) => {
+        fillStylesUsed.push(String(ctx.fillStyle));
+      });
 
       CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
         veilOpacity: 0.5,
@@ -351,6 +423,15 @@ describe('CardTextureGenerator (Unit Tests)', () => {
 
       // Linear gradient for diagonal foil wipe should be constructed
       expect(createLinearGradientSpy).toHaveBeenCalled();
+
+      // Frosted obsidian base fill must use rgba(2, 2, 4, ...) instead of rgba(7, 7, 11, ...)
+      const usesDeepPitchObsidian = fillStylesUsed.some((style) =>
+        /rgba\(\s*2,\s*2,\s*4\s*,/i.test(style)
+      );
+      expect(usesDeepPitchObsidian).toBe(true);
+
+      ctx.fillRect = originalFillRect;
+      vi.restoreAllMocks();
     });
 
     it('does not render frosted obsidian shroud when veilOpacity is 0', () => {
@@ -427,6 +508,58 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         spy.mockRestore();
       });
 
+      it('renders dark radial obsidian gradient on front card face matching the back side', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d')!;
+        const radialSpy = vi.spyOn(ctx, 'createRadialGradient');
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme);
+
+        // Should use radial gradient centered at (525, 735) matching back side
+        expect(radialSpy).toHaveBeenCalledWith(525, 735, 120, 525, 735, 800);
+
+        const mockGrad = radialSpy.mock.results[0]?.value;
+        expect(mockGrad).toBeDefined();
+        expect(mockGrad.addColorStop).toHaveBeenCalledWith(0, '#08080b');
+        expect(mockGrad.addColorStop).toHaveBeenCalledWith(0.5, '#040406');
+        expect(mockGrad.addColorStop).toHaveBeenCalledWith(1.0, '#010102');
+
+        radialSpy.mockRestore();
+      });
+
+      it('renders internal front face surfaces with darker recessed obsidian shades', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d')!;
+
+        const fillStylesUsed: string[] = [];
+        const originalDrawRoundedRect = CardTextureGenerator.drawRoundedRect;
+        vi.spyOn(CardTextureGenerator, 'drawRoundedRect').mockImplementation((...args) => {
+          fillStylesUsed.push(String(ctx.fillStyle));
+          return originalDrawRoundedRect.apply(CardTextureGenerator, args);
+        });
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme);
+
+        // Boxed identity & skills (surface container) and stat columns must use pitch obsidian fills with high opacity (>= 0.85)
+        const hasDarkRecessedObsidian = fillStylesUsed.some((style) => {
+          const match = style.match(/rgba\(\s*(?:2,\s*2,\s*4|3,\s*3,\s*5)\s*,\s*([0-9.]+)\s*\)/i);
+          return match ? parseFloat(match[1]) >= 0.85 : false;
+        });
+        expect(hasDarkRecessedObsidian).toBe(true);
+
+        // Faint gold surface wash should no longer be used as surface container background
+        const usesFaintGoldSurface = fillStylesUsed.some((style) =>
+          /rgba\(255,\s*215,\s*0,\s*0\.02\)/i.test(style)
+        );
+        expect(usesFaintGoldSurface).toBe(false);
+
+        vi.restoreAllMocks();
+      });
+
       it('does NOT render the 4 corner crosshairs/stars (+) on the front card face corners', () => {
         const canvas = document.createElement('canvas');
         canvas.width = 1050;
@@ -492,6 +625,34 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         expect(call[1]).toBe(56); // dx
         expect(call[3]).toBe(938); // dw
         expect(call[4]).toBe(938); // dh
+      });
+
+      it('centers the user face in the portrait window with top-third anchoring (dy offset at 20% vertical overflow)', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d')!;
+        const drawImageSpy = vi.spyOn(ctx, 'drawImage');
+
+        const fakeSquareImage = {
+          naturalWidth: 1000,
+          naturalHeight: 1000,
+          complete: true,
+        } as unknown as HTMLImageElement;
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme, {
+          imageElement: fakeSquareImage,
+        });
+
+        expect(drawImageSpy).toHaveBeenCalled();
+        const call = drawImageSpy.mock.calls[0];
+        const dy = call[2] as number;
+        // Expected dy: portraitY + (portraitH - dh) * 0.20 = 160 + (520 - 938) * 0.20 = 76.4
+        const expectedDy = 160 + (520 - 938) * 0.20; // 76.4
+        expect(Math.abs(dy - expectedDy)).toBeLessThanOrEqual(5);
+        expect(dy).not.toBeCloseTo(-49, 0);
+
+        drawImageSpy.mockRestore();
       });
 
       it('renders enlarged candidate name typography (44px) and enlarged RARE EDITION badge (180x44)', () => {

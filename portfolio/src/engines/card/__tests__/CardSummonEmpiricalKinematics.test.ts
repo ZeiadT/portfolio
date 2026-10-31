@@ -377,15 +377,15 @@ describe('Empirical Kinematics Challenger: CardSummonEngine & ThreeCardModel', (
     expect(modal).not.toBeNull();
     expect(cardEl).not.toBeNull();
 
-    vi.spyOn(modal!, 'getBoundingClientRect').mockReturnValue({
-      left: 0,
-      top: 0,
-      width: 800,
-      height: 600,
-      right: 800,
-      bottom: 600,
-      x: 0,
-      y: 0,
+    vi.spyOn(cardEl!, 'getBoundingClientRect').mockReturnValue({
+      left: 200,
+      top: 100,
+      width: 400,
+      height: 400,
+      right: 600,
+      bottom: 500,
+      x: 200,
+      y: 100,
       toJSON: () => {},
     });
 
@@ -401,17 +401,17 @@ describe('Empirical Kinematics Challenger: CardSummonEngine & ThreeCardModel', (
     expect(idleTween?.vars.ease).toBe('sine.inOut');
     expect(idleTween?.duration()).toBe(3.6);
 
-    // Parallax damping tests across full cursor excursion:
+    // Parallax damping tests across full cursor excursion on cardEl:
     const testPoints = [
-      { clientX: 0, clientY: 0 },       // top-left
-      { clientX: 800, clientY: 600 },   // bottom-right
-      { clientX: 400, clientY: 300 },   // center
-      { clientX: 800, clientY: 0 },     // top-right
-      { clientX: 0, clientY: 600 },     // bottom-left
+      { clientX: 200, clientY: 100 },       // top-left
+      { clientX: 600, clientY: 500 },       // bottom-right
+      { clientX: 400, clientY: 300 },       // center
+      { clientX: 600, clientY: 100 },       // top-right
+      { clientX: 200, clientY: 500 },       // bottom-left
     ];
 
     for (const pt of testPoints) {
-      modal?.dispatchEvent(new PointerEvent('pointermove', { clientX: pt.clientX, clientY: pt.clientY, bubbles: true }));
+      cardEl?.dispatchEvent(new PointerEvent('pointermove', { clientX: pt.clientX, clientY: pt.clientY, bubbles: true }));
       expect(idleTween?.paused()).toBe(true);
 
       // Fast-forward any active gsap tweens on card
@@ -428,8 +428,8 @@ describe('Empirical Kinematics Challenger: CardSummonEngine & ThreeCardModel', (
       expect(Math.abs(rotX)).toBeLessThanOrEqual(15.0);
     }
 
-    // Leave modal: returns to resting position and resumes idle float
-    modal?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
+    // Leave card: returns to resting position and resumes idle float
+    cardEl?.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }));
     expect(idleTween?.paused()).toBe(false);
   });
 

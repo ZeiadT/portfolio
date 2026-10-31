@@ -383,17 +383,17 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(sheenLight).toBeUndefined();
     });
 
-    it('uses a luxury satin/matte finish on frontMaterial (roughness >= 0.8, metalness <= 0.1) preventing mirror glare', () => {
+    it('uses calibrated roughness and subtle metalness on frontMaterial preserving deep obsidian shades without mirror glare', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
       const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
       const frontMat = (slabMesh.material as THREE.MeshStandardMaterial[])[1];
 
       expect(frontMat).toBeDefined();
-      expect(frontMat.roughness).toBeGreaterThanOrEqual(0.8);
-      expect(frontMat.metalness).toBeLessThanOrEqual(0.1);
+      expect(frontMat.roughness).toBeCloseTo(0.35, 2);
+      expect(frontMat.metalness).toBeCloseTo(0.15, 2);
     });
 
-    it('sets up distributed studio lighting (ambient >= 1.3) avoiding direct mirror hotspots', () => {
+    it('sets up distributed studio lighting with calibrated ambient light (intensity ~0.85) to preserve deep contrast', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
       model.mount(container);
 
@@ -402,7 +402,7 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
 
       const ambient = scene.children.find((c) => (c as THREE.AmbientLight).isAmbientLight) as THREE.AmbientLight;
       expect(ambient).toBeDefined();
-      expect(ambient.intensity).toBeGreaterThanOrEqual(1.3);
+      expect(ambient.intensity).toBeCloseTo(0.85, 2);
 
       const directionalLights = scene.children.filter((c) => (c as THREE.DirectionalLight).isDirectionalLight) as THREE.DirectionalLight[];
       // Has angled key, bounce, and rim lights
@@ -516,7 +516,7 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
 
   describe('4. CardTextureGenerator', () => {
     describe('generateGoldenCardBackSvg', () => {
-      it('returns high-resolution SVG string with guilloche, filigree, and celestial crest', () => {
+      it('returns high-resolution SVG string with etched pattern and glowing celestial crest', () => {
         const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
 
         expect(typeof svg).toBe('string');
@@ -526,14 +526,11 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
         // Check 3x Retina resolution or viewBox (1050x1470)
         expect(svg).toMatch(/viewBox=["']0 0 1050 1470["']|width=["']1050["']/);
 
-        // Check for guilloche concentric curves / geometry
-        expect(svg).toMatch(/guilloche|<path|<circle/i);
+        // Check for etched pattern with radial mask
+        expect(svg).toContain('data-summon-card-etched-pattern');
 
-        // Check for 4 corner filigree accents
-        expect(svg).toMatch(/filigree|corner/i);
-
-        // Check for celestial crest / radiating rings
-        expect(svg).toMatch(/crest|celestial|ring/i);
+        // Check for celestial crest with golden glow
+        expect(svg).toContain('data-summon-card-crest');
 
         // Check gold metallic palette definitions
         expect(svg).toMatch(/#e5b85c|#d4af37|#ffd700|#8a6d2b|gold/i);

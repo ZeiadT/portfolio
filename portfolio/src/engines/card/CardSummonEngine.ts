@@ -398,6 +398,19 @@ export class CardSummonEngine implements Engine {
             <stop offset="50%" stop-color="${coreColor}" stop-opacity="1" />
             <stop offset="100%" stop-color="${primaryColor}" stop-opacity="0.8" />
           </linearGradient>
+          <linearGradient id="${sigilId}-gold-foil" x1="15%" y1="0%" x2="85%" y2="100%">
+            <stop offset="0%" stop-color="#735518" />
+            <stop offset="18%" stop-color="#b88d2c" />
+            <stop offset="35%" stop-color="#fdf0a6" />
+            <stop offset="48%" stop-color="#ffffff" />
+            <stop offset="55%" stop-color="#fff4b8" />
+            <stop offset="72%" stop-color="#cda036" />
+            <stop offset="88%" stop-color="#8f6b1e" />
+            <stop offset="100%" stop-color="#5a4110" />
+          </linearGradient>
+          <filter id="${sigilId}-paper-emboss" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#000000" flood-opacity="0.85" />
+          </filter>
           <radialGradient id="${sigilId}-glow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stop-color="${coreColor}" stop-opacity="0.9" />
             <stop offset="40%" stop-color="${primaryColor}" stop-opacity="0.6" />
@@ -408,146 +421,42 @@ export class CardSummonEngine implements Engine {
             <stop offset="50%" stop-color="${primaryColor}" stop-opacity="0.4" />
             <stop offset="100%" stop-color="${coreColor}" stop-opacity="0.2" />
           </linearGradient>
-          <pattern id="${sigilId}-guilloche" width="28" height="28" patternUnits="userSpaceOnUse">
-            <path d="M 0 14 L 14 0 L 28 14 L 14 28 Z" fill="none" stroke="${coreColor}" stroke-opacity="0.04" stroke-width="0.8" />
-            <circle cx="14" cy="14" r="1.2" fill="${primaryColor}" fill-opacity="0.15" />
-            <path d="M 0 0 L 28 28 M 28 0 L 0 28" stroke="${primaryColor}" stroke-opacity="0.03" stroke-width="0.5" />
-          </pattern>
+          <linearGradient id="${sigilId}-etched" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#050508" stop-opacity="0.95" />
+            <stop offset="50%" stop-color="#030305" stop-opacity="0.9" />
+            <stop offset="100%" stop-color="#020204" stop-opacity="0.85" />
+          </linearGradient>
+          <radialGradient id="${sigilId}-radial-mask-grad" cx="175" cy="245" r="200" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#000000" />
+            <stop offset="15%" stop-color="#141414" />
+            <stop offset="35%" stop-color="#454545" />
+            <stop offset="60%" stop-color="#8a8a8a" />
+            <stop offset="85%" stop-color="#d0d0d0" />
+            <stop offset="100%" stop-color="#ffffff" />
+          </radialGradient>
+          <mask id="${sigilId}-pattern-radial-mask">
+            <rect width="350" height="490" fill="url(#${sigilId}-radial-mask-grad)" />
+          </mask>
         </defs>
 
-        <!-- Obsidian Glass Surface -->
+        <!-- Obsidian Glass Surface (350x490, R=24) -->
         <rect width="350" height="490" rx="24" fill="url(#${sigilId}-bg)" />
-        <rect x="12" y="12" width="326" height="466" rx="16" fill="url(#${sigilId}-guilloche)" />
 
-        <!-- Outer Obsidian & Metallic Frame (Concentric: 24 - 12 = 12, 24 - 18 = 6) -->
+        <!-- Outer Obsidian & Metallic Frame (Concentric: 24 - 8 = 16, 24 - 12 = 12) -->
         <g data-summon-card-back-frame>
-          <rect x="12" y="12" width="326" height="466" rx="12" fill="none" stroke="url(#${sigilId}-border)" stroke-width="1.5" />
-          <rect x="18" y="18" width="314" height="454" rx="6" fill="none" stroke="${primaryColor}" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="6 4" />
+          <rect x="8" y="8" width="334" height="474" rx="16" fill="none" stroke="url(#${sigilId}-border)" stroke-width="1.5" />
+          <rect x="12" y="12" width="326" height="466" rx="12" fill="none" stroke="${primaryColor}" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="6 4" />
         </g>
 
-        <!-- Sacred Geometry & Celestial Star Constellations (fills negative space) -->
-        <g data-summon-card-pattern>
-          <!-- Radiating Celestial Rays from Center -->
-          <g stroke="url(#${sigilId}-border)" stroke-width="0.75" stroke-dasharray="4 6" opacity="0.35">
-            <line x1="175" y1="245" x2="45" y2="75" />
-            <line x1="175" y1="245" x2="305" y2="75" />
-            <line x1="175" y1="245" x2="45" y2="415" />
-            <line x1="175" y1="245" x2="305" y2="415" />
-            <line x1="175" y1="245" x2="175" y2="40" />
-            <line x1="175" y1="245" x2="175" y2="450" />
-            <line x1="175" y1="245" x2="30" y2="245" />
-            <line x1="175" y1="245" x2="320" y2="245" />
-          </g>
-
-          <!-- Outer Astrological Orbit Arcs -->
-          <circle cx="175" cy="245" r="125" fill="none" stroke="${primaryColor}" stroke-opacity="0.18" stroke-width="0.8" stroke-dasharray="8 6" />
-          <circle cx="175" cy="245" r="148" fill="none" stroke="${coreColor}" stroke-opacity="0.12" stroke-width="0.6" stroke-dasharray="2 8" />
-
-          <!-- Top-Left Quadrant Constellation -->
-          <g transform="translate(85, 115)">
-            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
-            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
-            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
-            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
-            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
-            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
-          </g>
-
-          <!-- Top-Right Quadrant Constellation -->
-          <g transform="translate(265, 115) scale(-1, 1)">
-            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
-            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
-            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
-            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
-            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
-            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
-          </g>
-
-          <!-- Bottom-Left Quadrant Constellation -->
-          <g transform="translate(85, 375) scale(1, -1)">
-            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
-            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
-            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
-            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
-            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
-            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
-          </g>
-
-          <!-- Bottom-Right Quadrant Constellation -->
-          <g transform="translate(265, 375) scale(-1, -1)">
-            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
-            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
-            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
-            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
-            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
-            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
-          </g>
-
-          <!-- Flank Diamond Star Nodes (Left & Right margins) -->
-          <g transform="translate(48, 245)">
-            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
-            <line x1="0" y1="-14" x2="0" y2="14" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
-          </g>
-          <g transform="translate(302, 245)">
-            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
-            <line x1="0" y1="-14" x2="0" y2="14" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
-          </g>
-
-          <!-- Top and Bottom Cardinal Diamond Nodes -->
-          <g transform="translate(175, 48)">
-            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
-            <line x1="-14" y1="0" x2="14" y2="0" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
-          </g>
-          <g transform="translate(175, 442)">
-            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
-            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
-            <line x1="-14" y1="0" x2="14" y2="0" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
-          </g>
+        <!-- Etched Doodle Pattern Background with Smooth Inward Radial Fade (Black-on-Black) -->
+        <g data-summon-card-etched-pattern mask="url(#${sigilId}-pattern-radial-mask)">
+          <path d="${CardTextureGenerator.CARD_BACK_PATTERN_PATH}" transform="translate(0.5, -17) scale(0.47554)" fill="#000000" fill-opacity="0.85" fill-rule="evenodd" />
+          <path d="${CardTextureGenerator.CARD_BACK_PATTERN_PATH}" transform="translate(0, -17.5) scale(0.47554)" fill="url(#${sigilId}-etched)" fill-rule="evenodd" />
         </g>
 
-        <!-- 4 Symmetrical Corner Filigrees -->
-        <g data-summon-card-filigree transform="translate(24, 24)">
-          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
-          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
-          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
-        </g>
-        <g data-summon-card-filigree transform="translate(326, 24) scale(-1, 1)">
-          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
-          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
-          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
-        </g>
-        <g data-summon-card-filigree transform="translate(24, 466) scale(1, -1)">
-          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
-          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
-          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
-        </g>
-        <g data-summon-card-filigree transform="translate(326, 466) scale(-1, -1)">
-          <path d="M 0 35 L 0 10 Q 0 0 10 0 L 35 0 Q 15 5 10 10 Q 5 15 0 35 Z" fill="${primaryColor}" fill-opacity="0.4" />
-          <path d="M 4 28 C 4 14 14 4 28 4 M 10 18 C 10 12 12 10 18 10" stroke="${coreColor}" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8" />
-          <circle cx="8" cy="8" r="2.5" fill="${primaryColor}" />
-        </g>
-
-        <!-- Concentric Halo Rings & Radiating Celestial Notches -->
-        <g data-summon-card-halo transform="translate(175, 245)">
-          <circle cx="0" cy="0" r="95" fill="none" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="1" stroke-dasharray="3 6" />
-          <circle cx="0" cy="0" r="82" fill="none" stroke="${coreColor}" stroke-opacity="0.5" stroke-width="1.2" />
-          <circle cx="0" cy="0" r="68" fill="none" stroke="${primaryColor}" stroke-opacity="0.6" stroke-width="1" stroke-dasharray="12 4 4 4" />
-          <circle cx="0" cy="0" r="52" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="1" />
-          <path d="M 0 -98 L 0 -88 M 0 88 L 0 98 M -98 0 L -88 0 M 88 0 L 98 0" stroke="${coreColor}" stroke-width="1.5" stroke-linecap="round" />
-          <path d="M -69 -69 L -62 -62 M 62 62 L 69 69 M 69 -69 L 62 -62 M -62 62 L -69 69" stroke="${primaryColor}" stroke-width="1.2" stroke-linecap="round" />
-        </g>
-
-        <!-- Central Glowing Star Crest -->
-        <g data-summon-card-crest transform="translate(175, 245)">
-          <circle cx="0" cy="0" r="44" fill="url(#${sigilId}-glow)" />
-          <path d="${CardTextureGenerator.STAR_CREST_PATH}" transform="scale(0.16) translate(-300, -300)" fill="url(#${sigilId}-energy)" stroke="${coreColor}" stroke-width="1.5" fill-rule="evenodd" />
+        <!-- Central Reflective Golden Paper Star Crest (Tactile Emboss without Neon Halo) -->
+        <g data-summon-card-crest transform="translate(175, 245)" filter="url(#${sigilId}-paper-emboss)">
+          <path d="${CardTextureGenerator.STAR_CREST_PATH}" transform="scale(0.176) translate(-300, -300)" fill="url(#${sigilId}-gold-foil)" stroke="#ffd700" stroke-width="0.91" fill-rule="evenodd" />
         </g>
       </svg>
     `;
@@ -595,7 +504,7 @@ export class CardSummonEngine implements Engine {
     // Frosted Obsidian Glass Concealment Veil
     const frontMask = document.createElement('div');
     frontMask.setAttribute('data-summon-card-front-mask', '');
-    frontMask.className = 'absolute inset-0 z-20 rounded-3xl overflow-hidden pointer-events-none select-none backdrop-blur-xl bg-neutral-950/80';
+    frontMask.className = 'absolute inset-0 z-20 rounded-3xl overflow-hidden pointer-events-none select-none backdrop-blur-xl bg-[#020204]/90';
 
     const sheen = document.createElement('div');
     sheen.setAttribute('data-summon-card-front-sheen', '');
@@ -674,7 +583,8 @@ export class CardSummonEngine implements Engine {
       if (
         (e.target as HTMLElement).closest('[data-summon-close]') ||
         (e.target as HTMLElement).closest('[data-summon-flip]') ||
-        (e.target as HTMLElement).closest('[data-summon-backdrop]')
+        (e.target as HTMLElement).closest('[data-summon-backdrop]') ||
+        (e.target as HTMLElement).closest('[data-summon-card]')
       ) {
         return;
       }
@@ -690,7 +600,7 @@ export class CardSummonEngine implements Engine {
     };
     window.addEventListener('keydown', this.boundOnKeyDown);
 
-    // Attach 3D parallax tilt listeners to modal
+    // Attach 3D parallax tilt listeners to card
     this.boundOnPointerMove = (e: PointerEvent) => {
       if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
         return;
@@ -702,8 +612,8 @@ export class CardSummonEngine implements Engine {
           return;
         }
       }
-      if (!this.cardEl || !this.modalEl) return;
-      const rect = this.modalEl.getBoundingClientRect();
+      if (!this.cardEl) return;
+      const rect = this.cardEl.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
       const x = (e.clientX - rect.left) / rect.width - 0.5;
       const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -727,7 +637,7 @@ export class CardSummonEngine implements Engine {
         },
       });
     };
-    modal.addEventListener('pointermove', this.boundOnPointerMove);
+    card.addEventListener('pointermove', this.boundOnPointerMove);
 
     this.boundOnPointerLeave = () => {
       if (!this.cardEl) return;
@@ -745,7 +655,7 @@ export class CardSummonEngine implements Engine {
         },
       });
     };
-    modal.addEventListener('pointerleave', this.boundOnPointerLeave);
+    card.addEventListener('pointerleave', this.boundOnPointerLeave);
 
     // Dismissal prompt ("Click anywhere to close")
     const dismissHint = document.createElement('div');
@@ -756,10 +666,11 @@ export class CardSummonEngine implements Engine {
     modal.appendChild(dismissHint);
     this.dismissHintEl = dismissHint;
 
-    // Clicking card directly closes the dialog once settled
-    this.boundOnCardClick = () => {
-      if (!this.isSettled) return;
-      this.close();
+    // Clicking card directly flips the card once settled
+    this.boundOnCardClick = (e: MouseEvent) => {
+      e.stopPropagation();
+      if (!this.isSettled || this.isDismissing) return;
+      this.flipCard();
     };
     card.addEventListener('click', this.boundOnCardClick);
 
@@ -1114,32 +1025,17 @@ export class CardSummonEngine implements Engine {
       },
     });
 
-    // 1. Card descent: animates back down towards bottom edge where it came from (yPercent: 120, scale: 0.6, opacity: 0)
+    // 1. Card descent: animates straight down towards bottom edge without transforming size or fading
     if (this.cardEl) {
       this.closeTimeline.to(
         this.cardEl,
         {
-          yPercent: 120,
-          scale: 0.6,
-          opacity: 0,
+          yPercent: 130,
           duration: 0.45,
           ease: 'power2.in',
           onUpdate: () => {
             this.syncThreeCardModel();
           },
-        },
-        0
-      );
-    }
-
-    // 2. Card stage fade: ensures Three.js WebGL canvas dissolves smoothly in lockstep
-    if (this.cardStageEl) {
-      this.closeTimeline.to(
-        this.cardStageEl,
-        {
-          opacity: 0,
-          duration: 0.45,
-          ease: 'power2.in',
         },
         0
       );
@@ -1265,10 +1161,16 @@ export class CardSummonEngine implements Engine {
     }
     if (this.modalEl && this.boundOnPointerMove) {
       this.modalEl.removeEventListener('pointermove', this.boundOnPointerMove);
-      this.boundOnPointerMove = null;
     }
     if (this.modalEl && this.boundOnPointerLeave) {
       this.modalEl.removeEventListener('pointerleave', this.boundOnPointerLeave);
+    }
+    if (this.cardEl && this.boundOnPointerMove) {
+      this.cardEl.removeEventListener('pointermove', this.boundOnPointerMove);
+      this.boundOnPointerMove = null;
+    }
+    if (this.cardEl && this.boundOnPointerLeave) {
+      this.cardEl.removeEventListener('pointerleave', this.boundOnPointerLeave);
       this.boundOnPointerLeave = null;
     }
     if (this.modalEl && this.boundOnModalClick) {
