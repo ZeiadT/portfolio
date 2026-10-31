@@ -25,6 +25,8 @@ const DEFAULT_CARD_DATA: CardSummonData = {
   },
 };
 
+const VEIL_COLOR = new THREE.Color(0x0a0a14);
+
 /**
  * Creates a centered 2D rounded rectangle shape.
  */
@@ -50,20 +52,6 @@ function createRoundedRectShape(width: number, height: number, radius: number): 
 }
 
 /**
- * Normalizes vertex UV coordinates of a ShapeGeometry to [0, 1] range.
- */
-function normalizeShapeUVs(geometry: THREE.BufferGeometry, width: number, height: number): void {
-  const uvAttr = geometry.attributes.uv;
-  if (!uvAttr) return;
-  for (let i = 0; i < uvAttr.count; i++) {
-    const u = uvAttr.getX(i);
-    const v = uvAttr.getY(i);
-    uvAttr.setXY(i, (u + width / 2) / width, (v + height / 2) / height);
-  }
-  uvAttr.needsUpdate = true;
-}
-
-/**
  * ThreeCardModel
  *
  * Hardware-accelerated 3D Physical Card Model built with Three.js.
@@ -71,7 +59,7 @@ function normalizeShapeUVs(geometry: THREE.BufferGeometry, width: number, height
  * - Extruded physical slab geometry with beveled gilded metallic gold edges
  * - High-DPI editorial front face texture
  * - Opulent gilded gold guilloche & celestial crest back face texture
- * - Frosted obsidian reveal veil with dynamic opacity transitions
+ * - Frosted obsidian reveal veil (tint on the front face material)
  * - Specular sheen highlight progression controls
  * - Full engine lifecycle (mount, resize, destroy) with zero-leak resource disposal
  */
@@ -94,7 +82,7 @@ export class ThreeCardModel {
 
   private frontTexture: THREE.CanvasTexture | null = null;
   private backTexture: THREE.CanvasTexture | null = null;
-  private veilMesh: THREE.Mesh | null = null;
+  private frontMaterial: THREE.MeshStandardMaterial | null = null;
 
   private veilOpacity: number = 1.0;
   private sheenProgress: number = 0;
@@ -108,11 +96,8 @@ export class ThreeCardModel {
   }
 
   /**
-   * Constructs the 3D card assembly within cardGroup:
-   * 1. card-slab: Extruded rounded slab with beveled gilded gold edges
-   * 2. card-front: Front face mesh displaying high-DPI canvas texture (+Z exterior)
-   * 3. card-back: Back face mesh displaying golden guilloche texture (-Z exterior, rotated 180° on Y)
-   * 4. card-veil: Frosted obsidian overlay mesh (+Z exterior)
+   * Constructs the 3D card as a single extruded slab mesh with materials
+   * [gilded gold edge, front face texture (-Z cap), golden back texture (+Z cap)].
    */
   private buildCardAssembly(): void {
     const width = ThreeCardModel.CARD_WIDTH;
@@ -139,65 +124,54 @@ export class ThreeCardModel {
       name: 'gilded-gold',
     });
 
-    const slabMesh = new THREE.Mesh(slabGeometry, slabMaterial);
-    slabMesh.name = 'card-slab';
-    this.cardGroup.add(slabMesh);
-
-    // 2. Front Face
+    // 2. Faces drawn straight onto the slab caps: materials [gold edge, front, back]
     this.frontTexture = CardTextureGenerator.generateFrontCardTexture(this.cardData, this.theme);
-    const frontGeometry = new THREE.ShapeGeometry(shape);
-    normalizeShapeUVs(frontGeometry, width, height);
-
-    const frontMaterial = new THREE.MeshStandardMaterial({
+    this.backTexture = CardTextureGenerator.generateGoldenCardBackTexture(this.theme);
+    this.frontMaterial = new THREE.MeshStandardMaterial({
       map: this.frontTexture,
       roughness: 0.35,
       metalness: 0.1,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1,
     });
-
-    const frontMesh = new THREE.Mesh(frontGeometry, frontMaterial);
-    frontMesh.name = 'card-front';
-    frontMesh.position.z = 0.0425;
-    this.cardGroup.add(frontMesh);
-
-    // 3. Back Face (rotated 180° on Y)
-    this.backTexture = CardTextureGenerator.generateGoldenCardBackTexture(this.theme);
-    const backGeometry = new THREE.ShapeGeometry(shape);
-    normalizeShapeUVs(backGeometry, width, height);
-
     const backMaterial = new THREE.MeshStandardMaterial({
       map: this.backTexture,
       roughness: 0.3,
       metalness: 0.3,
-      polygonOffset: true,
-      polygonOffsetFactor: -1,
-      polygonOffsetUnits: -1,
     });
 
-    const backMesh = new THREE.Mesh(backGeometry, backMaterial);
-    backMesh.name = 'card-back';
-    backMesh.position.z = -0.0425;
-    backMesh.rotation.y = Math.PI;
-    this.cardGroup.add(backMesh);
+    // ExtrudeGeometry (non-indexed) puts both caps in group 0 and sides in group 1.
+    // Split caps by Z and normalize their UVs. The engine rests at rotationY = PI,
+    // so the -Z cap is the front (U mirrored to read correctly from behind).
+    const pos = slabGeometry.attributes.position;
+    const uv = slabGeometry.attributes.uv;
+    const sourceGroups = slabGeometry.groups.slice();
+    slabGeometry.clearGroups();
+    for (const g of sourceGroups) {
+      if (g.materialIndex !== 0) {
+        slabGeometry.addGroup(g.start, g.count, 0);
+        continue;
+      }
+      for (let t = g.start; t < g.start + g.count; t += 3) {
+        const isFront = pos.getZ(t) < 0;
+        const materialIndex = isFront ? 1 : 2;
+        for (let i = t; i < t + 3; i++) {
+          const u = (pos.getX(i) + width / 2) / width;
+          uv.setXY(i, isFront ? 1 - u : u, (pos.getY(i) + height / 2) / height);
+        }
+        const last = slabGeometry.groups[slabGeometry.groups.length - 1];
+        if (last && last.materialIndex === materialIndex && last.start + last.count === t) {
+          last.count += 3;
+        } else {
+          slabGeometry.addGroup(t, 3, materialIndex);
+        }
+      }
+    }
+    uv.needsUpdate = true;
 
-    // 4. Veil Overlay
-    const veilGeometry = new THREE.ShapeGeometry(shape);
-    normalizeShapeUVs(veilGeometry, width, height);
+    const slabMesh = new THREE.Mesh(slabGeometry, [slabMaterial, this.frontMaterial, backMaterial]);
+    slabMesh.name = 'card-slab';
+    this.cardGroup.add(slabMesh);
 
-    const veilMaterial = new THREE.MeshBasicMaterial({
-      color: 0x0a0a14,
-      transparent: true,
-      opacity: this.veilOpacity * 0.75,
-      depthWrite: false,
-    });
-
-    this.veilMesh = new THREE.Mesh(veilGeometry, veilMaterial);
-    this.veilMesh.name = 'card-veil';
-    this.veilMesh.position.z = 0.0435;
-    this.veilMesh.visible = this.veilOpacity > 0.001;
-    this.cardGroup.add(this.veilMesh);
+    this.setVeilOpacity(this.veilOpacity);
   }
 
   /**
@@ -213,7 +187,7 @@ export class ThreeCardModel {
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
-    this.camera.position.set(0, 0, 7);
+    this.camera.position.set(0, 0, 8);
 
     // Lighting setup
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
@@ -341,11 +315,8 @@ export class ThreeCardModel {
    */
   public setVeilOpacity(o: number): void {
     this.veilOpacity = Math.max(0, Math.min(1, o));
-    if (this.veilMesh && this.veilMesh.material) {
-      const mat = this.veilMesh.material as THREE.MeshBasicMaterial;
-      mat.opacity = this.veilOpacity * 0.75;
-      this.veilMesh.visible = this.veilOpacity > 0.001;
-    }
+    // Veil is a tint on the front face itself, not a separate layer.
+    this.frontMaterial?.color.setHex(0xffffff).lerp(VEIL_COLOR, this.veilOpacity * 0.75);
   }
 
   public getVeilOpacity(): number {
@@ -426,6 +397,6 @@ export class ThreeCardModel {
     this.scene = null;
     this.camera = null;
     this.container = null;
-    this.veilMesh = null;
+    this.frontMaterial = null;
   }
 }

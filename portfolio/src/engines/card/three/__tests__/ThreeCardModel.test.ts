@@ -150,32 +150,19 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       const slabMesh = model.cardGroup.children.find(
         (child) => (child as THREE.Mesh).geometry && child.name === 'card-slab'
       ) as THREE.Mesh;
-      const frontMesh = model.cardGroup.children.find(
-        (child) => (child as THREE.Mesh).geometry && child.name === 'card-front'
-      ) as THREE.Mesh;
 
       expect(slabMesh).toBeDefined();
-      expect(frontMesh).toBeDefined();
 
       const geomDisposeSpy = vi.spyOn(slabMesh.geometry, 'dispose');
-      const matDisposeSpy = vi.spyOn(
-        Array.isArray(slabMesh.material) ? slabMesh.material[0] : slabMesh.material,
-        'dispose'
-      );
-      const frontGeomSpy = vi.spyOn(frontMesh.geometry, 'dispose');
-      const frontMatSpy = vi.spyOn(
-        Array.isArray(frontMesh.material) ? frontMesh.material[0] : frontMesh.material,
-        'dispose'
-      );
+      const matSpies = (slabMesh.material as THREE.Material[]).map((m) => vi.spyOn(m, 'dispose'));
+      expect(matSpies).toHaveLength(3);
 
       model.destroy();
 
       // Canvas removed from container
       expect(container.contains(canvas)).toBe(false);
       expect(geomDisposeSpy).toHaveBeenCalled();
-      expect(matDisposeSpy).toHaveBeenCalled();
-      expect(frontGeomSpy).toHaveBeenCalled();
-      expect(frontMatSpy).toHaveBeenCalled();
+      matSpies.forEach((spy) => expect(spy).toHaveBeenCalled());
     });
 
     it('safely tolerates redundant destroy() calls (idempotence)', () => {
@@ -233,35 +220,42 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(hexColor).toMatch(/e5b85c|d4af37|ffd700|c59b27|e6be6a/i);
     });
 
-    it('mounts front face mesh at +Z exterior and back face mesh at -Z exterior', () => {
+    it('draws front/back textures directly onto the slab caps (no separate face layers)', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
 
-      const frontMesh = model.cardGroup.children.find(
-        (child) => child.name === 'card-front'
-      ) as THREE.Mesh;
-      const backMesh = model.cardGroup.children.find(
-        (child) => child.name === 'card-back'
-      ) as THREE.Mesh;
+      const names = model.cardGroup.children.map((c) => c.name);
+      expect(names).toEqual(['card-slab']);
 
-      expect(frontMesh).toBeDefined();
-      expect(backMesh).toBeDefined();
-
-      // Front face is on +Z exterior side
-      expect(frontMesh.position.z).toBeGreaterThan(0);
-
-      // Back face is on -Z exterior side
-      expect(backMesh.position.z).toBeLessThan(0);
+      const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
+      const mats = slabMesh.material as THREE.MeshStandardMaterial[];
+      expect(mats).toHaveLength(3);
+      expect(mats[1].map).toBeInstanceOf(THREE.Texture);
+      expect(mats[2].map).toBeInstanceOf(THREE.Texture);
+      expect(mats[1].map).not.toBe(mats[2].map);
     });
 
-    it('rotates back face mesh by 180 degrees (Math.PI) on Y axis for horizontal flip continuity', () => {
+    it('puts the front texture on the -Z cap (seen at rest rotationY = PI) and back on +Z, with [0,1] UVs', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
 
-      const backMesh = model.cardGroup.children.find(
-        (child) => child.name === 'card-back'
-      ) as THREE.Mesh;
+      const geometry = (model.cardGroup.children[0] as THREE.Mesh).geometry;
+      const pos = geometry.attributes.position;
+      const uv = geometry.attributes.uv;
 
-      expect(backMesh).toBeDefined();
-      expect(Math.abs(backMesh.rotation.y)).toBeCloseTo(Math.PI, 4);
+      for (const materialIndex of [1, 2]) {
+        const groups = geometry.groups.filter((g) => g.materialIndex === materialIndex);
+        expect(groups.length).toBeGreaterThan(0);
+        for (const g of groups) {
+          for (let i = g.start; i < g.start + g.count; i++) {
+            const z = pos.getZ(i);
+            if (materialIndex === 1) expect(z).toBeLessThan(0);
+            else expect(z).toBeGreaterThan(0);
+            expect(uv.getX(i)).toBeGreaterThanOrEqual(-1e-6);
+            expect(uv.getX(i)).toBeLessThanOrEqual(1 + 1e-6);
+            expect(uv.getY(i)).toBeGreaterThanOrEqual(-1e-6);
+            expect(uv.getY(i)).toBeLessThanOrEqual(1 + 1e-6);
+          }
+        }
+      }
     });
   });
 
@@ -304,6 +298,17 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
 
       model.setVeilOpacity(-0.5);
       expect(model.getVeilOpacity()).toBeGreaterThanOrEqual(0.0);
+    });
+
+    it('setVeilOpacity tints the front material dark and restores white at 0', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const front = ((model.cardGroup.children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial[])[1];
+
+      model.setVeilOpacity(1);
+      expect(front.color.r).toBeLessThan(0.5);
+
+      model.setVeilOpacity(0);
+      expect(front.color.getHex()).toBe(0xffffff);
     });
 
     it('setSheenProgress(p) updates holographic specular shimmer offset', () => {

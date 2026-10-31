@@ -80,3 +80,22 @@ portfolio/src/engines/card/
   - Vitest test suite: 239/239 passing across 24 test suites in portfolio (`npm --prefix portfolio test`).
   - Production build: `npm --prefix portfolio run build` succeeds cleanly (`tsc && vite build`) in ~3.0s with zero errors.
   - Integration verified: Three.js 3D physical card model fully replaces CSS DOM blur bleed during 3D rotations, accurately preserves 5-phase summon choreography, interactive parallax tilt, smooth flip transitions, and gilded champagne-gold edges.
+
+---
+
+## Revision 2 (2026-10-31): Faces as textures on the slab + zoom out
+
+**Why:** Front/back/veil were separate floating `ShapeGeometry` layers over the slab (buggy: buried faces, z-fighting risk, extra draw calls). User wants the faces drawn onto the 3D model itself, and the card slightly smaller.
+
+**Changes:**
+- Single `card-slab` mesh with material array `[gold edge, front, back]`. ExtrudeGeometry cap group is split per triangle by Z sign; cap UVs normalized to [0,1].
+- Orientation matches the engine: rest pose is `rotationY = p` (front), spin start `0` (back). So the **front texture goes on the -Z cap** (U mirrored so it reads correctly when viewed from behind) and the **back texture on the +Z cap**.
+- Veil mesh removed: `setVeilOpacity` lerps the front material colour from white toward obsidian `0x0a0a14` (×0.75), keeping the same API.
+- Camera pulled back z=7 ? z=8 (~12% smaller card).
+
+**Tests (written first):**
+- Slab has 3 materials; gold at index 0; index 1 maps front texture, index 2 maps back texture.
+- No `card-front` / `card-back` / `card-veil` meshes exist.
+- Front group triangles lie at Z<0, back group at Z>0; cap UVs within [0,1].
+- Veil opacity 1 darkens front material colour; opacity 0 restores white.
+- destroy() disposes slab geometry and all 3 materials.
