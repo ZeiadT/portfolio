@@ -85,7 +85,23 @@ export class ProfileHeader {
     rightHeroCard.className =
       'lg:col-span-5 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center justify-center';
 
-    this.cardSummonEngine = new CardSummonEngine();
+    this.cardSummonEngine = new CardSummonEngine({
+      cardData: {
+        name: 'Zeiad Mohammed',
+        rarity: 'MYTHIC RARE',
+        stars: 5,
+        role: 'Mobile & Frontend Architect',
+        imageSrc: this.data.avatar.src,
+        imageAlt: this.data.avatar.alt,
+        skillName: 'Engineered Precision',
+        skillDescription: 'Orchestrates zero-overhead 60fps reactive motion',
+        stats: {
+          perf: 99,
+          arch: 98,
+          code: 95,
+        },
+      },
+    });
     if (typeof document !== 'undefined' && document.body) {
       this.cardSummonEngine.mount(document.body);
     }

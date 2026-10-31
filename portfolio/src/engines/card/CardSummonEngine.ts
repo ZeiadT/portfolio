@@ -1,8 +1,10 @@
 import type { Engine } from '@/domain/types';
 import { gsap } from 'gsap';
 import type { CardFaceRenderer } from './renderers/CardFaceRenderer';
+import { MythicCardFaceRenderer } from './renderers/MythicCardFaceRenderer';
 
 export type { CardFaceRenderer };
+export { MythicCardFaceRenderer };
 
 export interface CardSummonTheme {
   primaryColor?: string; // default: '#ff4421'
@@ -64,6 +66,10 @@ export class CardSummonEngine implements Engine {
   private cardEl: HTMLElement | null = null;
   private cardBackEl: HTMLElement | null = null;
   private cardFaceEl: HTMLElement | null = null;
+  private frontMaskEl: HTMLElement | null = null;
+  private sheenEl: HTMLElement | null = null;
+  private sheenTween: gsap.core.Tween | null = null;
+  private faceRenderer: CardFaceRenderer;
   private closeBtnEl: HTMLButtonElement | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
@@ -79,6 +85,7 @@ export class CardSummonEngine implements Engine {
 
   constructor(options: CardSummonOptions = {}) {
     this.options = options;
+    this.faceRenderer = this.options.faceRenderer ?? new MythicCardFaceRenderer();
   }
 
   /**
@@ -310,6 +317,70 @@ export class CardSummonEngine implements Engine {
     cardFace.className = 'absolute inset-0 rounded-3xl overflow-hidden pointer-events-none select-none bg-neutral-900 border border-white/20 [backface-visibility:hidden] [transform:rotateY(180deg)]';
     cardFace.style.backfaceVisibility = 'hidden';
     cardFace.style.transform = 'rotateY(180deg)';
+
+    const defaultCardData: CardSummonData = {
+      name: 'Zeiad Mohammed',
+      rarity: 'MYTHIC RARE',
+      stars: 5,
+      role: 'Mobile & Frontend Architect',
+      imageSrc: '/profile.jpg',
+      imageAlt: 'Zeiad Mohammed Portrait',
+      skillName: 'Engineered Precision',
+      skillDescription: 'Orchestrates zero-overhead 60fps reactive motion',
+      stats: {
+        perf: 99,
+        arch: 98,
+        code: 95,
+      },
+    };
+
+    const cardData: CardSummonData = {
+      ...defaultCardData,
+      ...this.options.cardData,
+      stats: {
+        ...defaultCardData.stats,
+        ...this.options.cardData?.stats,
+      },
+    };
+
+    const theme: CardSummonTheme = {
+      primaryColor,
+      coreColor,
+      ...this.options.theme,
+    };
+
+    this.faceRenderer.render(cardFace, cardData, theme);
+
+    // Frosted Obsidian Glass Concealment Veil
+    const frontMask = document.createElement('div');
+    frontMask.setAttribute('data-summon-card-front-mask', '');
+    frontMask.className = 'absolute inset-0 z-20 rounded-3xl overflow-hidden pointer-events-none select-none backdrop-blur-xl bg-neutral-950/80';
+
+    const sheen = document.createElement('div');
+    sheen.setAttribute('data-summon-card-front-sheen', '');
+    sheen.className = 'absolute -inset-[100%] pointer-events-none opacity-40';
+    sheen.style.background = `linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.05) 45%, ${primaryColor}40 50%, rgba(255,255,255,0.4) 52%, rgba(255,255,255,0.05) 55%, transparent 70%)`;
+
+    frontMask.appendChild(sheen);
+    cardFace.appendChild(frontMask);
+
+    this.frontMaskEl = frontMask;
+    this.sheenEl = sheen;
+
+    const isReducedMotion = typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
+    if (!isReducedMotion) {
+      this.sheenTween = gsap.fromTo(
+        sheen,
+        { xPercent: -50, yPercent: -50 },
+        {
+          xPercent: 50,
+          yPercent: 50,
+          duration: 3,
+          ease: 'sine.inOut',
+          repeat: -1,
+        }
+      );
+    }
 
     card.appendChild(cardBack);
     card.appendChild(cardFace);
@@ -616,6 +687,10 @@ export class CardSummonEngine implements Engine {
       this.openTimeline.kill();
       this.openTimeline = null;
     }
+    if (this.sheenTween) {
+      this.sheenTween.kill();
+      this.sheenTween = null;
+    }
     this.container = null;
   }
 
@@ -644,6 +719,19 @@ export class CardSummonEngine implements Engine {
     if (this.openTimeline) {
       this.openTimeline.kill();
       this.openTimeline = null;
+    }
+    if (this.sheenTween) {
+      this.sheenTween.kill();
+      this.sheenTween = null;
+    }
+    if (this.sheenEl) {
+      gsap.killTweensOf(this.sheenEl);
+      this.sheenEl.remove();
+      this.sheenEl = null;
+    }
+    if (this.frontMaskEl) {
+      this.frontMaskEl.remove();
+      this.frontMaskEl = null;
     }
     if (this.flashVeilEl) {
       this.flashVeilEl.remove();

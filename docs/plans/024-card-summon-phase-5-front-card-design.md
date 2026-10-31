@@ -47,9 +47,9 @@
      - Sheen animation does not animate when `prefers-reduced-motion: reduce` is matched.
      - All front face elements, mask, and sheen GSAP tweens cleanly killed and disposed on `close()` and `destroy()`.
 
-- [ ] **Step 1: Add Phase 5 describe block with unit test specifications in `CardSummonEngine.test.ts`**
-- [ ] **Step 2: Run test suite to verify tests fail against current Phase 4 baseline (RED phase)**
-- [ ] **Step 3: Commit Phase 5 test specifications**
+- [x] **Step 1: Add Phase 5 describe block with unit test specifications in `CardSummonEngine.test.ts`**
+- [x] **Step 2: Run test suite to verify tests fail against current Phase 4 baseline (RED phase)**
+- [x] **Step 3: Commit Phase 5 test specifications**
 
 ---
 
@@ -74,9 +74,9 @@
   - Lore block with Name, Skill Title ("Engineered Precision"), and description.
   - Attribute ticker displaying `PERF: 99`, `ARCH: 98`, `CODE: 95` with glowing progress accents.
 
-- [ ] **Step 1: Create `CardFaceRenderer.ts` interface**
-- [ ] **Step 2: Implement `MythicCardFaceRenderer.ts`**
-- [ ] **Step 3: Verify TypeScript compiles without type errors**
+- [x] **Step 1: Create `CardFaceRenderer.ts` interface**
+- [x] **Step 2: Implement `MythicCardFaceRenderer.ts`**
+- [x] **Step 3: Verify TypeScript compiles without type errors**
 
 ---
 
@@ -96,10 +96,10 @@
 - `ProfileHeader`:
   - Passes default Mythic card data and avatar to `CardSummonEngine`.
 
-- [ ] **Step 1: Update `CardSummonEngine.ts` with renderer mounting, concealment mask, and sheen tween**
-- [ ] **Step 2: Update `ProfileHeader.ts` with candidate profile data injection**
-- [ ] **Step 3: Run test suite to verify all Phase 5 tests pass (GREEN phase)**
-- [ ] **Step 4: Commit Phase 5 implementation**
+- [x] **Step 1: Update `CardSummonEngine.ts` with renderer mounting, concealment mask, and sheen tween**
+- [x] **Step 2: Update `ProfileHeader.ts` with candidate profile data injection**
+- [x] **Step 3: Run test suite to verify all Phase 5 tests pass (GREEN phase)**
+- [x] **Step 4: Commit Phase 5 implementation**
 
 ---
 
