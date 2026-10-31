@@ -1378,3 +1378,179 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     expect(shockwave?.className).toContain('md:w-[405px]');
   });
 });
+
+describe('Phase 6: The Radiant Unblur & Flip Reveal', () => {
+  let engine: CardSummonEngine;
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    container = document.createElement('div');
+    container.id = 'app-root';
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (engine) {
+      engine.destroy();
+    }
+  });
+
+  it('choreographs 3D flip reveal at apex climax (1.25s), transitioning card from back (-180deg) to front (0deg)', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // At apex freeze (t = 1.15s), card is facing back at rotationY -180
+    tl?.seek(1.15);
+    const apexRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
+    expect(apexRotY).toBe(-180);
+
+    // At t = 1.45s, card has flipped towards 0deg
+    tl?.seek(1.45);
+    const flippedRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
+    expect(flippedRotY).toBe(0);
+
+    // At settle (progress 1), card rests firmly at 0deg
+    tl?.progress(1);
+    expect(Math.round(Number(gsap.getProperty(card, 'rotationY')))).toBe(0);
+  });
+
+  it('melts frosted concealment veil to opacity 0 during reveal and sweeps specular sheen across front face', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
+    const sheen = document.querySelector<HTMLElement>('[data-summon-card-front-sheen]');
+    expect(mask).not.toBeNull();
+    expect(sheen).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // At climax start (t = 1.25s), mask is still fully opaque (1.0)
+    tl?.seek(1.25);
+    expect(Number(gsap.getProperty(mask, 'opacity'))).toBeGreaterThan(0.9);
+
+    // At timeline completion, mask has melted to 0 and engine reports unblurred
+    tl?.progress(1);
+    expect(Number(gsap.getProperty(mask, 'opacity'))).toBe(0);
+    expect(engine.isMaskConcealed()).toBe(false);
+  });
+
+  it('animates 5 gold stars and stat progress bars upon reveal', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const stars = document.querySelectorAll<HTMLElement>('[data-summon-star]');
+    expect(stars.length).toBe(5);
+
+    const statFills = document.querySelectorAll<HTMLElement>('[data-summon-stat-bar-fill]');
+    expect(statFills.length).toBe(3);
+
+    const tl = engine.getTimeline();
+    expect(tl).not.toBeNull();
+
+    // Before reveal (t = 1.25s), stat bars are at 0%
+    tl?.seek(1.25);
+    statFills.forEach((fill) => {
+      const w = fill.style.width || gsap.getProperty(fill, 'width');
+      expect(parseFloat(String(w)) || 0).toBeLessThanOrEqual(5);
+    });
+
+    // At settle, stat bars match target attributes (99%, 98%, 95%)
+    tl?.progress(1);
+    const targetWidths = Array.from(statFills).map((f) => f.getAttribute('data-target-width'));
+    expect(targetWidths).toEqual(['99', '98', '95']);
+  });
+
+  it('features Zero-UI pure artifact with no bottom pill buttons, allowing direct card click to flip between front (0deg) and back (180deg)', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    // Pill buttons must not exist
+    expect(document.querySelector('[data-summon-controls]')).toBeNull();
+    expect(document.querySelector('[data-summon-flip-btn]')).toBeNull();
+    expect(document.querySelector('[data-summon-mask-toggle]')).toBeNull();
+
+    const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    expect(card).not.toBeNull();
+
+    const tl = engine.getTimeline();
+    tl?.progress(1);
+
+    // Initially settled on front face (rotationY = 0)
+    expect(engine.isCardFlipped()).toBe(false);
+    expect(Math.round(Number(gsap.getProperty(card, 'rotationY')))).toBe(0);
+
+    // Clicking card flips to back sigil (rotationY = 180)
+    card?.click();
+    expect(engine.isCardFlipped()).toBe(true);
+
+    // Clicking card again flips back to front face (rotationY = 0)
+    card?.click();
+    expect(engine.isCardFlipped()).toBe(false);
+  });
+
+  it('displays subtle "Click anywhere to close" hint [data-summon-hint] with blur fade-in after settle', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const hint = document.querySelector<HTMLElement>('[data-summon-hint]');
+    expect(hint).not.toBeNull();
+    expect(hint?.textContent?.toLowerCase()).toContain('click anywhere to close');
+  });
+
+  it('respects prefers-reduced-motion by placing card at 0deg with unblurred front face, target stat widths, and immediate hint', () => {
+    const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+      matches: query.includes('prefers-reduced-motion: reduce'),
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    try {
+      engine = new CardSummonEngine();
+      engine.open();
+
+      const card = document.querySelector<HTMLElement>('[data-summon-card]');
+      const mask = document.querySelector<HTMLElement>('[data-summon-card-front-mask]');
+      const hint = document.querySelector<HTMLElement>('[data-summon-hint]');
+
+      expect(Math.round(Number(gsap.getProperty(card, 'rotationY')))).toBe(0);
+      expect(Number(gsap.getProperty(mask, 'opacity'))).toBe(0);
+      expect(Number(gsap.getProperty(hint, 'opacity'))).toBeGreaterThan(0);
+      expect(engine.isMaskConcealed()).toBe(false);
+    } finally {
+      matchMediaSpy.mockRestore();
+    }
+  });
+
+  it('cleans up hint element, card flip tweens, and timeline on close() and destroy()', () => {
+    engine = new CardSummonEngine();
+    engine.open();
+
+    const hint = document.querySelector<HTMLElement>('[data-summon-hint]');
+    expect(hint).not.toBeNull();
+
+    engine.close();
+    expect(document.querySelector('[data-summon-hint]')).toBeNull();
+    expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
+
+    engine.open();
+    expect(document.querySelector('[data-summon-hint]')).not.toBeNull();
+
+    engine.destroy();
+    expect(document.querySelector('[data-summon-hint]')).toBeNull();
+    expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
+  });
+});
