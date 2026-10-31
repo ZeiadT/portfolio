@@ -83,7 +83,6 @@ export class ThreeCardModel {
   private frontTexture: THREE.CanvasTexture | null = null;
   private backTexture: THREE.CanvasTexture | null = null;
   private frontMaterial: THREE.MeshStandardMaterial | null = null;
-  private sheenLight: THREE.PointLight | null = null;
 
   private veilOpacity: number = 1.0;
   private sheenProgress: number = 0;
@@ -201,13 +200,6 @@ export class ThreeCardModel {
     const rimLight = new THREE.DirectionalLight(0xffd700, 1.5);
     rimLight.position.set(-5, 3, -5);
     this.scene.add(rimLight);
-
-    const sheenLight = new THREE.PointLight(0xfff8e7, 0, 10);
-    sheenLight.position.set(-4, 0, 2.5);
-    sheenLight.name = 'card-sheen-light';
-    this.scene.add(sheenLight);
-    this.sheenLight = sheenLight;
-    this.updateSheenLight();
 
     // Add card hierarchy to scene
     this.scene.add(this.cardGroup);
@@ -332,23 +324,10 @@ export class ThreeCardModel {
   }
 
   /**
-   * Sets holographic sheen progress [0, 1] to animate specular light sweep.
-   * Modulates the specular sheen light position and intensity across the card,
-   * leaving the diffuse face texture completely stationary.
+   * Sets holographic sheen progress [0, 1].
    */
   public setSheenProgress(p: number): void {
-    this.sheenProgress = Math.max(0, Math.min(1, p));
-    this.updateSheenLight();
-  }
-
-  private updateSheenLight(): void {
-    if (this.sheenLight) {
-      // Sweep light horizontally from X: -4 to +4 across the card
-      const x = (this.sheenProgress - 0.5) * 8;
-      this.sheenLight.position.set(x, 0.5, 2.5);
-      // Smooth sinusoidal intensity envelope (0 at edges p=0 and p=1)
-      this.sheenLight.intensity = Math.sin(this.sheenProgress * Math.PI) * 2.5;
-    }
+    this.sheenProgress = p;
   }
 
   public getSheenProgress(): number {
@@ -416,6 +395,5 @@ export class ThreeCardModel {
     this.camera = null;
     this.container = null;
     this.frontMaterial = null;
-    this.sheenLight = null;
   }
 }

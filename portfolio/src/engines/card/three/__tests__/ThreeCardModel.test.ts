@@ -332,24 +332,13 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(texture.offset.y).toBe(0);
     });
 
-    it('setSheenProgress(p) modulates sheen light position and fades intensity at loop boundaries', () => {
+    it('uses fixed studio lighting without artificial moving sheen lights', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
       model.mount(container);
 
-      // Boundary p = 0 should have zero intensity (no jump)
-      model.setSheenProgress(0);
+      // Card uses stationary studio lighting (ambient, key, rim) so reflections respond to mouse tilt
       const sheenLight = (model as unknown as { sheenLight?: THREE.PointLight }).sheenLight;
-      expect(sheenLight).toBeDefined();
-      expect(sheenLight?.intensity).toBeCloseTo(0, 2);
-
-      // Center p = 0.5 should peak in intensity and be centered at X=0
-      model.setSheenProgress(0.5);
-      expect(sheenLight?.intensity).toBeGreaterThan(1.0);
-      expect(sheenLight?.position.x).toBeCloseTo(0, 1);
-
-      // Boundary p = 1 should fade back to zero intensity
-      model.setSheenProgress(1.0);
-      expect(sheenLight?.intensity).toBeCloseTo(0, 2);
+      expect(sheenLight).toBeUndefined();
     });
   });
 

@@ -114,3 +114,23 @@ portfolio/src/engines/card/
 2. **Implement true 3D Specular Light Sheen:** Use a dedicated Three.js point light (\sheenLight\, name: \card-sheen-light\) positioned at \z = 2.5\ in front of the card.
 3. **Smooth Sweep & Edge Fade:** In \setSheenProgress(p)\, sweep \sheenLight.position.x\ from \-4.0\ to \+4.0\ while modulating intensity with \Math.sin(p * Math.PI) * 2.5\. Because intensity is zero at \p = 0\ and \p = 1\, the highlight smoothly fades out before wrapping around, eliminating any loop pop or teleportation.
 4. **TDD Verification:** Add automated test asserting that \rontTexture.offset\ remains strictly \(0, 0)\ across all sheen progress values, and that the sheen light updates position and intensity smoothly.
+
+---
+
+## Revision 4 (2026-10-31): Eliminate Looping Sheen Light in Favor of Fixed Studio Lighting
+
+### User Decision
+- The user confirmed via interactive inquiry: Remove the moving sheen loop completely. The card should use fixed studio lighting (ambient + directional key + rim) that gleams naturally when tilting with mouse parallax, without any artificial light source sweeping or looping across the card.
+
+### Changes
+1. **ThreeCardModel.ts:**
+   - Removed \sheenLight\ and \updateSheenLight()\.
+   - \setSheenProgress(p)\ remains a safe passive getter/setter for interface compatibility.
+   - Scene uses stable, fixed studio lighting (ambient 0.7, warm key light 1.2 at \[5, 5, 5]\, gold rim light 1.5 at \[-5, 3, -5]\).
+2. **CardSummonEngine.ts:**
+   - Removed \onUpdate\ callback from \sheenTween\ that was driving \	hreeCardModel.setSheenProgress()\.
+   - The 3D model maintains stationary lighting, with specular glints responding exclusively to user mouse parallax tilts.
+3. **Tests:**
+   - Verified that no looping light exists on \ThreeCardModel\.
+   - Verified diffuse map offsets remain \(0, 0)\.
+   - Full Vitest suite passing.

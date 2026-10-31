@@ -558,11 +558,6 @@ export class CardSummonEngine implements Engine {
           duration: 3,
           ease: 'sine.inOut',
           repeat: -1,
-          onUpdate: () => {
-            if (this.threeCardModel && this.sheenTween) {
-              this.threeCardModel.setSheenProgress(this.sheenTween.progress());
-            }
-          },
         }
       );
     }
