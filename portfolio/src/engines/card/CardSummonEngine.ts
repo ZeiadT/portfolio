@@ -76,6 +76,8 @@ export class CardSummonEngine implements Engine {
   private faceRenderer: CardFaceRenderer;
   private threeCardModel: ThreeCardModel | null = null;
   private closeBtnEl: HTMLButtonElement | null = null;
+  private flipBtnEl: HTMLButtonElement | null = null;
+  private boundOnFlipClick: ((e: MouseEvent) => void) | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
   private closeTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
@@ -164,6 +166,7 @@ export class CardSummonEngine implements Engine {
    */
   public flipCard(): void {
     if (!this.cardEl && !this.threeCardModel) return;
+    this.isSettled = true;
     this.isFlipped = !this.isFlipped;
     const targetRotYDeg = this.isFlipped ? 180 : 0;
 
@@ -173,6 +176,7 @@ export class CardSummonEngine implements Engine {
     if (this.cardEl) {
       this.flipTween = gsap.to(this.cardEl, {
         rotationY: targetRotYDeg,
+        rotationX: 0,
         duration: 0.7,
         ease: 'power2.inOut',
         overwrite: 'auto',
@@ -181,7 +185,6 @@ export class CardSummonEngine implements Engine {
         },
       });
     }
-
   }
 
   /**
@@ -309,6 +312,22 @@ export class CardSummonEngine implements Engine {
       </svg>
     `;
     modal.appendChild(closeBtn);
+
+    // Floating Debug Flip Button
+    const flipBtn = document.createElement('button');
+    flipBtn.setAttribute('type', 'button');
+    flipBtn.setAttribute('data-summon-flip', '');
+    flipBtn.setAttribute('aria-label', 'Flip card');
+    flipBtn.className =
+      'absolute top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-amber-400/20 text-amber-200 border border-amber-400/40 hover:bg-amber-400/30 hover:scale-105 active:scale-95 transition-all font-mono text-xs tracking-wider uppercase cursor-pointer backdrop-blur-md shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 pointer-events-auto';
+    flipBtn.innerHTML = `
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <span>Flip Card</span>
+    `;
+    modal.appendChild(flipBtn);
+    this.flipBtnEl = flipBtn;
 
     // Bottom curved hill glow element
     const bottomGlow = document.createElement('div');
@@ -644,9 +663,19 @@ export class CardSummonEngine implements Engine {
     };
     closeBtn.addEventListener('click', this.boundOnCloseClick);
 
+    this.boundOnFlipClick = (e: MouseEvent) => {
+      e.stopPropagation();
+      this.flipCard();
+    };
+    flipBtn.addEventListener('click', this.boundOnFlipClick);
+
     this.boundOnModalClick = (e: MouseEvent) => {
       if (!this.isSettled) return;
-      if ((e.target as HTMLElement).closest('[data-summon-close]') || (e.target as HTMLElement).closest('[data-summon-backdrop]')) {
+      if (
+        (e.target as HTMLElement).closest('[data-summon-close]') ||
+        (e.target as HTMLElement).closest('[data-summon-flip]') ||
+        (e.target as HTMLElement).closest('[data-summon-backdrop]')
+      ) {
         return;
       }
       this.close();
@@ -1156,6 +1185,18 @@ export class CardSummonEngine implements Engine {
       );
     }
 
+    if (this.flipBtnEl) {
+      this.closeTimeline.to(
+        this.flipBtnEl,
+        {
+          opacity: 0,
+          duration: 0.20,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
+
     if (this.cardAuraEl) {
       this.closeTimeline.to(
         this.cardAuraEl,
@@ -1218,6 +1259,10 @@ export class CardSummonEngine implements Engine {
       this.closeBtnEl.removeEventListener('click', this.boundOnCloseClick);
       this.boundOnCloseClick = null;
     }
+    if (this.flipBtnEl && this.boundOnFlipClick) {
+      this.flipBtnEl.removeEventListener('click', this.boundOnFlipClick);
+      this.boundOnFlipClick = null;
+    }
     if (this.modalEl && this.boundOnPointerMove) {
       this.modalEl.removeEventListener('pointermove', this.boundOnPointerMove);
       this.boundOnPointerMove = null;
@@ -1278,6 +1323,10 @@ export class CardSummonEngine implements Engine {
     if (this.flashVeilEl) {
       this.flashVeilEl.remove();
       this.flashVeilEl = null;
+    }
+    if (this.flipBtnEl) {
+      this.flipBtnEl.remove();
+      this.flipBtnEl = null;
     }
     if (this.modalEl) {
       this.modalEl.remove();
