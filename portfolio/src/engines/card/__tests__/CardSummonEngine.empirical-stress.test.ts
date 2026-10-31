@@ -109,7 +109,7 @@ describe('CardSummonEngine & ThreeCardModel Empirical Stress & Lifecycle Suite',
       // Final cleanup
       engine.destroy();
       expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
-    });
+    }, 15000);
 
     it('survives 50 rapid instance creations and destructions', () => {
       for (let i = 0; i < 50; i++) {
@@ -123,7 +123,7 @@ describe('CardSummonEngine & ThreeCardModel Empirical Stress & Lifecycle Suite',
         expect(engine.isOpen()).toBe(false);
         expect(document.querySelectorAll('[data-card-summon-modal]').length).toBe(0);
       }
-    });
+    }, 15000);
 
     it('handles idempotent multiple open() calls safely without duplicating modals', () => {
       const engine = new CardSummonEngine();

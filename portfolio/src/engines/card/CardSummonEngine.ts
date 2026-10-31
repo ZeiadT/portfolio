@@ -64,7 +64,6 @@ export class CardSummonEngine implements Engine {
   private bottomGlowEl: HTMLElement | null = null;
   private cardStageEl: HTMLElement | null = null;
   private flashVeilEl: HTMLElement | null = null;
-  private shockwaveEl: HTMLElement | null = null;
   private cardAuraEl: HTMLElement | null = null;
   private cardEl: HTMLElement | null = null;
   private cardBackEl: HTMLElement | null = null;
@@ -353,12 +352,6 @@ export class CardSummonEngine implements Engine {
     cardAura.style.background = `radial-gradient(circle at center, ${coreColor} 0%, ${primaryColor} 60%, transparent 100%)`;
     cardAura.style.boxShadow = `0 0 50px 10px ${primaryColor}80, 0 0 100px 30px ${primaryColor}40`;
 
-    // Radial shockwave ring element (luminous gilded halo wave)
-    const shockwave = document.createElement('div');
-    shockwave.setAttribute('data-summon-shockwave', '');
-    shockwave.setAttribute('aria-hidden', 'true');
-    shockwave.className = 'pointer-events-none absolute w-[306px] sm:w-[360px] md:w-[405px] h-[306px] sm:h-[360px] md:h-[405px] rounded-full border border-amber-300/80 opacity-0 select-none shadow-[0_0_40px_rgba(255,215,0,0.55)]';
-
     // Card element (preserve-3d container)
     const card = document.createElement('div');
     card.setAttribute('data-summon-card', '');
@@ -617,7 +610,6 @@ export class CardSummonEngine implements Engine {
     card.appendChild(cardFace);
 
     cardStage.appendChild(cardAura);
-    cardStage.appendChild(shockwave);
     cardStage.appendChild(card);
     modal.appendChild(cardStage);
 
@@ -634,7 +626,6 @@ export class CardSummonEngine implements Engine {
     this.modalEl = modal;
     this.backdropEl = backdrop;
     this.flashVeilEl = flashVeil;
-    this.shockwaveEl = shockwave;
     this.bottomGlowEl = bottomGlow;
     this.cardStageEl = cardStage;
     this.cardAuraEl = cardAura;
@@ -777,9 +768,6 @@ export class CardSummonEngine implements Engine {
       }
       if (this.flashVeilEl) {
         this.openTimeline.set(this.flashVeilEl, { opacity: 0 });
-      }
-      if (this.shockwaveEl) {
-        this.openTimeline.set(this.shockwaveEl, { opacity: 0, scale: 1 });
       }
       if (this.cardAuraEl) {
         this.openTimeline.set(this.cardAuraEl, { opacity: 0, scale: 1 });
@@ -960,15 +948,6 @@ export class CardSummonEngine implements Engine {
           this.flashVeilEl,
           { opacity: 0, duration: 0.18, ease: 'expo.out' },
           1.29
-        );
-      }
-
-      if (this.shockwaveEl) {
-        this.openTimeline.fromTo(
-          this.shockwaveEl,
-          { scale: 0.2, opacity: 1 },
-          { scale: 2.5, opacity: 0, duration: 0.24, ease: 'power3.out' },
-          1.25
         );
       }
 
@@ -1301,10 +1280,6 @@ export class CardSummonEngine implements Engine {
     if (this.flashVeilEl) {
       this.flashVeilEl.remove();
       this.flashVeilEl = null;
-    }
-    if (this.shockwaveEl) {
-      this.shockwaveEl.remove();
-      this.shockwaveEl = null;
     }
     if (this.modalEl) {
       this.modalEl.remove();

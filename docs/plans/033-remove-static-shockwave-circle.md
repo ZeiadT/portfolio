@@ -1,6 +1,6 @@
 # Remove Static Shockwave Circle Implementation Plan
 
-- **Status**: Proposed
+- **Status**: Completed
 - **Created**: 2026-10-31
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Three.js, Vitest
 - **Branch**: `main`
@@ -70,10 +70,10 @@ In accordance with the user request and the refined luxury aesthetic (which prev
 
 ## 5. Implementation Steps
 
-1. [ ] Update test specifications in `CardSummonEngine.test.ts` and `CardSummonEmpiricalKinematics.test.ts` (RED phase).
-2. [ ] Run tests to confirm failure.
-3. [ ] Commit test specifications.
-4. [ ] Remove `shockwaveEl` from `CardSummonEngine.ts`.
-5. [ ] Run tests to confirm GREEN phase.
-6. [ ] Run full test suite (`npm test`) and production build (`npm run build`).
-7. [ ] Push changes to GitHub (`main`).
+1. [x] Update test specifications in `CardSummonEngine.test.ts` and `CardSummonEmpiricalKinematics.test.ts` (RED phase).
+2. [x] Run tests to confirm failure.
+3. [x] Commit test specifications (`8c0adc4`).
+4. [x] Remove `shockwaveEl` from `CardSummonEngine.ts`.
+5. [x] Run tests to confirm GREEN phase.
+6. [x] Run full test suite (`npm test`) and production build (`npm run build`).
+7. [x] Push changes to GitHub (`main`).
