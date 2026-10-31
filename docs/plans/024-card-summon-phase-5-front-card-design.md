@@ -1,6 +1,6 @@
 # Card Summon - Phase 5: Front Card Design & Concealment Sheen Implementation Plan
 
-- **Status**: Completed
+- **Status**: Completed (Task 9: Proportional Content Rescaling)
 - **Created**: 2026-10-31
 - **Last Updated**: 2026-10-31
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Tailwind CSS v4, Inline SVG / HTML Vectors, Vitest
@@ -228,3 +228,56 @@
 - [x] **Step 2: Restore normal card dimensions and implement card back patterns in `CardSummonEngine.ts` (GREEN phase)**
 - [x] **Step 3: Tune `EditorialCardFaceRenderer.ts` padding to match normal dimensions perfectly**
 - [x] **Step 4: Verify test suite and production build**
+
+---
+
+### Task 9: Proportional Content Rescaling & Visual Balance for Normal Card Dimensions
+
+**Files:**
+- Modify: `portfolio/src/engines/card/renderers/EditorialCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/renderers/MythicCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/renderers/__tests__/EditorialCardFaceRenderer.test.ts`
+- Modify: `portfolio/src/engines/card/renderers/__tests__/MythicCardFaceRenderer.test.ts`
+
+**Requirements:**
+1. Rescale all internal card face components proportionally for normal dimensions (`w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`):
+   - Outer container padding: `p-3 sm:p-3.5 md:p-4` with inner frame margin `m-1 sm:m-1.5`.
+   - Header:
+     - Edition dot `w-1.5 h-1.5`.
+     - Edition title: `text-[8px] sm:text-[9px] font-mono`.
+     - Stars: `text-[8px] sm:text-[9px]`.
+     - Role badge: `text-[7.5px] sm:text-[8px] font-mono px-1.5 py-0.5 max-w-[120px] sm:max-w-[140px] truncate`.
+     - Coordinates / Spec subtitle: `text-[6.5px] sm:text-[7px] font-mono text-white/35`.
+   - Portrait window:
+     - Change from `aspect-[4/3]` to wide cinematic `aspect-[16/10]` with `my-1 sm:my-1.5`.
+     - Scaled badges: `ACTIVE // CAIRO`, `KOTLIN • COMPOSE • MVI`, `INDEX: 01 // CV` to `text-[6.5px] sm:text-[7px] px-1 py-0.5`.
+   - Lore & Identity:
+     - Name: `text-sm sm:text-base font-bold tracking-tight`.
+     - Skill title: `text-[8.5px] sm:text-[9px] font-mono text-amber-300/90`.
+     - Skill description: `text-[9.5px] sm:text-[10px] leading-tight text-white/75 line-clamp-2`.
+     - Engineering Pillar Chips: `text-[7px] sm:text-[7.5px] font-mono px-1.5 py-0.5 rounded-full bg-white/[0.04] border border-white/10 text-white/80` in `flex flex-wrap gap-1 mt-0.5 pt-0.5`.
+   - Attribute Stats:
+     - Grid layout: `grid grid-cols-3 gap-1 sm:gap-1.5`.
+     - Metric cards: `p-1 sm:p-1.5 rounded bg-white/[0.02] border border-white/10`.
+     - Label: `text-[6.5px] sm:text-[7px] text-white/40 tracking-wider`.
+     - Value: `text-[10px] sm:text-[11px] font-semibold text-white tracking-tight`.
+     - Progress bar: `h-0.5 sm:h-1 bg-white/10 rounded-full mt-0.5 overflow-hidden`.
+   - Accreditation footer:
+     - Text: `text-[6.5px] sm:text-[7px] font-mono tracking-widest text-white/30 uppercase pt-0.5 border-t border-white/10`.
+2. Proportional tuning in `MythicCardFaceRenderer.ts`:
+   - Outer padding: `p-3 sm:p-3.5 md:p-4`.
+   - Portrait window: `aspect-[16/10] rounded-t-[32px] sm:rounded-t-[40px] rounded-b-xl`.
+   - Header text: `text-[9px] sm:text-[10px] font-black`.
+   - Lore padding: `p-2 sm:p-2.5`, name `text-xs sm:text-sm font-bold`, skill title `text-[10px] sm:text-[11px] font-semibold`, desc `text-[9px] sm:text-[10px] leading-tight line-clamp-2`.
+   - Stats padding: `p-1 sm:p-1.5`, SPD/ARCH/CODE label `text-[7px] sm:text-[7.5px]`, ticker `text-[9px] sm:text-[10px] font-bold`.
+3. TDD & Strict Verification:
+   - Update unit test assertions in `EditorialCardFaceRenderer.test.ts` and `MythicCardFaceRenderer.test.ts`.
+   - Run Vitest suite and verify all 197+ tests pass.
+   - Run production build.
+   - Visually verify in browser.
+
+- [x] **Step 1: Update unit tests in `EditorialCardFaceRenderer.test.ts` and `MythicCardFaceRenderer.test.ts` for proportional scaling (RED phase)**
+- [x] **Step 2: Refactor `EditorialCardFaceRenderer.ts` and `MythicCardFaceRenderer.ts` to implement proportional scaling (GREEN phase)**
+- [x] **Step 3: Run Vitest test suite and TypeScript production build**
+- [x] **Step 4: Launch Vite dev server and visually inspect front card layout**
+- [x] **Step 5: Commit changes with git and document completion**

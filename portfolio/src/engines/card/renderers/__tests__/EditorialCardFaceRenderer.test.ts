@@ -47,6 +47,8 @@ describe('EditorialCardFaceRenderer', () => {
     expect(container.classList.contains('flex')).toBe(true);
     expect(container.classList.contains('flex-col')).toBe(true);
     expect(container.classList.contains('justify-between')).toBe(true);
+    expect(container.classList.contains('p-3')).toBe(true);
+    expect(container.classList.contains('sm:p-3.5')).toBe(true);
   });
 
   it('renders sleek monoline hairline border frame [data-summon-face-frame]', () => {
@@ -77,6 +79,7 @@ describe('EditorialCardFaceRenderer', () => {
 
     const windowEl = container.querySelector<HTMLElement>('[data-summon-face-portrait-window]');
     expect(windowEl).not.toBeNull();
+    expect(windowEl?.className).toContain('aspect-[16/10]');
 
     const avatar = windowEl?.querySelector<HTMLImageElement>('[data-summon-face-avatar]');
     expect(avatar).not.toBeNull();
@@ -152,5 +155,26 @@ describe('EditorialCardFaceRenderer', () => {
     const accreditation = container.querySelector<HTMLElement>('[data-summon-face-accreditation]');
     expect(accreditation).not.toBeNull();
     expect(accreditation?.textContent).toContain('ITI');
+  });
+
+  it('proportionally scales typography and components to fit normal 280-340px dimensions', () => {
+    renderer.render(container, mockData, mockTheme);
+
+    const name = container.querySelector<HTMLElement>('[data-summon-face-name]');
+    expect(name?.className).toContain('text-sm');
+    expect(name?.className).toContain('sm:text-base');
+
+    const pillars = container.querySelector<HTMLElement>('[data-summon-face-pillars]');
+    const pillarTags = pillars?.querySelectorAll('span');
+    expect(pillarTags && pillarTags.length > 0).toBe(true);
+    expect(pillarTags?.[0].className).toContain('text-[7px]');
+
+    const stats = container.querySelector<HTMLElement>('[data-summon-face-stats]');
+    const statCards = stats?.children;
+    expect(statCards && statCards.length === 3).toBe(true);
+    expect(statCards?.[0].className).toContain('p-1');
+
+    const accreditation = container.querySelector<HTMLElement>('[data-summon-face-accreditation]');
+    expect(accreditation?.className).toContain('text-[6.5px]');
   });
 });

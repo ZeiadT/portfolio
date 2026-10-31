@@ -47,8 +47,9 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
       'flex',
       'flex-col',
       'justify-between',
-      'p-4',
-      'sm:p-5',
+      'p-3',
+      'sm:p-3.5',
+      'md:p-4',
       'text-white',
       'h-full',
       'w-full',
@@ -92,22 +93,22 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
       <!-- Header block -->
       <div data-summon-face-header class="relative z-10 flex items-center justify-between gap-1.5 w-full">
         <div class="flex items-center gap-1.5 min-w-0">
-          <span data-summon-face-rarity class="text-[10px] sm:text-xs font-black tracking-widest uppercase bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm font-mono truncate">
+          <span data-summon-face-rarity class="text-[9px] sm:text-[10px] font-black tracking-widest uppercase bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow-sm font-mono truncate">
             ${escapeHtml(data.rarity)}
           </span>
-          <span data-summon-face-stars class="text-amber-400 text-xs tracking-tighter drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] select-none">
+          <span data-summon-face-stars class="text-amber-400 text-[10px] sm:text-xs tracking-tighter drop-shadow-[0_0_6px_rgba(251,191,36,0.6)] select-none">
             ${'★'.repeat(starCount)}
           </span>
         </div>
         <div class="flex items-center shrink-0">
-          <span data-summon-face-class class="text-[9px] sm:text-[10px] font-medium tracking-wide uppercase px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-neutral-200 backdrop-blur-sm shadow-sm truncate max-w-[130px] sm:max-w-[150px]">
+          <span data-summon-face-class class="text-[8px] sm:text-[8.5px] font-medium tracking-wide uppercase px-1.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-neutral-200 backdrop-blur-sm shadow-sm truncate max-w-[110px] sm:max-w-[130px]">
             ${escapeHtml(data.role)}
           </span>
         </div>
       </div>
 
       <!-- Holographic Arch Window -->
-      <div data-summon-face-portrait-window class="relative z-10 w-full aspect-[4/3] rounded-t-[40px] rounded-b-xl overflow-hidden border border-white/20 bg-neutral-950 shadow-inner group">
+      <div data-summon-face-portrait-window class="relative z-10 w-full aspect-[16/10] rounded-t-[40px] rounded-b-xl overflow-hidden border border-white/20 bg-neutral-950 shadow-inner group my-1 sm:my-1.5">
         <!-- Subtle vector orbit rings behind avatar -->
         <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-30 select-none" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <ellipse cx="100" cy="75" rx="80" ry="35" fill="none" stroke="${primaryColor}" stroke-width="0.8" stroke-dasharray="3 3" />
@@ -123,38 +124,38 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
         <div class="absolute inset-0 rounded-t-[40px] rounded-b-xl ring-1 ring-inset ring-white/10 pointer-events-none z-20"></div>
 
         <!-- Level badge in corner -->
-        <div class="absolute bottom-1.5 right-2 z-30 px-1.5 py-0.5 rounded bg-black/70 border border-amber-400/40 text-[9px] font-mono font-bold text-amber-300 tracking-wider shadow-sm select-none">
+        <div class="absolute bottom-1.5 right-2 z-30 px-1.5 py-0.5 rounded bg-black/70 border border-amber-400/40 text-[8px] font-mono font-bold text-amber-300 tracking-wider shadow-sm select-none">
           LV. 99
         </div>
       </div>
 
       <!-- Identity & Lore block -->
-      <div data-summon-face-lore class="relative z-10 flex flex-col gap-1 w-full bg-neutral-950/50 rounded-xl p-2.5 border border-white/10 backdrop-blur-xs">
+      <div data-summon-face-lore class="relative z-10 flex flex-col gap-0.5 w-full bg-neutral-950/50 rounded-xl p-2 sm:p-2.5 border border-white/10 backdrop-blur-xs">
         <div class="flex items-center justify-between">
-          <span data-summon-face-name class="font-bold text-sm sm:text-base tracking-wide text-white drop-shadow-sm font-sans">
+          <span data-summon-face-name class="font-bold text-xs sm:text-sm tracking-wide text-white drop-shadow-sm font-sans truncate">
             ${escapeHtml(data.name)}
           </span>
-          <span class="text-[9px] font-mono text-white/40 uppercase tracking-widest select-none">
+          <span class="text-[8px] font-mono text-white/40 uppercase tracking-widest select-none">
             TCG-001
           </span>
         </div>
         <div class="flex flex-col gap-0.5">
-          <span data-summon-face-skill-title class="text-xs text-amber-300 font-semibold tracking-wide">
+          <span data-summon-face-skill-title class="text-[10px] sm:text-[11px] text-amber-300 font-semibold tracking-wide">
             ${escapeHtml(data.skillName)}
           </span>
-          <p data-summon-face-skill-desc class="text-[11px] text-white/70 leading-snug line-clamp-2">
+          <p data-summon-face-skill-desc class="text-[9.5px] sm:text-[10px] text-white/70 leading-snug line-clamp-2">
             ${escapeHtml(data.skillDescription)}
           </p>
         </div>
       </div>
 
       <!-- Attribute Stats block -->
-      <div data-summon-face-stats class="relative z-10 flex items-center justify-between gap-1.5 w-full">
+      <div data-summon-face-stats class="relative z-10 flex items-center justify-between gap-1 sm:gap-1.5 w-full">
         <!-- PERF stat -->
-        <div class="flex-1 flex flex-col gap-1 items-center bg-white/[0.04] rounded-lg p-1.5 border border-white/5 shadow-xs">
+        <div class="flex-1 flex flex-col gap-0.5 items-center bg-white/[0.04] rounded-lg p-1 sm:p-1.5 border border-white/5 shadow-xs">
           <div class="flex items-center justify-between w-full px-0.5">
-            <span class="text-[8px] font-mono text-neutral-400 uppercase">SPD</span>
-            <span data-summon-stat-perf class="text-[10px] sm:text-[11px] font-mono font-bold text-amber-200">
+            <span class="text-[7px] sm:text-[7.5px] font-mono text-neutral-400 uppercase">SPD</span>
+            <span data-summon-stat-perf class="text-[9.5px] sm:text-[10px] font-mono font-bold text-amber-200">
               PERF: ${perf}
             </span>
           </div>
@@ -164,10 +165,10 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
         </div>
 
         <!-- ARCH stat -->
-        <div class="flex-1 flex flex-col gap-1 items-center bg-white/[0.04] rounded-lg p-1.5 border border-white/5 shadow-xs">
+        <div class="flex-1 flex flex-col gap-0.5 items-center bg-white/[0.04] rounded-lg p-1 sm:p-1.5 border border-white/5 shadow-xs">
           <div class="flex items-center justify-between w-full px-0.5">
-            <span class="text-[8px] font-mono text-neutral-400 uppercase">SYS</span>
-            <span data-summon-stat-arch class="text-[10px] sm:text-[11px] font-mono font-bold text-amber-200">
+            <span class="text-[7px] sm:text-[7.5px] font-mono text-neutral-400 uppercase">SYS</span>
+            <span data-summon-stat-arch class="text-[9.5px] sm:text-[10px] font-mono font-bold text-amber-200">
               ARCH: ${arch}
             </span>
           </div>
@@ -177,10 +178,10 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
         </div>
 
         <!-- CODE stat -->
-        <div class="flex-1 flex flex-col gap-1 items-center bg-white/[0.04] rounded-lg p-1.5 border border-white/5 shadow-xs">
+        <div class="flex-1 flex flex-col gap-0.5 items-center bg-white/[0.04] rounded-lg p-1 sm:p-1.5 border border-white/5 shadow-xs">
           <div class="flex items-center justify-between w-full px-0.5">
-            <span class="text-[8px] font-mono text-neutral-400 uppercase">SYN</span>
-            <span data-summon-stat-code class="text-[10px] sm:text-[11px] font-mono font-bold text-amber-200">
+            <span class="text-[7px] sm:text-[7.5px] font-mono text-neutral-400 uppercase">SYN</span>
+            <span data-summon-stat-code class="text-[9.5px] sm:text-[10px] font-mono font-bold text-amber-200">
               CODE: ${code}
             </span>
           </div>

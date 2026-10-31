@@ -48,6 +48,8 @@ describe('MythicCardFaceRenderer', () => {
     expect(container.classList.contains('flex')).toBe(true);
     expect(container.classList.contains('flex-col')).toBe(true);
     expect(container.classList.contains('justify-between')).toBe(true);
+    expect(container.classList.contains('p-3')).toBe(true);
+    expect(container.classList.contains('sm:p-3.5')).toBe(true);
   });
 
   it('renders multi-layer metallic bevel frame [data-summon-face-frame]', () => {
@@ -82,6 +84,7 @@ describe('MythicCardFaceRenderer', () => {
 
     const windowEl = container.querySelector<HTMLElement>('[data-summon-face-portrait-window]');
     expect(windowEl).not.toBeNull();
+    expect(windowEl?.className).toContain('aspect-[16/10]');
     expect(windowEl?.className).toContain('rounded-t-[40px]');
     expect(windowEl?.className).toContain('rounded-b-xl');
 
