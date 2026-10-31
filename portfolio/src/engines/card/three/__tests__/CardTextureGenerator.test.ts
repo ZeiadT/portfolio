@@ -2,6 +2,7 @@ import { describe, it, expect, afterAll, vi } from 'vitest';
 import * as THREE from 'three';
 import type { CardSummonData, CardSummonTheme } from '@/engines/card/CardSummonEngine';
 import { CardTextureGenerator } from '../CardTextureGenerator';
+import { ThreeCardModel } from '../ThreeCardModel';
 
 // Polyfill Canvas 2D context for headless happy-dom environment
 const originalGetContext = typeof HTMLCanvasElement !== 'undefined' ? HTMLCanvasElement.prototype.getContext : undefined;
@@ -386,14 +387,21 @@ describe('CardTextureGenerator (Unit Tests)', () => {
     });
 
     describe('Task 2: Front Face Layout Redesign', () => {
-      it('computes concentric corner radii according to R_inner = max(0, R_outer - padding)', () => {
+      it('defines CARD_CORNER_RADIUS mathematically synchronized with physical 3D card radius (0.24 units * 300 px/unit = 72 px)', () => {
+        expect(CardTextureGenerator.CARD_CORNER_RADIUS).toBe(72);
+        const textureToWorldScale = CardTextureGenerator.TEXTURE_WIDTH / ThreeCardModel.CARD_WIDTH; // 1050 / 3.5 = 300
+        expect(CardTextureGenerator.CARD_CORNER_RADIUS / textureToWorldScale).toBeCloseTo(ThreeCardModel.CARD_RADIUS);
+      });
+
+      it('computes concentric corner radii according to inner radius = max(0, outer radius - gap)', () => {
+        expect(CardTextureGenerator.computeConcentricRadius(72, 24)).toBe(48);
         expect(CardTextureGenerator.computeConcentricRadius(48, 24)).toBe(24);
         expect(CardTextureGenerator.computeConcentricRadius(24, 8)).toBe(16);
         expect(CardTextureGenerator.computeConcentricRadius(16, 8)).toBe(8);
         expect(CardTextureGenerator.computeConcentricRadius(16, 20)).toBe(0);
       });
 
-      it('applies concentric radii to outer clip (R=48), inset frame (R=24), portrait (R=16), and lower boxes', () => {
+      it('applies concentric radii to outer clip (R=72 from card corner radius itself) and hairline border (R=48 via outer - gap)', () => {
         const canvas = document.createElement('canvas');
         canvas.width = 1050;
         canvas.height = 1470;
@@ -401,11 +409,11 @@ describe('CardTextureGenerator (Unit Tests)', () => {
 
         CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme);
 
-        // 1. Outer card clip: (ctx, 0, 0, 1050, 1470, 48)
-        expect(spy).toHaveBeenCalledWith(expect.anything(), 0, 0, 1050, 1470, 48);
+        // 1. Outer card clip: (ctx, 0, 0, 1050, 1470, 72) using card corner radius itself
+        expect(spy).toHaveBeenCalledWith(expect.anything(), 0, 0, 1050, 1470, 72);
 
-        // 2. Inset frame: X=24, Y=24, W=1002, H=1422, R=24 (p=24 => 48 - 24 = 24)
-        expect(spy).toHaveBeenCalledWith(expect.anything(), 24, 24, 1002, 1422, 24);
+        // 2. Inset frame: X=24, Y=24, W=1002, H=1422, R=48 (inner radius = outer radius (72) - gap (24) = 48)
+        expect(spy).toHaveBeenCalledWith(expect.anything(), 24, 24, 1002, 1422, 48);
 
         // 3. Portrait container: X=56, Y=160, W=938, H=520, R=16 (p=8 => 24 - 8 = 16)
         expect(spy).toHaveBeenCalledWith(expect.anything(), 56, 160, 938, 520, 16);
