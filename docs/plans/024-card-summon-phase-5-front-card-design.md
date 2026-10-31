@@ -143,3 +143,30 @@
 - [x] **Step 2: Implement autoFlipToFront, interactive 3D flip, and concealment toggle in `CardSummonEngine.ts`**
 - [x] **Step 3: Update `ProfileHeader.ts` with customized candidate data and `autoFlipToFront: true`**
 - [x] **Step 4: Verify test suite and production build**
+
+---
+
+### Task 6: Implement and Swap Option 3 (Minimalist Editorial Luxury) `EditorialCardFaceRenderer`
+
+**Files:**
+- Create: `portfolio/src/engines/card/renderers/EditorialCardFaceRenderer.ts`
+- Create: `portfolio/src/engines/card/renderers/__tests__/EditorialCardFaceRenderer.test.ts`
+- Modify: `portfolio/src/components/home/ProfileHeader.ts`
+
+**Requirements:**
+1. Implement `EditorialCardFaceRenderer` implementing `CardFaceRenderer`:
+   - `id = 'minimalist-editorial-luxury'`
+   - Aesthetic: Ultra-clean Swiss typographic editorial style.
+   - Frame: Sleek monoline white/15 hairline borders, frosted glass container (`bg-black/90 backdrop-blur-2xl`), restrained high-contrast typography with subtle warm gold accents.
+   - Header: Minimalist typography with small uppercase serif edition title ("PORTFOLIO EDITION // 2026"), clean bullet divider, and class badge.
+   - Portrait Framing: Razor-sharp rectangular cut with monochrome duotone treatment and subtle hairline framing.
+   - Lore: Clean grid-aligned layout highlighting candidate core engineering pillars and statement.
+   - Stats: High-contrast monospace data tickers for PERF: 99 / ARCH: 98 / CODE: 95.
+2. In `ProfileHeader.ts`:
+   - Supply `faceRenderer: new EditorialCardFaceRenderer()` to `CardSummonEngine`.
+3. Unit tests in `EditorialCardFaceRenderer.test.ts` covering rendering, DOM structure, fallback safety, and XSS sanitization.
+
+- [x] **Step 1: Write unit test specifications for `EditorialCardFaceRenderer.test.ts` (RED phase)**
+- [x] **Step 2: Implement `EditorialCardFaceRenderer.ts` (GREEN phase)**
+- [x] **Step 3: Wire into `ProfileHeader.ts` via `faceRenderer: new EditorialCardFaceRenderer()`**
+- [x] **Step 4: Verify full workspace test suite and production build**

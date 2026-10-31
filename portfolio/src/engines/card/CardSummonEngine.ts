@@ -2,9 +2,10 @@ import type { Engine } from '@/domain/types';
 import { gsap } from 'gsap';
 import type { CardFaceRenderer } from './renderers/CardFaceRenderer';
 import { MythicCardFaceRenderer } from './renderers/MythicCardFaceRenderer';
+import { EditorialCardFaceRenderer } from './renderers/EditorialCardFaceRenderer';
 
 export type { CardFaceRenderer };
-export { MythicCardFaceRenderer };
+export { MythicCardFaceRenderer, EditorialCardFaceRenderer };
 
 export interface CardSummonTheme {
   primaryColor?: string; // default: '#ff4421'
