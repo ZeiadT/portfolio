@@ -63,6 +63,16 @@ export class CardTextureGenerator {
   public static readonly TEXTURE_HEIGHT = 1470;
 
   /**
+   * Vector path for the signature cat mask crest logo from assets/logo.svg.
+   * ViewBox 0 0 585 580 (center at 292.5, 290).
+   */
+  public static readonly CAT_MASK_PATH =
+    'M 74.00 104.38 L 461.36 369.00 L 454.00 412.00 L 288.50 524.00 L 122.55 412.00 Z ' +
+    'M 503.00 104.38 L 465.51 341.00 L 310.76 236.00 Z ' +
+    'M 364.00 374.13 L 378.00 395.64 L 407.00 378.83 L 399.49 411.00 L 380.63 421.00 L 370.00 450.25 L 361.00 430.40 L 349.00 435.44 L 305.60 439.00 L 359.55 407.00 Z ' +
+    'M 169.85 379.00 L 176.67 408.00 L 179.00 412.19 L 224.00 434.50 L 271.00 439.42 Z';
+
+  /**
    * Generates a high-resolution (1050x1470) SVG string for the golden card back.
    * Features:
    * - Concentric guilloche sacred geometry pattern
@@ -259,15 +269,195 @@ export class CardTextureGenerator {
     <path d="M -207 -207 L -186 -186 M 186 186 L 207 207 M 207 -207 L 186 -186 M -186 186 L -207 207" stroke="${primaryColor}" stroke-width="3.6" stroke-linecap="round" />
   </g>
 
-  <!-- Central Glowing Ace Crest with Radiant Starburst -->
-  <g data-summon-card-crest="true" transform="translate(525, 735)">
-    <circle cx="0" cy="0" r="132" fill="url(#gold-crest-glow)" />
-    <polygon points="0,-126 84,0 0,126 -84,0" fill="none" stroke="url(#gold-foil-grad)" stroke-width="4.5" />
-    <polygon points="0,-96 60,0 0,96 -60,0" fill="${accentColor}" fill-opacity="0.18" stroke="${coreColor}" stroke-width="3" />
-    <path d="M 0 -72 L 18 -18 L 72 0 L 18 18 L 0 72 L -18 18 L -72 0 L -18 -18 Z" fill="url(#primary-energy-grad)" />
-    <circle cx="0" cy="0" r="10.5" fill="${coreColor}" />
+  <!-- Central Glowing Cat Mask Crest -->
+  <g data-summon-card-crest="true">
+    <circle cx="525" cy="735" r="132" fill="url(#gold-crest-glow)" />
+    <path d="${CardTextureGenerator.CAT_MASK_PATH}" transform="translate(525, 735) scale(0.38) translate(-292.5, -290)" fill="url(#gold-foil-grad)" stroke="#ffd700" stroke-width="2" fill-rule="evenodd" />
   </g>
 </svg>`;
+  }
+
+  /**
+   * Draws the gilded golden card back content onto a canvas or 2D context.
+   */
+  public static drawGoldenCardBackContent(
+    target: HTMLCanvasElement | CanvasRenderingContext2D,
+    theme: CardSummonTheme = {}
+  ): void {
+    const ctx = 'getContext' in target ? target.getContext('2d') : target;
+    if (!ctx) return;
+
+    const primaryColor = theme.primaryColor ?? '#ff4421';
+    const coreColor = theme.coreColor ?? '#ffffff';
+    const accentColor = theme.accentColor ?? '#ffd700';
+
+    ctx.save();
+
+    // Rounded clip boundary (1050x1470, R=48)
+    drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
+    if (typeof ctx.clip === 'function') {
+      ctx.clip();
+    }
+
+    // 1. Dark Obsidian Gradient Surface
+    const bgGrad = ctx.createRadialGradient(525, 735, 120, 525, 735, 800);
+    bgGrad.addColorStop(0, '#141419');
+    bgGrad.addColorStop(0.65, '#0a0a0d');
+    bgGrad.addColorStop(1, '#050507');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1050, 1470);
+
+    // 2. Guilloche Geometric Lattice
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
+    ctx.lineWidth = 1.5;
+    const step = 84;
+    for (let y = 36; y <= 1434; y += step) {
+      ctx.beginPath();
+      for (let x = 36; x <= 1014; x += step) {
+        ctx.moveTo(x + step / 2, y);
+        ctx.lineTo(x + step, y + step / 2);
+        ctx.lineTo(x + step / 2, y + step);
+        ctx.lineTo(x, y + step / 2);
+        ctx.closePath();
+      }
+      ctx.stroke();
+    }
+
+    // 3. Multi-tier Gilded Gold Borders
+    const goldFoil = ctx.createLinearGradient(0, 0, 1050, 1470);
+    goldFoil.addColorStop(0, '#ffffff');
+    goldFoil.addColorStop(0.15, '#ffd700');
+    goldFoil.addColorStop(0.5, '#d4af37');
+    goldFoil.addColorStop(0.85, '#ffaa00');
+    goldFoil.addColorStop(1, '#8a6d2b');
+
+    ctx.strokeStyle = goldFoil;
+    ctx.lineWidth = 4.5;
+    drawRoundedRect(ctx, 36, 36, 978, 1398, 36);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
+    ctx.lineWidth = 2.5;
+    drawRoundedRect(ctx, 54, 54, 942, 1362, 28);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
+    ctx.lineWidth = 1.5;
+    drawRoundedRect(ctx, 70, 70, 910, 1330, 20);
+    ctx.stroke();
+
+    // 4. Corner Filigree Flourishes (4 Quadrants)
+    const cornerCoords = [
+      { x: 72, y: 72, sx: 1, sy: 1 },
+      { x: 978, y: 72, sx: -1, sy: 1 },
+      { x: 72, y: 1398, sx: 1, sy: -1 },
+      { x: 978, y: 1398, sx: -1, sy: -1 },
+    ];
+
+    for (const c of cornerCoords) {
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      ctx.scale(c.sx, c.sy);
+
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
+      ctx.beginPath();
+      ctx.moveTo(0, 105);
+      ctx.lineTo(0, 30);
+      drawQuadCurve(ctx, 0, 0, 30, 0);
+      ctx.lineTo(105, 0);
+      drawQuadCurve(ctx, 45, 15, 30, 30);
+      drawQuadCurve(ctx, 15, 45, 0, 105);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(24, 24, 8, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // 5. Concentric Halo Rings & Radiating Lines
+    ctx.save();
+    ctx.translate(525, 735);
+
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(0, 0, 285, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3.6;
+    ctx.beginPath();
+    ctx.arc(0, 0, 246, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = primaryColor;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, 204, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = coreColor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 156, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Cardinal Starburst Lines
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, -294);
+    ctx.lineTo(0, -264);
+    ctx.moveTo(0, 264);
+    ctx.lineTo(0, 294);
+    ctx.moveTo(-294, 0);
+    ctx.lineTo(-264, 0);
+    ctx.moveTo(264, 0);
+    ctx.lineTo(294, 0);
+    ctx.stroke();
+
+    // 6. Central Cat Mask Crest
+    const crestGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 132);
+    crestGlow.addColorStop(0, coreColor);
+    crestGlow.addColorStop(0.3, accentColor);
+    crestGlow.addColorStop(0.7, primaryColor);
+    crestGlow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = crestGlow;
+    ctx.beginPath();
+    ctx.arc(0, 0, 132, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cat Mask Vector Logo Crest
+    ctx.save();
+    ctx.scale(0.38, 0.38);
+    ctx.translate(-292.5, -290);
+    ctx.fillStyle = goldFoil;
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2;
+    if (typeof Path2D !== 'undefined') {
+      try {
+        const path = new Path2D(CardTextureGenerator.CAT_MASK_PATH);
+        if (typeof (ctx as unknown as { fill: (p: Path2D, fillRule?: CanvasFillRule) => void }).fill === 'function') {
+          (ctx as unknown as { fill: (p?: Path2D, fillRule?: CanvasFillRule) => void }).fill(path, 'evenodd');
+        }
+        if (typeof (ctx as unknown as { stroke: (p?: Path2D) => void }).stroke === 'function') {
+          (ctx as unknown as { stroke: (p?: Path2D) => void }).stroke(path);
+        }
+      } catch {
+        ctx.fill();
+      }
+    } else {
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.restore();
+    ctx.restore();
   }
 
   /**
@@ -275,186 +465,17 @@ export class CardTextureGenerator {
    * Renders high-detail gilded geometry directly onto an HTML5 Canvas, ensuring
    * immediate synchronous readiness without asynchronous image decoding hiccups.
    */
-  public static generateGoldenCardBackTexture(theme: CardSummonTheme = {}): THREE.CanvasTexture {
-    const canvas = document.createElement('canvas');
-    canvas.width = CardTextureGenerator.TEXTURE_WIDTH;
-    canvas.height = CardTextureGenerator.TEXTURE_HEIGHT;
-
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      const primaryColor = theme.primaryColor ?? '#ff4421';
-      const coreColor = theme.coreColor ?? '#ffffff';
-      const accentColor = theme.accentColor ?? '#ffd700';
-
-      ctx.save();
-
-      // Rounded clip boundary (1050x1470, R=48)
-      drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
-      if (typeof ctx.clip === 'function') {
-        ctx.clip();
-      }
-
-      // 1. Dark Obsidian Gradient Surface
-      const bgGrad = ctx.createRadialGradient(525, 735, 120, 525, 735, 800);
-      bgGrad.addColorStop(0, '#141419');
-      bgGrad.addColorStop(0.65, '#0a0a0d');
-      bgGrad.addColorStop(1, '#050507');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, 1050, 1470);
-
-      // 2. Guilloche Geometric Lattice
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
-      ctx.lineWidth = 1.5;
-      const step = 84;
-      for (let y = 36; y <= 1434; y += step) {
-        ctx.beginPath();
-        for (let x = 36; x <= 1014; x += step) {
-          ctx.moveTo(x + step / 2, y);
-          ctx.lineTo(x + step, y + step / 2);
-          ctx.lineTo(x + step / 2, y + step);
-          ctx.lineTo(x, y + step / 2);
-          ctx.closePath();
-        }
-        ctx.stroke();
-      }
-
-      // 3. Multi-tier Gilded Gold Borders
-      const goldFoil = ctx.createLinearGradient(0, 0, 1050, 1470);
-      goldFoil.addColorStop(0, '#ffffff');
-      goldFoil.addColorStop(0.15, '#ffd700');
-      goldFoil.addColorStop(0.5, '#d4af37');
-      goldFoil.addColorStop(0.85, '#ffaa00');
-      goldFoil.addColorStop(1, '#8a6d2b');
-
-      ctx.strokeStyle = goldFoil;
-      ctx.lineWidth = 4.5;
-      drawRoundedRect(ctx, 36, 36, 978, 1398, 36);
-      ctx.stroke();
-
-      ctx.strokeStyle = 'rgba(255, 215, 0, 0.45)';
-      ctx.lineWidth = 2.5;
-      drawRoundedRect(ctx, 54, 54, 942, 1362, 28);
-      ctx.stroke();
-
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.25)';
-      ctx.lineWidth = 1.5;
-      drawRoundedRect(ctx, 70, 70, 910, 1330, 20);
-      ctx.stroke();
-
-      // 4. Corner Filigree Flourishes (4 Quadrants)
-      const cornerCoords = [
-        { x: 72, y: 72, sx: 1, sy: 1 },
-        { x: 978, y: 72, sx: -1, sy: 1 },
-        { x: 72, y: 1398, sx: 1, sy: -1 },
-        { x: 978, y: 1398, sx: -1, sy: -1 },
-      ];
-
-      for (const c of cornerCoords) {
-        ctx.save();
-        ctx.translate(c.x, c.y);
-        ctx.scale(c.sx, c.sy);
-
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.4)';
-        ctx.beginPath();
-        ctx.moveTo(0, 105);
-        ctx.lineTo(0, 30);
-        drawQuadCurve(ctx, 0, 0, 30, 0);
-        ctx.lineTo(105, 0);
-        drawQuadCurve(ctx, 45, 15, 30, 30);
-        drawQuadCurve(ctx, 15, 45, 0, 105);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        ctx.arc(24, 24, 8, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.restore();
-      }
-
-      // 5. Concentric Halo Rings & Radiating Lines
-      ctx.save();
-      ctx.translate(525, 735);
-
-      ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(0, 0, 285, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 3.6;
-      ctx.beginPath();
-      ctx.arc(0, 0, 246, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = primaryColor;
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, 204, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = coreColor;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, 156, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Cardinal Starburst Lines
-      ctx.strokeStyle = '#ffd700';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(0, -294);
-      ctx.lineTo(0, -264);
-      ctx.moveTo(0, 264);
-      ctx.lineTo(0, 294);
-      ctx.moveTo(-294, 0);
-      ctx.lineTo(-264, 0);
-      ctx.moveTo(264, 0);
-      ctx.lineTo(294, 0);
-      ctx.stroke();
-
-      // 6. Central Ace Crest
-      const crestGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 132);
-      crestGlow.addColorStop(0, coreColor);
-      crestGlow.addColorStop(0.3, accentColor);
-      crestGlow.addColorStop(0.7, primaryColor);
-      crestGlow.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = crestGlow;
-      ctx.beginPath();
-      ctx.arc(0, 0, 132, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Diamond Crest
-      ctx.strokeStyle = goldFoil;
-      ctx.lineWidth = 4.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -126);
-      ctx.lineTo(84, 0);
-      ctx.lineTo(0, 126);
-      ctx.lineTo(-84, 0);
-      ctx.closePath();
-      ctx.stroke();
-
-      // Starburst Core
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(0, -72);
-      ctx.lineTo(18, -18);
-      ctx.lineTo(72, 0);
-      ctx.lineTo(18, 18);
-      ctx.lineTo(0, 72);
-      ctx.lineTo(-18, 18);
-      ctx.lineTo(-72, 0);
-      ctx.lineTo(-18, -18);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.restore();
-      ctx.restore();
+  public static generateGoldenCardBackTexture(
+    theme: CardSummonTheme = {},
+    existingCanvas?: HTMLCanvasElement
+  ): THREE.CanvasTexture {
+    const canvas = existingCanvas ?? document.createElement('canvas');
+    if (!existingCanvas) {
+      canvas.width = CardTextureGenerator.TEXTURE_WIDTH;
+      canvas.height = CardTextureGenerator.TEXTURE_HEIGHT;
     }
+
+    CardTextureGenerator.drawGoldenCardBackContent(canvas, theme);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.generateMipmaps = true;

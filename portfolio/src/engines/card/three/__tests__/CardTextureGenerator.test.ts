@@ -160,6 +160,50 @@ describe('CardTextureGenerator (Unit Tests)', () => {
       expect(svg).toContain('#f0f0ff');
       expect(svg).toContain('#e0a020');
     });
+
+    it('integrates the vector cat mask crest and replaces the legacy Ace diamond polygon', () => {
+      const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
+
+      // Verify the vector cat mask crest path is present
+      expect(CardTextureGenerator.CAT_MASK_PATH).toBeDefined();
+      expect(svg).toContain(CardTextureGenerator.CAT_MASK_PATH);
+      expect(svg).toContain('fill-rule="evenodd"');
+      expect(svg).toContain('fill="url(#gold-foil-grad)"');
+      expect(svg).toContain('stroke="#ffd700"');
+      expect(svg).toContain('stroke-width="2"');
+
+      // Verify old Ace diamond polygon is cleanly removed
+      expect(svg).not.toContain('polygon points="0,-126 84,0 0,126 -84,0"');
+    });
+  });
+
+  describe('drawGoldenCardBackContent', () => {
+    it('renders golden card back onto canvas context without throwing and draws central crest', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1050;
+      canvas.height = 1470;
+      const ctx = canvas.getContext('2d')!;
+
+      expect(() => {
+        CardTextureGenerator.drawGoldenCardBackContent(canvas, mockTheme);
+      }).not.toThrow();
+
+      expect(ctx.fillRect).toHaveBeenCalled();
+      expect(ctx.stroke).toHaveBeenCalled();
+      expect(ctx.save).toHaveBeenCalled();
+      expect(ctx.restore).toHaveBeenCalled();
+    });
+
+    it('accepts a direct CanvasRenderingContext2D target', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1050;
+      canvas.height = 1470;
+      const ctx = canvas.getContext('2d')!;
+
+      expect(() => {
+        CardTextureGenerator.drawGoldenCardBackContent(ctx, mockTheme);
+      }).not.toThrow();
+    });
   });
 
   describe('generateGoldenCardBackTexture', () => {
