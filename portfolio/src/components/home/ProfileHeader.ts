@@ -5,7 +5,7 @@ import { ProfileLinksComponent } from './ProfileLinks';
 import { ProfileContactComponent } from './ProfileContact';
 import { ProfileAvatarComponent } from './ProfileAvatar';
 import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
-import { MythicCardFaceRenderer } from '@/engines/card/renderers/MythicCardFaceRenderer';
+import { EditorialCardFaceRenderer } from '@/engines/card/renderers/EditorialCardFaceRenderer';
 
 /**
  * ProfileHeader Component
@@ -87,11 +87,11 @@ export class ProfileHeader {
       'lg:col-span-5 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center justify-center';
 
     this.cardSummonEngine = new CardSummonEngine({
-      faceRenderer: new MythicCardFaceRenderer(),
+      faceRenderer: new EditorialCardFaceRenderer(),
       autoFlipToFront: true,
       cardData: {
         name: 'Zeiad Mohammed',
-        rarity: 'MYTHIC RARE',
+        rarity: 'PORTFOLIO EDITION // 2026',
         stars: 5,
         role: 'Android Application Developer',
         imageSrc: this.data.avatar.src,
@@ -102,7 +102,7 @@ export class ProfileHeader {
         stats: {
           perf: 99,
           arch: 98,
-          code: 96,
+          code: 95,
         },
       },
     });

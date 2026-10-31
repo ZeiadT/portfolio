@@ -146,28 +146,6 @@
 
 ---
 
-### Task 8: Restore Normal Dimensions with Preserved 5:7 Ratio & Swap to Mythic Design
-
-**Files:**
-- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
-- Modify: `portfolio/src/components/home/ProfileHeader.ts`
-- Modify: `portfolio/src/engines/card/renderers/MythicCardFaceRenderer.ts`
-
-**Requirements:**
-1. Revert card zoom to normal dimensions while strictly preserving the new $5:7$ aspect ratio:
-   - `cardEl` and `cardAuraEl`: `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`
-   - `shockwaveEl`: `w-[280px] h-[280px]`
-2. Swap active card face in `ProfileHeader.ts` back to Option 1: Mythic Rare (`MythicCardFaceRenderer`):
-   - Supply `faceRenderer: new MythicCardFaceRenderer()` (or default).
-   - Injected with authentic candidate credentials from CV (`Zeiad Mohammed`, `Android Application Developer`, `★★★★★`, `Clean Reactive Architecture`, `PERF: 99 / ARCH: 98 / CODE: 96`).
-3. Verify all 197 tests pass and build compiles cleanly.
-
-- [x] **Step 1: Revert dimensions in `CardSummonEngine.ts` to `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`**
-- [x] **Step 2: Swap `ProfileHeader.ts` to use `MythicCardFaceRenderer`**
-- [x] **Step 3: Run full workspace test suite and production build**
-
----
-
 ### Task 6: Implement and Swap Option 3 (Minimalist Editorial Luxury) `EditorialCardFaceRenderer`
 
 **Files:**
@@ -225,22 +203,28 @@
 
 ---
 
-### Task 8: Restore Normal Dimensions with Preserved 5:7 Ratio & Swap to Mythic Design
+### Task 8: Restore Normal Card Dimensions & Add Intricate Arcane Patterns to Card Back
 
 **Files:**
 - Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
-- Modify: `portfolio/src/components/home/ProfileHeader.ts`
-- Modify: `portfolio/src/engines/card/renderers/MythicCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/__tests__/CardSummonEngine.test.ts`
+- Modify: `portfolio/src/engines/card/renderers/EditorialCardFaceRenderer.ts`
 
 **Requirements:**
-1. Revert card zoom to normal dimensions while strictly preserving the new $5:7$ aspect ratio:
-   - `cardEl` and `cardAuraEl`: `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`
+1. Restore normal card dimensions while preserving the $5:7$ aspect ratio:
+   - `cardEl` & `cardAuraEl`: `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`
    - `shockwaveEl`: `w-[280px] h-[280px]`
-2. Swap active card face in `ProfileHeader.ts` back to Option 1: Mythic Rare (`MythicCardFaceRenderer`):
-   - Supply `faceRenderer: new MythicCardFaceRenderer()` (or default).
-   - Injected with authentic candidate credentials from CV (`Zeiad Mohammed`, `Android Application Developer`, `★★★★★`, `Clean Reactive Architecture`, `PERF: 99 / ARCH: 98 / CODE: 96`).
-3. Verify all 197 tests pass and build compiles cleanly.
+   - Both card back and front face maintain strict $5:7$ aspect ratio.
+2. Fill empty space on card back with intricate arcane patterns:
+   - Pattern Guilloché mesh watermark (`<pattern id="...">`) with micro-diamonds and diagonal texture across obsidian cardstock.
+   - Sacred geometry celestial star constellations & glyphs (`[data-summon-card-pattern]`):
+     - Celestial 4-point diamond sparkles (`✦`) in the negative space quadrants and lateral flanks.
+     - Arcane constellation connection lines and planetary orbit arcs bridging the corners to the central halo.
+     - Radiating celestial energy rays extending from the central crest outward toward the outer frame.
+3. Unit test in `CardSummonEngine.test.ts` verifying presence of `[data-summon-card-pattern]`.
+4. Ensure all 197+ tests pass and build compiles cleanly.
 
-- [x] **Step 1: Revert dimensions in `CardSummonEngine.ts` to `w-[280px] sm:w-[320px] md:w-[340px] aspect-[5/7]`**
-- [x] **Step 2: Swap `ProfileHeader.ts` to use `MythicCardFaceRenderer`**
-- [x] **Step 3: Run full workspace test suite and production build**
+- [x] **Step 1: Add unit test specification for card back patterns in `CardSummonEngine.test.ts` (RED phase)**
+- [x] **Step 2: Restore normal card dimensions and implement card back patterns in `CardSummonEngine.ts` (GREEN phase)**
+- [x] **Step 3: Tune `EditorialCardFaceRenderer.ts` padding to match normal dimensions perfectly**
+- [x] **Step 4: Verify test suite and production build**

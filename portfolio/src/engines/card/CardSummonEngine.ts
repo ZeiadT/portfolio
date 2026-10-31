@@ -315,15 +315,108 @@ export class CardSummonEngine implements Engine {
             <stop offset="50%" stop-color="${primaryColor}" stop-opacity="0.4" />
             <stop offset="100%" stop-color="${coreColor}" stop-opacity="0.2" />
           </linearGradient>
+          <pattern id="${sigilId}-guilloche" width="28" height="28" patternUnits="userSpaceOnUse">
+            <path d="M 0 14 L 14 0 L 28 14 L 14 28 Z" fill="none" stroke="${coreColor}" stroke-opacity="0.04" stroke-width="0.8" />
+            <circle cx="14" cy="14" r="1.2" fill="${primaryColor}" fill-opacity="0.15" />
+            <path d="M 0 0 L 28 28 M 28 0 L 0 28" stroke="${primaryColor}" stroke-opacity="0.03" stroke-width="0.5" />
+          </pattern>
         </defs>
 
         <!-- Obsidian Glass Surface -->
         <rect width="350" height="490" rx="24" fill="url(#${sigilId}-bg)" />
+        <rect x="12" y="12" width="326" height="466" rx="16" fill="url(#${sigilId}-guilloche)" />
 
         <!-- Outer Obsidian & Metallic Frame -->
         <g data-summon-card-back-frame>
           <rect x="12" y="12" width="326" height="466" rx="16" fill="none" stroke="url(#${sigilId}-border)" stroke-width="1.5" />
           <rect x="18" y="18" width="314" height="454" rx="12" fill="none" stroke="${primaryColor}" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="6 4" />
+        </g>
+
+        <!-- Sacred Geometry & Celestial Star Constellations (fills negative space) -->
+        <g data-summon-card-pattern>
+          <!-- Radiating Celestial Rays from Center -->
+          <g stroke="url(#${sigilId}-border)" stroke-width="0.75" stroke-dasharray="4 6" opacity="0.35">
+            <line x1="175" y1="245" x2="45" y2="75" />
+            <line x1="175" y1="245" x2="305" y2="75" />
+            <line x1="175" y1="245" x2="45" y2="415" />
+            <line x1="175" y1="245" x2="305" y2="415" />
+            <line x1="175" y1="245" x2="175" y2="40" />
+            <line x1="175" y1="245" x2="175" y2="450" />
+            <line x1="175" y1="245" x2="30" y2="245" />
+            <line x1="175" y1="245" x2="320" y2="245" />
+          </g>
+
+          <!-- Outer Astrological Orbit Arcs -->
+          <circle cx="175" cy="245" r="125" fill="none" stroke="${primaryColor}" stroke-opacity="0.18" stroke-width="0.8" stroke-dasharray="8 6" />
+          <circle cx="175" cy="245" r="148" fill="none" stroke="${coreColor}" stroke-opacity="0.12" stroke-width="0.6" stroke-dasharray="2 8" />
+
+          <!-- Top-Left Quadrant Constellation -->
+          <g transform="translate(85, 115)">
+            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
+            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
+            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
+            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
+            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
+            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
+          </g>
+
+          <!-- Top-Right Quadrant Constellation -->
+          <g transform="translate(265, 115) scale(-1, 1)">
+            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
+            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
+            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
+            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
+            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
+            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
+          </g>
+
+          <!-- Bottom-Left Quadrant Constellation -->
+          <g transform="translate(85, 375) scale(1, -1)">
+            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
+            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
+            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
+            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
+            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
+            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
+          </g>
+
+          <!-- Bottom-Right Quadrant Constellation -->
+          <g transform="translate(265, 375) scale(-1, -1)">
+            <path d="M 0 -8 L 2 -2 L 8 0 L 2 2 L 0 8 L -2 2 L -8 0 L -2 -2 Z" fill="${coreColor}" fill-opacity="0.75" />
+            <circle cx="0" cy="0" r="1.5" fill="${primaryColor}" />
+            <line x1="0" y1="0" x2="35" y2="25" stroke="${primaryColor}" stroke-opacity="0.35" stroke-width="0.7" stroke-dasharray="2 3" />
+            <line x1="0" y1="0" x2="-25" y2="40" stroke="${primaryColor}" stroke-opacity="0.3" stroke-width="0.7" stroke-dasharray="2 3" />
+            <path d="M 35 25 L 36.5 28 L 40 29.5 L 36.5 31 L 35 34 L 33.5 31 L 30 29.5 L 33.5 28 Z" fill="${coreColor}" fill-opacity="0.65" />
+            <circle cx="-25" cy="40" r="2" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="-25" cy="40" r="4.5" fill="none" stroke="${coreColor}" stroke-opacity="0.4" stroke-width="0.6" />
+          </g>
+
+          <!-- Flank Diamond Star Nodes (Left & Right margins) -->
+          <g transform="translate(48, 245)">
+            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
+            <line x1="0" y1="-14" x2="0" y2="14" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
+          </g>
+          <g transform="translate(302, 245)">
+            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
+            <line x1="0" y1="-14" x2="0" y2="14" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
+          </g>
+
+          <!-- Top and Bottom Cardinal Diamond Nodes -->
+          <g transform="translate(175, 48)">
+            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
+            <line x1="-14" y1="0" x2="14" y2="0" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
+          </g>
+          <g transform="translate(175, 442)">
+            <polygon points="0,-7 3.5,0 0,7 -3.5,0" fill="${primaryColor}" fill-opacity="0.8" />
+            <circle cx="0" cy="0" r="1.2" fill="${coreColor}" />
+            <line x1="-14" y1="0" x2="14" y2="0" stroke="${coreColor}" stroke-opacity="0.3" stroke-width="0.6" />
+          </g>
         </g>
 
         <!-- 4 Symmetrical Corner Filigrees -->

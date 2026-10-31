@@ -706,6 +706,9 @@ describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
 
     const crest = cardBack?.querySelector('[data-summon-card-crest]');
     expect(crest).not.toBeNull();
+
+    const patterns = cardBack?.querySelector('[data-summon-card-pattern]');
+    expect(patterns).not.toBeNull();
   });
 
   it('renders default theme colors in the Mystic Sigil SVG definitions', () => {
