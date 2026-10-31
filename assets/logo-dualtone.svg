@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 585 580" width="585" height="580">
+  <defs>
+    <style>
+      :root {
+        --logo-face: #12151c;
+        --logo-m: #f59e0b;
+        --logo-m-dark: #d97706;
+        --logo-z: #00e5ff;
+        --logo-z-dark: #00b4d8;
+      }
+      .logo-face { fill: var(--logo-face, #12151c); }
+      .logo-m { fill: var(--logo-m, #f59e0b); }
+      .logo-m-inner { fill: var(--logo-m-dark, #d97706); }
+      .logo-z { fill: var(--logo-z, #00e5ff); }
+      .logo-z-ear { fill: var(--logo-z-dark, #00b4d8); }
+    </style>
+  </defs>
+
+  <!-- Base Mask (Jaw & Cheeks with Eye Cutouts) -->
+  <path class="logo-face" fill-rule="evenodd" d="M 169.85 379.00 L 122.55 412.00 L 288.50 524.00 L 454.00 412.00 L 461.36 369.00 Z M 364.00 374.13 L 378.00 395.64 L 407.00 378.83 L 399.49 411.00 L 380.63 421.00 L 370.00 450.25 L 361.00 430.40 L 349.00 435.44 L 305.60 439.00 L 359.55 407.00 Z M 169.85 379.00 L 176.67 408.00 L 179.00 412.19 L 224.00 434.50 L 271.00 439.42 Z" />
+
+  <!-- Monogram M: Left Flank -->
+  <path class="logo-m logo-m-left" d="M 122.55 412.00 L 74.00 104.38 L 169.85 379.00 Z" />
+
+  <!-- Monogram Z: Forehead Wedge (Lines 1 & 2) -->
+  <path class="logo-z logo-z-body" d="M 169.85 379.00 L 74.00 104.38 L 461.36 369.00 Z" />
+
+  <!-- Monogram M: Right Ear Inner V-Slope -->
+  <path class="logo-m logo-m-inner" d="M 310.76 236.00 L 503.00 104.38 L 388.13 288.50 Z" />
+
+  <!-- Monogram Z: Right Ear Outer Stroke (Line 3) -->
+  <path class="logo-z logo-z-ear" d="M 388.13 288.50 L 503.00 104.38 L 465.51 341.00 Z" />
+</svg>

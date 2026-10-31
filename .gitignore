@@ -2,3 +2,12 @@ node_modules/
 dist/
 .DS_Store
 *.log
+
+# Third-party Reference Demos & Scraping (Large files)
+Demos/
+
+# Agent scratch & ephemeral teamwork state
+.superpowers/
+.agents/teamwork/
+download.jpg
+
