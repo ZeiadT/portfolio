@@ -1,6 +1,6 @@
 # Luxury Golden Engraved Profile Card Redesign Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Transform the 3D profile card pop-up into an opulent, minimalist, dark & gold engraved digital collectible featuring the personal vector cat mask logo crest, 20% camera zoom out, taller grayscale portrait, enlarged typography, static 3/2/1 star skills, and a blur-fade "Click anywhere to close" dismissal hint.
 
@@ -29,15 +29,15 @@
 - Consumes: Vector path from `assets/logo.svg` (`M 74.00 104.38 L 461.36 369.00 ... Z`).
 - Produces: `CardTextureGenerator.generateGoldenCardBackSvg` and `drawGoldenCardBackContent` rendering the cat mask path in the central crest.
 
-- [ ] **Step 1: Write failing test in `CardTextureGenerator.test.ts`**
+- [x] **Step 1: Write failing test in `CardTextureGenerator.test.ts`**
   Add unit test verifying `generateGoldenCardBackSvg` contains the cat mask vector path and does not render the old Ace diamond shape.
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
   `npm --prefix portfolio test -- src/engines/card/three/__tests__/CardTextureGenerator.test.ts`
-- [ ] **Step 3: Implement cat mask logo crest in `CardTextureGenerator.ts`**
+- [x] **Step 3: Implement cat mask logo crest in `CardTextureGenerator.ts`**
   Incorporate the clean path `M 74.00 104.38 ...` into `generateGoldenCardBackSvg` and `drawGoldenCardBackContent`, scaled and centered with `url(#gold-foil-grad)` fill.
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
   `npm --prefix portfolio test -- src/engines/card/three/__tests__/CardTextureGenerator.test.ts`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "feat(card): integrate vector cat mask crest in golden card back"`
 
 ---
@@ -83,16 +83,16 @@
 - Consumes: `ThreeCardModelOptions`.
 - Produces: `ThreeCardModel` with camera positioned at $Z = 10.0$ and clean removal of orbital particle group.
 
-- [ ] **Step 1: Write failing tests in `ThreeCardModel.test.ts`**
+- [x] **Step 1: Write failing tests in `ThreeCardModel.test.ts`**
   Verify camera is mounted at $Z = 10.0$ and `celestial-particles` group is not created in the scene.
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
   `npm --prefix portfolio test -- src/engines/card/three/__tests__/ThreeCardModel.test.ts`
-- [ ] **Step 3: Update `ThreeCardModel.ts`**
+- [x] **Step 3: Update `ThreeCardModel.ts`**
   - Set `camera.position.set(0, 0, 10.0);` in `mount()`.
   - Remove `initCelestialParticleField()`, `particleGroup`, and `particleData`.
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
   `npm --prefix portfolio test -- src/engines/card/three/__tests__/ThreeCardModel.test.ts`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "feat(card): zoom out card by 20% and remove orbital particle system"`
 
 ---
@@ -127,12 +127,12 @@
 **Files:**
 - All modified files
 
-- [ ] **Step 1: Run full Vitest test suite**
+- [x] **Step 1: Run full Vitest test suite**
   `npm --prefix portfolio test` (verify all tests pass with 0 failures).
-- [ ] **Step 2: Run production build**
+- [x] **Step 2: Run production build**
   `npm --prefix portfolio run build` (verify clean build in under 3s with 0 type errors).
-- [ ] **Step 3: Visual inspection**
+- [x] **Step 3: Visual inspection**
   Inspect `http://localhost:3000/` to verify the card appearance, cat logo crest, grayscale portrait, 20% zoom out, and blur-fade prompt.
-- [ ] **Step 4: Final commit**
+- [x] **Step 4: Final commit**
   `git commit -m "chore(card): verify full test suite and clean production build"`
 
