@@ -494,7 +494,7 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         spyDrawRoundedRect.mockRestore();
       });
 
-      it('renders skills with static 3/2/1 golden stars and eliminates old colored tags', () => {
+      it('renders skills with static 1/2/3 golden stars (first skill 1, second 2, third 3) and eliminates old colored tags', () => {
         const canvas = document.createElement('canvas');
         canvas.width = 1050;
         canvas.height = 1470;
@@ -505,17 +505,27 @@ describe('CardTextureGenerator (Unit Tests)', () => {
 
         const renderedTexts = fillTextSpy.mock.calls.map((call) => String(call[0]));
 
-        // 1. "Hard worker" with 3 golden stars (★★★)
         expect(renderedTexts).toContain('Hard worker');
-        expect(renderedTexts).toContain('★★★');
-
-        // 2. "Passionate designer" with 2 golden stars (★★)
         expect(renderedTexts).toContain('Passionate designer');
-        expect(renderedTexts).toContain('★★');
-
-        // 3. "Perfection seeker" with 1 golden star (★)
         expect(renderedTexts).toContain('Perfection seeker');
-        expect(renderedTexts).toContain('★');
+
+        // Verify exact star counts for each skill in ascending order (1, 2, 3)
+        const hardWorkerIdx = fillTextSpy.mock.calls.findIndex((c) => c[0] === 'Hard worker');
+        const passionateDesignerIdx = fillTextSpy.mock.calls.findIndex((c) => c[0] === 'Passionate designer');
+        const perfectionSeekerIdx = fillTextSpy.mock.calls.findIndex((c) => c[0] === 'Perfection seeker');
+
+        expect(hardWorkerIdx).toBeGreaterThan(-1);
+        expect(passionateDesignerIdx).toBeGreaterThan(-1);
+        expect(perfectionSeekerIdx).toBeGreaterThan(-1);
+
+        // First skill: 1 star
+        expect(fillTextSpy.mock.calls[hardWorkerIdx + 1][0]).toBe('★');
+
+        // Second skill: 2 stars
+        expect(fillTextSpy.mock.calls[passionateDesignerIdx + 1][0]).toBe('★★');
+
+        // Third skill: 3 stars
+        expect(fillTextSpy.mock.calls[perfectionSeekerIdx + 1][0]).toBe('★★★');
 
         // Verify old colored tech tags are completely eliminated
         expect(renderedTexts).not.toContain('COROUTINES');
