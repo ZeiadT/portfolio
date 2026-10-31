@@ -47,9 +47,11 @@ export class MythicCardFaceRenderer implements CardFaceRenderer {
       'flex',
       'flex-col',
       'justify-between',
-      'p-3.5',
-      'sm:p-4',
+      'p-4',
+      'sm:p-5',
       'text-white',
+      'h-full',
+      'w-full',
     ];
     for (const cls of baseClasses) {
       container.classList.add(cls);

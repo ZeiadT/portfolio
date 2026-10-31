@@ -170,3 +170,33 @@
 - [x] **Step 2: Implement `EditorialCardFaceRenderer.ts` (GREEN phase)**
 - [x] **Step 3: Wire into `ProfileHeader.ts` via `faceRenderer: new EditorialCardFaceRenderer()`**
 - [x] **Step 4: Verify full workspace test suite and production build**
+
+---
+
+### Task 7: Rescale Card Proportions & Enrich Editorial Luxury Card Face UI
+
+**Files:**
+- Modify: `portfolio/src/engines/card/CardSummonEngine.ts`
+- Modify: `portfolio/src/engines/card/renderers/EditorialCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/renderers/MythicCardFaceRenderer.ts`
+- Modify: `portfolio/src/engines/card/renderers/__tests__/EditorialCardFaceRenderer.test.ts`
+- Modify: `portfolio/src/engines/card/renderers/__tests__/MythicCardFaceRenderer.test.ts`
+
+**Requirements:**
+1. Upgrade card dimensions in `CardSummonEngine.ts`:
+   - `cardEl` and `cardAuraEl`: `w-[320px] sm:w-[370px] md:w-[410px] lg:w-[440px] max-w-[90vw] max-h-[84vh] aspect-[5/7]`
+   - `shockwaveEl`: `w-[340px] sm:w-[400px] md:w-[450px] h-[340px] sm:h-[400px] md:h-[450px]`
+   - Both `cardBack` and `cardFace` are `absolute inset-0 rounded-3xl overflow-hidden`, exactly matching the $5:7$ aspect ratio.
+2. Fill the expanded canvas in `EditorialCardFaceRenderer.ts`:
+   - Header: Edition stamp, gold bullet, 5 golden stars, class badge, and serial code sub-header (`SERIAL: ZM-2026-ARCH // NATIVE & KMP`).
+   - Portrait Window: Majestic `aspect-[4/3]` rectangular duotone portrait with double hairline framing, corner crosshairs (`+`), status chip (`● ACTIVE // CAIRO, EG`), catalog index (`INDEX: 01 // CV ARCHIVE`), and technical stack stamp.
+   - Lore & Identity: Name in prominent typography (`text-xl sm:text-2xl`), skill title badge, full clean architecture narrative statement, and candidate core engineering pillar chips (`[Native Android & KMP]`, `[Clean Architecture & MVI]`, `[Deterministic Performance]`, `[Flow & Coroutines]`).
+   - Stats Matrix: High-contrast monospace metric cards with label, score (`PERF: 99 / ARCH: 98 / CODE: 95`), and hairline progress bars, with a bottom academic & ITI accreditation stamp (`BENHA UNIVERSITY B.SC. • ITI SMART VILLAGE 9-MONTH DIPLOMA`).
+3. Enrich `MythicCardFaceRenderer.ts`:
+   - Upgrade portrait arch to `aspect-[4/3]`, add richer lore layout and progress bars filling the $5:7$ canvas with zero awkward dead space.
+4. Verify all tests in `EditorialCardFaceRenderer.test.ts`, `MythicCardFaceRenderer.test.ts`, `CardSummonEngine.test.ts`, and production build.
+
+- [x] **Step 1: Update unit tests for expanded layout and components**
+- [x] **Step 2: Update `CardSummonEngine.ts` dimensions**
+- [x] **Step 3: Enrich `EditorialCardFaceRenderer.ts` and `MythicCardFaceRenderer.ts`**
+- [x] **Step 4: Verify test suite and production build**

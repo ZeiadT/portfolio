@@ -141,4 +141,16 @@ describe('EditorialCardFaceRenderer', () => {
     expect(container.innerHTML).not.toContain('<iframe');
     expect(container.innerHTML).toContain('&lt;script&gt;');
   });
+
+  it('renders core engineering pillar tags [data-summon-face-pillars] and accreditation footer [data-summon-face-accreditation]', () => {
+    renderer.render(container, mockData, mockTheme);
+
+    const pillars = container.querySelector<HTMLElement>('[data-summon-face-pillars]');
+    expect(pillars).not.toBeNull();
+    expect(pillars?.textContent).toContain('Native Android & KMP');
+
+    const accreditation = container.querySelector<HTMLElement>('[data-summon-face-accreditation]');
+    expect(accreditation).not.toBeNull();
+    expect(accreditation?.textContent).toContain('ITI');
+  });
 });
