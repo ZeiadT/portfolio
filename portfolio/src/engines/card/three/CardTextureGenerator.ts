@@ -50,6 +50,11 @@ export interface FrontCardTextureOptions {
 export class CardTextureGenerator {
   public static readonly TEXTURE_WIDTH = 1050;
   public static readonly TEXTURE_HEIGHT = 1470;
+  /**
+   * Corner radius of the card in texture coordinate space (1050x1470).
+   * Synchronized 1:1 with ThreeCardModel.CARD_RADIUS (0.24 units * (1050 / 3.5) = 72 px).
+   */
+  public static readonly CARD_CORNER_RADIUS = 72;
 
   /**
    * Vector path for the signature cat mask crest logo from assets/logo.svg.
@@ -90,10 +95,10 @@ export class CardTextureGenerator {
 
   /**
    * Computes concentric inner corner radius using optical math:
-   * R_inner = max(0, R_outer - padding)
+   * inner radius = max(0, outer radius - gap)
    */
-  public static computeConcentricRadius(outerRadius: number, padding: number): number {
-    return Math.max(0, outerRadius - padding);
+  public static computeConcentricRadius(outerRadius: number, gap: number): number {
+    return Math.max(0, outerRadius - gap);
   }
 
   /**
@@ -576,8 +581,9 @@ export class CardTextureGenerator {
 
       ctx.save();
 
-      // Concentric outer card clip (1050x1470, R=48)
-      CardTextureGenerator.drawRoundedRect(ctx, 0, 0, 1050, 1470, 48);
+      // Concentric outer card clip (1050x1470, R=72 matches physical 3D card corner radius)
+      const outerRadius = CardTextureGenerator.CARD_CORNER_RADIUS;
+      CardTextureGenerator.drawRoundedRect(ctx, 0, 0, 1050, 1470, outerRadius);
       if (typeof ctx.clip === 'function') {
         ctx.clip();
       }
@@ -590,10 +596,20 @@ export class CardTextureGenerator {
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, 1050, 1470);
 
-      // 2. Monoline Hairline Border Frame with Corner Crosshairs (X=24, Y=24, W=1002, H=1422, p=24 => R=24)
+      // 2. Monoline Hairline Border Frame with Corner Crosshairs
+      // inner radius = outer radius - gap = 72 - 24 = 48
+      const borderGap = 24;
+      const borderInnerRadius = CardTextureGenerator.computeConcentricRadius(outerRadius, borderGap);
       ctx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
       ctx.lineWidth = 1.5;
-      CardTextureGenerator.drawRoundedRect(ctx, 24, 24, 1002, 1422, 24);
+      CardTextureGenerator.drawRoundedRect(
+        ctx,
+        borderGap,
+        borderGap,
+        1050 - 2 * borderGap,
+        1470 - 2 * borderGap,
+        borderInnerRadius
+      );
       ctx.stroke();
 
       // Corner Hairline Crosshairs (+)

@@ -1,7 +1,8 @@
 # Front Card Texture Concentric Border Radius Implementation Plan
 
-- **Status**: Proposed
+- **Status**: Completed
 - **Created**: 2026-10-31
+- **Completed**: 2026-10-31
 - **Tech Stack**: Three.js (^0.160.0), HTML5 Canvas 2D, Vanilla TypeScript, Vitest
 - **Branch**: `main`
 
@@ -96,10 +97,10 @@ User feedback:
 
 ## 4. Implementation Checklist
 
-- [ ] 1. Write failing tests in `CardTextureGenerator.test.ts` (RED phase).
-- [ ] 2. Run tests to confirm failure.
-- [ ] 3. Commit test specifications.
-- [ ] 4. Update `CardTextureGenerator.ts` with `CARD_CORNER_RADIUS = 72` and border radius = 48.
-- [ ] 5. Run tests to confirm GREEN phase.
-- [ ] 6. Run full test suite (`npm test`) and production build (`npm run build`).
-- [ ] 7. Mark plan as Completed, commit and push to GitHub.
+- [x] 1. Write failing tests in `CardTextureGenerator.test.ts` (RED phase).
+- [x] 2. Run tests to confirm failure.
+- [x] 3. Commit test specifications (`f7be951`).
+- [x] 4. Update `CardTextureGenerator.ts` with `CARD_CORNER_RADIUS = 72` and border radius = 48.
+- [x] 5. Run tests to confirm GREEN phase.
+- [x] 6. Run full test suite (`npm test`) and production build (`npm run build`).
+- [x] 7. Mark plan as Completed, commit and push to GitHub.
