@@ -1986,4 +1986,192 @@ describe('Three.js 3D Physical Card Model Integration', () => {
     expect(secondDestroySpy).toHaveBeenCalled();
     expect(engine.getThreeCardModel()).toBeNull();
   });
+
+  describe('CardSummonEngine Dismiss Exit Animation', () => {
+    let engine: CardSummonEngine;
+
+    afterEach(() => {
+      engine?.destroy();
+    });
+
+    it('initiates an animated exit timeline on close() instead of immediate disposal', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      expect(engine.isOpen()).toBe(true);
+      expect(engine.isDismissingState()).toBe(false);
+
+      engine.close();
+
+      // Immediately after close() call, it is in dismissing state, elements still in DOM
+      expect(engine.isDismissingState()).toBe(true);
+      expect(document.querySelector('[data-summon-card]')).not.toBeNull();
+      expect(document.querySelector('[data-summon-backdrop]')).not.toBeNull();
+
+      const closeTl = engine.getCloseTimeline();
+      expect(closeTl).not.toBeNull();
+      expect(closeTl?.duration()).toBeGreaterThanOrEqual(0.35);
+
+      // After fast-forwarding close timeline to completion, elements disposed and isDismissingState becomes false
+      closeTl?.progress(1);
+      expect(engine.isDismissingState()).toBe(false);
+      expect(engine.isOpen()).toBe(false);
+      expect(document.querySelector('[data-summon-card]')).toBeNull();
+      expect(document.querySelector('[data-summon-backdrop]')).toBeNull();
+    });
+
+    it('animates card down to where it came from (yPercent: 120, scale: 0.6, opacity: 0) and syncs ThreeCardModel', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      const card = document.querySelector<HTMLElement>('[data-summon-card]');
+      const threeModel = engine.getThreeCardModel();
+      expect(card).not.toBeNull();
+      expect(threeModel).not.toBeNull();
+
+      engine.close();
+      const closeTl = engine.getCloseTimeline();
+      expect(closeTl).not.toBeNull();
+
+      // Halfway through dismiss
+      closeTl?.progress(0.5);
+      const midYPercent = gsap.getProperty(card!, 'yPercent') as number;
+      expect(midYPercent).toBeGreaterThan(0);
+
+      // At completion of dismiss
+      closeTl?.progress(1);
+      // Elements cleaned up on complete
+      expect(engine.getThreeCardModel()).toBeNull();
+    });
+
+    it('animates backdrop unblur (backdropFilter: blur(0px)) and undim (opacity: 0)', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      const backdrop = document.querySelector<HTMLElement>('[data-summon-backdrop]');
+      expect(backdrop).not.toBeNull();
+
+      engine.close();
+      const closeTl = engine.getCloseTimeline();
+      expect(closeTl).not.toBeNull();
+
+      // Seek to 1
+      closeTl?.progress(1);
+      expect(document.querySelector('[data-summon-backdrop]')).toBeNull();
+    });
+
+    it('fades out dismiss hint text and close button during exit animation', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      const hint = document.querySelector<HTMLElement>('[data-summon-dismiss-hint]');
+      const closeBtn = document.querySelector<HTMLElement>('[data-summon-close]');
+      expect(hint).not.toBeNull();
+      expect(closeBtn).not.toBeNull();
+
+      engine.close();
+      const closeTl = engine.getCloseTimeline();
+      expect(closeTl).not.toBeNull();
+
+      // Halfway through dismiss, hint should be fading
+      closeTl?.progress(0.5);
+      const hintOpacity = gsap.getProperty(hint!, 'opacity') as number;
+      expect(hintOpacity).toBeLessThan(1);
+
+      closeTl?.progress(1);
+      expect(document.querySelector('[data-summon-dismiss-hint]')).toBeNull();
+    });
+
+    it('fires onClose callback only when exit animation completes', () => {
+      const onClose = vi.fn();
+      engine = new CardSummonEngine({ onClose });
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      engine.close();
+      expect(onClose).not.toHaveBeenCalled();
+
+      engine.getCloseTimeline()?.progress(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('guards against duplicate dismiss calls while animation is in flight', () => {
+      const onClose = vi.fn();
+      engine = new CardSummonEngine({ onClose });
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      engine.close();
+      const firstTl = engine.getCloseTimeline();
+
+      // Second call should be a no-op
+      engine.close();
+      expect(engine.getCloseTimeline()).toBe(firstTl);
+
+      firstTl?.progress(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('performs instant disposal without exit animation when prefers-reduced-motion is active', () => {
+      const originalMatchMedia = window.matchMedia;
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion: reduce'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }));
+
+      try {
+        const onClose = vi.fn();
+        engine = new CardSummonEngine({ onClose });
+        engine.open();
+
+        engine.close();
+        expect(engine.getCloseTimeline()).toBeNull();
+        expect(engine.isOpen()).toBe(false);
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(document.querySelector('[data-summon-card]')).toBeNull();
+      } finally {
+        window.matchMedia = originalMatchMedia;
+      }
+    });
+
+    it('supports immediate close when immediate argument is true', () => {
+      const onClose = vi.fn();
+      engine = new CardSummonEngine({ onClose });
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      engine.close(true);
+      expect(engine.getCloseTimeline()).toBeNull();
+      expect(engine.isOpen()).toBe(false);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(document.querySelector('[data-summon-card]')).toBeNull();
+    });
+
+    it('destroy() immediately cancels active close animation and disposes all resources', () => {
+      engine = new CardSummonEngine();
+      engine.open();
+      engine.getTimeline()?.progress(1);
+
+      engine.close();
+      const closeTl = engine.getCloseTimeline();
+      expect(closeTl).not.toBeNull();
+      expect(closeTl?.isActive()).toBe(true);
+
+      engine.destroy();
+      expect(closeTl?.isActive()).toBe(false);
+      expect(engine.isOpen()).toBe(false);
+      expect(document.querySelector('[data-summon-card]')).toBeNull();
+      expect(engine.getThreeCardModel()).toBeNull();
+    });
+  });
 });
