@@ -460,6 +460,24 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(mockShader.fragmentShader).toContain('wipeDir');
     });
 
+    it('offsets the reveal foil gleam band past the bottom-left corner so no sheer glow is visible at progress 0', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const slabMesh = model.cardGroup.children[0] as THREE.Mesh;
+      const frontMat = (slabMesh.material as THREE.MeshStandardMaterial[])[1];
+
+      const mockShader = {
+        uniforms: {} as Record<string, { value: unknown }>,
+        vertexShader: 'void main() { gl_Position = vec4(1.0); }',
+        fragmentShader: '#include <map_fragment>\nvoid main() {}',
+      };
+
+      frontMat.onBeforeCompile(mockShader as unknown as THREE.WebGLProgramParametersWithUniforms, {} as THREE.WebGLRenderer);
+
+      // Shader should offset the wipe start by a margin beyond minP and guard gleam at progress 0
+      expect(mockShader.fragmentShader).toMatch(/startP|bandOffset|minP\s*-\s*band/);
+      expect(mockShader.fragmentShader).toMatch(/uFoilWipeProgress\s*>\s*0\.0/);
+    });
+
     it('updates shader uniform values directly when setVeilOpacity and setFoilWipeProgress are called', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
       const slabMesh = model.cardGroup.children[0] as THREE.Mesh;

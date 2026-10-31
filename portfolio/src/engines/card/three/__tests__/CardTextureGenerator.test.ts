@@ -176,6 +176,18 @@ describe('CardTextureGenerator (Unit Tests)', () => {
       // Verify old Ace diamond polygon is cleanly removed
       expect(svg).not.toContain('polygon points="0,-126 84,0 0,126 -84,0"');
     });
+
+    it('enforces optical concentric corner radius formula (R_inner = R_outer - padding) for all back frames', () => {
+      const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
+
+      // Outer base card is rx="48"
+      expect(svg).toContain('rx="48"');
+
+      // Primary frame at padding 24 has rx="24" (48 - 24 = 24), frame at padding 36 has rx="12" (48 - 36 = 12)
+      expect(svg).toMatch(/rx=["']24["']|rx=["']12["']/);
+      // No non-concentric rx="36" on an inner frame with padding 36!
+      expect(svg).not.toMatch(/<rect\s+x=["']36["']\s+y=["']36["'][^>]*rx=["']36["']/);
+    });
   });
 
   describe('drawGoldenCardBackContent', () => {
