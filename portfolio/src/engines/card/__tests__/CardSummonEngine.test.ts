@@ -293,7 +293,7 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     ).toBe(true);
   });
 
-  it('animates card ascent with yPercent towards 0, 3D Y-rotation spin, and 12° Z-tilt deceleration', () => {
+  it('animates card ascent with yPercent towards 0, card back facing camera (-180°), and Z-tilt deceleration', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -311,8 +311,8 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     const startRotZ = Math.abs(Number(gsap.getProperty(card, 'rotationZ')));
 
     expect(startYPercent).toBeGreaterThan(50);
-    expect(startRotY).toBeGreaterThanOrEqual(720);
-    expect(startRotZ).toBeGreaterThanOrEqual(10);
+    expect(startRotY).toBe(180);
+    expect(startRotZ).toBeGreaterThanOrEqual(8);
 
     // Resting state at progress 1
     tl?.progress(1);
@@ -431,7 +431,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     expect(endOpacity).toBeLessThanOrEqual(0.05);
   });
 
-  it('launches card with 3.5 spins (1260°) and sustains slow-motion apex hover with negative yPercent before graceful descent', () => {
+  it('launches card with mystic back sigil facing camera (-180°) and sustains slow-motion apex hover with negative yPercent before graceful descent', () => {
     engine = new CardSummonEngine();
     engine.open();
 
@@ -441,14 +441,14 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // Initial state at progress 0 / seek 0: exactly 3.5 spins (1260°)
+    // Initial state at progress 0 / seek 0: card back facing camera (-180°)
     tl?.seek(0);
     const startRotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
-    expect(startRotY).toBe(1260);
+    expect(startRotY).toBe(180);
 
-    // During apex slow-motion hover and reveal flip (sampled between progress 0.70 and 0.80),
+    // During apex slow-motion hover and reveal flip (sampled between progress 0.75 and 0.85),
     // yPercent remains in negative overshoot (< 0) while rotationY has settled to <= 30°
-    for (let p = 0.70; p <= 0.80; p += 0.05) {
+    for (let p = 0.75; p <= 0.85; p += 0.05) {
       tl?.progress(p);
       const yPercent = Number(gsap.getProperty(card, 'yPercent'));
       const rotY = Math.abs(Number(gsap.getProperty(card, 'rotationY')));
@@ -1401,25 +1401,34 @@ describe('Phase 6: The Radiant Unblur & Flip Reveal', () => {
     }
   });
 
-  it('choreographs 3D flip reveal at apex climax (1.25s), transitioning card from back (-180deg) to front (0deg)', () => {
+  it('choreographs 3D flip reveal at apex climax (1.20s), transitioning card from back (-180deg) to front (0deg)', () => {
     engine = new CardSummonEngine();
     engine.open();
 
     const card = document.querySelector<HTMLElement>('[data-summon-card]');
+    const cardFace = document.querySelector<HTMLElement>('[data-summon-card-face]');
     expect(card).not.toBeNull();
+    expect(cardFace).not.toBeNull();
 
     const tl = engine.getTimeline();
     expect(tl).not.toBeNull();
 
-    // At apex freeze (t = 1.15s), card is facing back at rotationY -180
+    // During ascent (t = 0.5s), card is facing back at rotationY -180 and cardFace is hidden to prevent blur bleed
+    tl?.seek(0.5);
+    const ascentRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
+    expect(ascentRotY).toBe(-180);
+    expect(cardFace?.style.visibility).toBe('hidden');
+
+    // At apex freeze (t = 1.15s), card is still facing back at rotationY -180
     tl?.seek(1.15);
     const apexRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
     expect(apexRotY).toBe(-180);
 
-    // At t = 1.45s, card has flipped towards 0deg
-    tl?.seek(1.45);
+    // At t = 1.60s, card has flipped towards 0deg and cardFace is visible
+    tl?.seek(1.60);
     const flippedRotY = Math.round(Number(gsap.getProperty(card, 'rotationY')));
     expect(flippedRotY).toBe(0);
+    expect(cardFace?.style.visibility).toBe('visible');
 
     // At settle (progress 1), card rests firmly at 0deg
     tl?.progress(1);

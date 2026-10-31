@@ -642,12 +642,20 @@ export class CardSummonEngine implements Engine {
     const prefersReducedMotion = typeof window !== 'undefined' &&
       (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
 
+    // Conceal front face during ascent to eliminate GPU compositor blur bleed onto card back
+    if (this.cardFaceEl) {
+      this.cardFaceEl.style.visibility = prefersReducedMotion ? 'visible' : 'hidden';
+    }
+
     // Build entrance timeline
     this.openTimeline = gsap.timeline({
       onComplete: () => {
         this.isSettled = true;
         this.isFlipped = false;
         this.isMaskConcealedState = false;
+        if (this.cardFaceEl) {
+          this.cardFaceEl.style.visibility = 'visible';
+        }
         if (this.hintEl && !prefersReducedMotion) {
           this.hintTween = gsap.fromTo(
             this.hintEl,
@@ -738,14 +746,14 @@ export class CardSummonEngine implements Engine {
 
       if (this.cardEl) {
         // Card ascent (0.35s to 1.10s, duration 0.75s)
-        // 3.5 full spins ending at -180 with mystic back sigil visible
+        // Card emerges and ascends with mystic back sigil strictly facing camera (-180deg)
         this.openTimeline.fromTo(
           this.cardEl,
           {
             yPercent: 120,
-            rotationY: -1260,
-            rotationX: 0,
-            rotationZ: 12,
+            rotationY: -180,
+            rotationX: 18,
+            rotationZ: -8,
             opacity: 0,
             scale: 0.55,
             scaleX: 1,
@@ -755,6 +763,7 @@ export class CardSummonEngine implements Engine {
           {
             yPercent: -3,
             rotationY: -180,
+            rotationX: 0,
             rotationZ: 1.5,
             opacity: 1,
             scale: 1.020,
@@ -789,21 +798,26 @@ export class CardSummonEngine implements Engine {
           1.10
         );
 
-        // Climax Apex Rupture: 3D Flip Reveal (1.30s to 1.45s: snaps card from -180 to 0)
+        // Climax Apex Rupture: 3D Flip Reveal (1.30s to 1.60s: smooth power3.out flip from -180 to 0)
+        // Reveal cardFace at exact moment optical burst begins
+        if (this.cardFaceEl) {
+          this.openTimeline.set(this.cardFaceEl, { visibility: 'visible' }, 1.30);
+        }
         this.openTimeline.to(
           this.cardEl,
           {
             rotationY: 0,
+            rotationX: 0,
             rotationZ: 0,
-            duration: 0.15,
+            duration: 0.30,
             ease: 'power3.out',
           },
           1.30
         );
-        this.openTimeline.to(this.cardEl, { scale: 1.08, duration: 0.06, ease: 'power4.out' }, 1.30);
-        this.openTimeline.to(this.cardEl, { scale: 1.02, duration: 0.09, ease: 'power2.out' }, 1.36);
+        this.openTimeline.to(this.cardEl, { scale: 1.08, duration: 0.08, ease: 'power4.out' }, 1.30);
+        this.openTimeline.to(this.cardEl, { scale: 1.02, duration: 0.12, ease: 'power2.out' }, 1.38);
 
-        // Card graceful descent to center (1.45s to 1.95s, duration 0.50s)
+        // Card graceful descent to center (1.50s to 2.00s, duration 0.50s)
         this.openTimeline.to(
           this.cardEl,
           {
@@ -816,7 +830,7 @@ export class CardSummonEngine implements Engine {
             duration: 0.50,
             ease: 'power2.out',
           },
-          1.45
+          1.50
         );
       }
 
@@ -839,7 +853,7 @@ export class CardSummonEngine implements Engine {
           0.70
         );
 
-        // Aura soft dissipation during graceful descent (1.45s to 1.95s)
+        // Aura soft dissipation during graceful descent (1.50s to 2.00s)
         this.openTimeline.to(
           this.cardAuraEl,
           {
@@ -848,29 +862,29 @@ export class CardSummonEngine implements Engine {
             duration: 0.50,
             ease: 'power2.out',
           },
-          1.45
+          1.50
         );
       }
 
-      // Climax optical flash veil & shockwave (1.32s to 1.48s)
+      // Climax optical flash veil & shockwave (1.30s to 1.48s)
       // Screen is blinded in white light as the card crosses -90deg edge-on,
-      // and when the light clears (1.40s - 1.45s), the card is ALREADY on the front face!
+      // and when the light clears (1.40s - 1.48s), the card is ALREADY on the front face!
       if (this.flashVeilEl) {
         this.openTimeline.fromTo(
           this.flashVeilEl,
           { opacity: 0 },
-          { opacity: 0.95, duration: 0.04, ease: 'power2.out' },
-          1.32
+          { opacity: 0.95, duration: 0.04, ease: 'power3.in' },
+          1.30
         );
         this.openTimeline.to(
           this.flashVeilEl,
           { opacity: 0.95, duration: 0.04, ease: 'none' },
-          1.36
+          1.34
         );
         this.openTimeline.to(
           this.flashVeilEl,
-          { opacity: 0, duration: 0.08, ease: 'expo.out' },
-          1.40
+          { opacity: 0, duration: 0.10, ease: 'expo.out' },
+          1.38
         );
       }
 
@@ -879,7 +893,7 @@ export class CardSummonEngine implements Engine {
           this.shockwaveEl,
           { scale: 0.2, opacity: 1 },
           { scale: 2.8, opacity: 0, duration: 0.20, ease: 'power4.out' },
-          1.32
+          1.30
         );
       }
 

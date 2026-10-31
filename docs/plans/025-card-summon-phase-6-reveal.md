@@ -12,49 +12,55 @@
 
 ## 1. Feature Overview & Requirements Alignment
 
-Based on the interactive `/grill-me` alignment with the user, Phase 6 executes the climactic **Radiant Unblur & Flip Reveal** with a **Zero-UI Pure Artifact** aesthetic:
+Based on user feedback on the initial Phase 6 animation:
+> "card spins in blured side on both front and back, stops then snaps to back side, animation finish flash light plays and it snaps to front again"
 
-1. **Fully Automatic Gacha Climax & 3D Flip Reveal**:
-   - Card ascends spinning (`-1260° -> -180°`) with the mystic back sigil facing the camera.
-   - Pre-fermata 20Hz micro-vibration ($0.75\text{s} - 1.10\text{s}$).
-   - The 200ms Fermata Freeze ($1.10\text{s} - 1.30\text{s}$): Spatial coordinates clamped (`x = 0`), scale expands subtly ($1.020 \to 1.025$).
-   - At $1.30\text{s}$ (Apex Climax Rupture):
-     - Fullscreen optical flash veil (`data-summon-flash-veil`) triggers: $0 \to 0.95 \to 0$.
-     - Radial shockwave ring (`data-summon-shockwave`) expands $0.2 \to 2.8$ and fades out.
-     - Card snaps with high-torque 3D flip: `rotationY: -180° -> 0°` (`power3.out`), revealing the front face.
-2. **Radiant Unblur & Specular Sheen Sweep**:
-   - Frosted obsidian glass veil (`data-summon-card-front-mask`) unblurs and dissolves: `opacity: 1 -> 0` ($1.35\text{s} - 1.75\text{s}$, `power2.inOut`).
-   - Radiant specular sheen (`data-summon-card-front-sheen`) sweeps diagonally across the face (`xPercent: -120 -> 180`).
-3. **Dynamic Staggered Element Entrance**:
-   - 5 gold stars (`[data-summon-star]`) drop in with a rhythmic bounce (`scale: 2.2 -> 1, opacity: 0 -> 1, stagger: 0.04s, ease: back.out(2.5)`).
-   - Stat progress bars (`[data-summon-stat-bar-fill]`) animate their width from $0\%$ to target attributes (`99%`, `98%`, `95%`).
-4. **Zero-UI Pure Artifact & Settle Interaction**:
-   - Bottom pill buttons (`[data-summon-controls]`) completely removed.
-   - Direct click on the card flips between front face (`rotationY: 0`) and back sigil (`rotationY: 180`).
-   - 3D parallax mouse/touch tilt active on modal when settled ($\pm 12^\circ$).
-   - Subtle "Click anywhere to close" hint (`data-summon-hint`) appears below the card $1.2\text{s}$ after settle with a blur fade-in (`opacity: 0 -> 0.75, filter: blur(8px) -> blur(0px)`).
-   - Clicking backdrop, close button, or pressing Escape dismisses the modal.
-5. **Strict Accessibility (`prefers-reduced-motion: reduce`)**:
-   - Instantly settles at `rotationY: 0, scale: 1, opacity: 1, yPercent: 0`.
-   - Concealment veil set to `opacity: 0`, stars at `scale: 1, opacity: 1`, stat bars at target widths.
-   - Hint appears immediately without blur animation.
-   - 3D tilt and particle flashes bypassed.
-6. **Teardown & Lifecycle Isolation**:
-   - All tweens killed, DOM elements cleanly removed on `close()` and `destroy()`.
-   - Zero memory leaks, backward-compatible with all existing tests.
+### Root Cause Analysis:
+1. **Multi-turn Y-axis Spin**:
+   - The card had `rotationY: -1260 -> -180`, causing it to spin 3.5 times on Y.
+   - This exposed both front and back faces repeatedly before the reveal, ruining the sense of mystery.
+2. **Backdrop-Blur 3D Bleed in Chromium**:
+   - `frontMaskEl` used `backdrop-blur-xl`.
+   - In Chromium / WebKit, `backdrop-filter` creates an unclipped compositor surface that ignores `backface-visibility: hidden` in 3D transforms, causing the blur to bleed through onto the card back, making BOTH sides look blurry during the spin.
+3. **Disjointed Settle & Flash Snapping**:
+   - The card stopped spinning on the back face at $1.10\text{s}$, sat frozen on the back face, and only then fired a flash veil at $1.32\text{s}$ with a disjointed snap to the front.
+   - The flash and flip were separated rather than acting as one unified climax rupture.
+
+### Corrected Motion Architecture:
+1. **Face-Down Ascent (Tension Charge)**:
+   - The card ascends **strictly face-down** (`rotationY: -180` constant) showing only the crisp, unblurred mystic card back.
+   - Zero Y-axis spinning during ascent.
+   - Subtle dynamic 3D entrance pitch and roll (`rotationX: 18 -> 0`, `rotationZ: -8 -> 1.5`, `scale: 0.55 -> 1.02`, `yPercent: 120 -> -4`).
+2. **Elimination of Blur Bleed**:
+   - `cardFace` is kept hidden (`visibility: hidden`) during ascent ($0.0\text{s} - 1.30\text{s}$) so `backdrop-filter` cannot bleed through to `cardBack`.
+3. **Unified Apex Climax Rupture ($1.30\text{s} - 1.60\text{s}$)**:
+   - At $1.30\text{s}$ (after the 200ms fermata freeze from $1.10\text{s} - 1.30\text{s}$):
+     - `cardFace` becomes visible.
+     - Blinding whiteout flash veil surges ($0 \to 0.95$ in $0.04\text{s}$, $1.30\text{s} - 1.34\text{s}$).
+     - Shockwave ring bursts outward ($1.30\text{s} - 1.50\text{s}$).
+     - Card flips smoothly in 3D: `rotationY: -180° -> 0°` ($0.30\text{s}$ duration, $1.30\text{s} - 1.60\text{s}$, `power3.out`).
+     - As the flash clears ($1.38\text{s} - 1.48\text{s}$), the card is already past $-90^\circ$ edge-on and reveals the front face.
+4. **Reveal & Settle ($1.35\text{s} - 2.00\text{s}$)**:
+   - Obsidian mask dissolves (`opacity: 1 -> 0`).
+   - Radiant specular sheen sweeps across the face.
+   - 5 gold stars drop with bounce (`scale: 2.2 -> 1.0`, `stagger: 0.04s`, `back.out(2.5)`).
+   - Stat bars animate to target widths.
+   - Card floats gracefully to centered rest (`yPercent: 0, scale: 1.0`).
 
 ---
 
 ## 2. Mathematical & Coordinate Architecture
 
-- **Card Faces Coordinates**:
-  - `cardFace` is mounted with `rotateY(0deg)` (`backface-visibility: hidden`).
-  - `cardBack` is mounted with `rotateY(180deg)` (`backface-visibility: hidden`).
-- **Ascent & Flip Math**:
-  - Card `fromTo`: `rotationY: -1260 -> -180` (back sigil visible at $-180^\circ + 180^\circ = 0^\circ$).
-  - Apex Climax Flip at $1.30\text{s}$: `rotationY: -180 -> 0` (front face visible at $0^\circ + 0^\circ = 0^\circ$).
-  - At settle ($progress = 1$): `rotationY = 0`, `yPercent = 0`, `rotationZ = 0`, `scale = 1`.
-  - All existing test assertions expecting `rotationY === 0` at settle pass 100%.
+- **Card Faces**:
+  - `cardFace`: `rotateY(0deg)` (`backface-visibility: hidden`).
+  - `cardBack`: `rotateY(180deg)` (`backface-visibility: hidden`).
+- **Ascent**:
+  - `rotationY: -180` (back sigil facing camera: $-180^\circ + 180^\circ = 0^\circ$).
+  - `rotationX: 18 -> 0`, `rotationZ: -8 -> 1.5`, `yPercent: 120 -> -4`, `scale: 0.55 -> 1.02`.
+- **Apex Climax Flip**:
+  - At $1.30\text{s}$: `rotationY: -180 -> 0` (`duration: 0.30s`, `power3.out`).
+  - Edge-on crossing occurs at $t \approx 1.36\text{s}$, fully concealed by flash veil ($t = 1.30\text{s} - 1.48\text{s}$).
+  - Settle at $progress = 1$: `rotationY: 0`, `yPercent: 0`, `scale: 1.0`.
 
 ---
 
@@ -114,7 +120,21 @@ Based on the interactive `/grill-me` alignment with the user, Phase 6 executes t
 - [x] Step 2: Implement timing synchronization and remove spurious reverse flip.
 - [x] Step 3: Verify all 207 tests passing and Vite build clean.
 
-### Task 5: Full Verification & Live Review
+### Task 5: Eliminate Propeller Y-Spin During Ascent, Prevent Blur Bleed, and Unify Climax Rupture
+- **Files:**
+  - `portfolio/src/engines/card/CardSummonEngine.ts`
+  - `portfolio/src/engines/card/__tests__/CardSummonEngine.test.ts`
+- **Changes:**
+  1. Fix ascent rotation: Card emerges and ascends facing back towards camera (`rotationY: -180` constant) with natural 3D pitch/roll (`rotationX: 18 -> 0`, `rotationZ: -8 -> 1.5`), eliminating the 3.5 multi-turn Y-spin that was exposing the front face repeatedly.
+  2. Prevent compositor blur bleed onto card back: Keep `cardFace` hidden (`visibility: hidden` / `opacity: 0`) during ascent ($0.0\text{s} - 1.20\text{s}$) and remove `backdrop-blur-xl` from `frontMask` to prevent Chromium's compositor from bleeding blur onto `cardBack`.
+  3. Unify climax rupture: At $1.20\text{s}$ (after 150ms fermata freeze), trigger flash veil ($1.20\text{s} - 1.45\text{s}$), radial shockwave ($1.20\text{s} - 1.42\text{s}$), and 3D card flip from $-180^\circ \to 0^\circ$ ($1.20\text{s} - 1.55\text{s}$, $0.35\text{s}$ duration, `power3.out`). Make `cardFace` visible at $1.20\text{s}$.
+  4. Ensure smooth reveal of front mask dissolve, stars drop-in, stat bar fills, and settle into center rest position.
+- [x] Step 1: Update unit test specifications in `CardSummonEngine.test.ts`.
+- [x] Step 2: Implement motion & blur isolation refinements in `CardSummonEngine.ts`.
+- [x] Step 3: Run Vitest test suite and verify all tests pass.
+- [x] Step 4: Run Vite build and verify clean build.
+
+### Task 6: Full Verification & Live Review
 - **Files:** All test suites in `portfolio/src/`, Vite build.
 - [x] Step 1: Run full test suite (`npm --prefix portfolio test`).
 - [x] Step 2: Run Vite production build (`npm --prefix portfolio run build`).
