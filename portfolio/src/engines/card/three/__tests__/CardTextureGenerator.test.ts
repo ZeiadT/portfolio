@@ -163,12 +163,12 @@ describe('CardTextureGenerator (Unit Tests)', () => {
       expect(svg).toContain('#e0a020');
     });
 
-    it('integrates the vector cat mask crest and replaces the legacy Ace diamond polygon', () => {
+    it('integrates the vector star crest and replaces the legacy cat mask crest on card back', () => {
       const svg = CardTextureGenerator.generateGoldenCardBackSvg(mockTheme);
 
-      // Verify the vector cat mask crest path is present
-      expect(CardTextureGenerator.CAT_MASK_PATH).toBeDefined();
-      expect(svg).toContain(CardTextureGenerator.CAT_MASK_PATH);
+      // Verify the vector star crest path is present
+      expect(CardTextureGenerator.STAR_CREST_PATH).toBeDefined();
+      expect(svg).toContain(CardTextureGenerator.STAR_CREST_PATH);
       expect(svg).toContain('fill-rule="evenodd"');
       expect(svg).toContain('fill="url(#gold-foil-grad)"');
       expect(svg).toContain('stroke="#ffd700"');
@@ -425,6 +425,19 @@ describe('CardTextureGenerator (Unit Tests)', () => {
         expect(spy).toHaveBeenCalledWith(expect.anything(), 56, 1104, 298, 196, 16);
 
         spy.mockRestore();
+      });
+
+      it('does NOT render the 4 corner crosshairs/stars (+) on the front card face corners', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1050;
+        canvas.height = 1470;
+        const ctx = canvas.getContext('2d');
+        const fillTextSpy = vi.spyOn(ctx!, 'fillText');
+
+        CardTextureGenerator.drawFrontCardContent(canvas, mockCardData, mockTheme);
+
+        const plusCalls = fillTextSpy.mock.calls.filter((call) => call[0] === '+');
+        expect(plusCalls).toHaveLength(0);
       });
 
       it('desaturates pixels using fine-art luminance formula L = 0.299R + 0.587G + 0.114B', () => {

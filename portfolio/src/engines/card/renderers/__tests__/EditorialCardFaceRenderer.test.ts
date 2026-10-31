@@ -60,6 +60,17 @@ describe('EditorialCardFaceRenderer', () => {
     expect(frame?.className).toContain('rounded-[18px]');
   });
 
+  it('does NOT render the 4 corner crosshairs/stars (+) inside the hairline border frame', () => {
+    renderer.render(container, mockData, mockTheme);
+
+    const frame = container.querySelector<HTMLElement>('[data-summon-face-frame]');
+    expect(frame).not.toBeNull();
+    const plusSpans = Array.from(frame?.querySelectorAll('span') || []).filter(
+      (s) => s.textContent?.trim() === '+'
+    );
+    expect(plusSpans).toHaveLength(0);
+  });
+
   it('renders header with role on left in golden font and stars on right filling position', () => {
     renderer.render(container, mockData, mockTheme);
 
