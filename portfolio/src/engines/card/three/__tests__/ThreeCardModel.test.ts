@@ -311,11 +311,45 @@ describe('ThreeCardModel & CardTextureGenerator (3D Physical Card Engine)', () =
       expect(front.color.getHex()).toBe(0xffffff);
     });
 
-    it('setSheenProgress(p) updates holographic specular shimmer offset', () => {
+    it('setSheenProgress(p) updates holographic specular shimmer progress', () => {
       model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
 
       model.setSheenProgress(0.72);
       expect(model.getSheenProgress()).toBeCloseTo(0.72, 4);
+    });
+
+    it('setSheenProgress(p) does NOT shift frontTexture offset (card face artwork remains stationary)', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      const frontMat = ((model.cardGroup.children[0] as THREE.Mesh).material as THREE.MeshStandardMaterial[])[1];
+      const texture = frontMat.map!;
+
+      model.setSheenProgress(0.1);
+      expect(texture.offset.x).toBe(0);
+      expect(texture.offset.y).toBe(0);
+
+      model.setSheenProgress(0.9);
+      expect(texture.offset.x).toBe(0);
+      expect(texture.offset.y).toBe(0);
+    });
+
+    it('setSheenProgress(p) modulates sheen light position and fades intensity at loop boundaries', () => {
+      model = new ThreeCardModel({ cardData: mockCardData, theme: mockTheme });
+      model.mount(container);
+
+      // Boundary p = 0 should have zero intensity (no jump)
+      model.setSheenProgress(0);
+      const sheenLight = (model as unknown as { sheenLight?: THREE.PointLight }).sheenLight;
+      expect(sheenLight).toBeDefined();
+      expect(sheenLight?.intensity).toBeCloseTo(0, 2);
+
+      // Center p = 0.5 should peak in intensity and be centered at X=0
+      model.setSheenProgress(0.5);
+      expect(sheenLight?.intensity).toBeGreaterThan(1.0);
+      expect(sheenLight?.position.x).toBeCloseTo(0, 1);
+
+      // Boundary p = 1 should fade back to zero intensity
+      model.setSheenProgress(1.0);
+      expect(sheenLight?.intensity).toBeCloseTo(0, 2);
     });
   });
 

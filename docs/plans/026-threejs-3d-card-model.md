@@ -99,3 +99,18 @@ portfolio/src/engines/card/
 - Front group triangles lie at Z<0, back group at Z>0; cap UVs within [0,1].
 - Veil opacity 1 darkens front material colour; opacity 0 restores white.
 - destroy() disposes slab geometry and all 3 materials.
+
+---
+
+## Revision 3 (2026-10-31): Fix Front Face Drifting / Teleportation Loop (Specular Light Sheen)
+
+### Root Cause Analysis
+- **Symptom:** User observed the front face artwork moving from right to left constantly and teleporting to the right again in a loop.
+- **Trace:** \CardSummonEngine\ has an infinite 3-second \sheenTween\ running \epeat: -1\ that called \	hreeCardModel.setSheenProgress(p)\.
+- **Root Cause:** \ThreeCardModel.setSheenProgress(p)\ directly modified \	his.frontTexture.offset.x = (p - 0.5) * 0.1\. Because \rontTexture\ is the diffuse map of the card face containing all typography, portrait, and skills, shifting UV \offset.x\ translated the entire printed card layout across the geometry. When the tween looped from progress 1.0 back to 0.0, \offset.x\ snapped from +0.05 to -0.05, causing the visible face to teleport.
+
+### Systematic Solution
+1. **Never modify diffuse texture offset:** Keep \	his.frontTexture.offset\ at \(0, 0)\ so the face artwork is locked firmly to the card geometry.
+2. **Implement true 3D Specular Light Sheen:** Use a dedicated Three.js point light (\sheenLight\, name: \card-sheen-light\) positioned at \z = 2.5\ in front of the card.
+3. **Smooth Sweep & Edge Fade:** In \setSheenProgress(p)\, sweep \sheenLight.position.x\ from \-4.0\ to \+4.0\ while modulating intensity with \Math.sin(p * Math.PI) * 2.5\. Because intensity is zero at \p = 0\ and \p = 1\, the highlight smoothly fades out before wrapping around, eliminating any loop pop or teleportation.
+4. **TDD Verification:** Add automated test asserting that \rontTexture.offset\ remains strictly \(0, 0)\ across all sheen progress values, and that the sheen light updates position and intensity smoothly.
