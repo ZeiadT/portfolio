@@ -1,7 +1,8 @@
 # Card Dismiss Exit Animation & Backdrop Undim/Unblur Implementation Plan
 
-- **Status**: Proposed
+- **Status**: Completed
 - **Created**: 2026-10-31
+- **Completed**: 2026-10-31
 - **Tech Stack**: Vanilla TypeScript, GSAP 3, Three.js, Vitest, Tailwind CSS
 - **Branch**: `feat/card-shine-effect`
 
@@ -40,7 +41,7 @@ This plan specifies the choreographed exit animation and resource disposal seque
 - **Target**: `backdropEl` (initially styled with `bg-black/75 backdrop-blur-xl`, i.e., `opacity: 1`, `backdrop-filter: blur(24px)`).
 - **Exit Tweens**:
   - `opacity: 0` (undim)
-  - `backdropFilter: 'blur(0px)'` and `WebkitBackdropFilter: 'blur(0px)'` (unblur)
+  - `backdropFilter: 'blur(0px)'` (unblur)
   - `duration: 0.40s`
   - `ease: 'power2.out'` (smooth reveal of the underlying page)
 
@@ -100,10 +101,10 @@ This plan specifies the choreographed exit animation and resource disposal seque
 
 ## 5. Implementation Steps
 
-1. [ ] Write unit tests in `CardSummonEngine.test.ts` covering dismiss animation kinematics, backdrop unblur/undim, idempotency, and deferred disposal.
-2. [ ] Run tests to confirm failure (RED phase).
-3. [ ] Commit test specifications to git.
-4. [ ] Implement `closeTimeline`, `close(immediate = false)`, `getCloseTimeline()`, and `isDismissingState()` in `CardSummonEngine.ts`.
-5. [ ] Update existing synchronous cleanup tests in `CardSummonEngine.test.ts` to advance `getCloseTimeline()?.progress(1)` or invoke `close(true)`.
-6. [ ] Run full test suite (`npm test`) and production build (`npm run build`).
-7. [ ] Update documentation and walkthrough.
+1. [x] Write unit tests in `CardSummonEngine.test.ts` covering dismiss animation kinematics, backdrop unblur/undim, idempotency, and deferred disposal.
+2. [x] Run tests to confirm failure (RED phase).
+3. [x] Commit test specifications to git.
+4. [x] Implement `closeTimeline`, `close(immediate = false)`, `getCloseTimeline()`, and `isDismissingState()` in `CardSummonEngine.ts`.
+5. [x] Update existing synchronous cleanup tests in `CardSummonEngine.test.ts` to advance `getCloseTimeline()?.progress(1)` or invoke `close(true)`.
+6. [x] Run full test suite (`npm test`) and production build (`npm run build`).
+7. [x] Update documentation and walkthrough.

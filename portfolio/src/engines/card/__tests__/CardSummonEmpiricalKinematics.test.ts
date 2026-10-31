@@ -481,6 +481,7 @@ describe('Empirical Kinematics Challenger: CardSummonEngine & ThreeCardModel', (
 
       // Trigger mid-animation close
       engine.close();
+      engine.getCloseTimeline()?.progress(1);
 
       // Ensure open timeline and tweens are dead
       expect(engine.isOpen()).toBe(false);
@@ -501,6 +502,7 @@ describe('Empirical Kinematics Challenger: CardSummonEngine & ThreeCardModel', (
         expect(tl).not.toBeNull();
         tl?.seek(Math.random() * 2.0, false);
         engine.close();
+        engine.getCloseTimeline()?.progress(1);
         expect(engine.isOpen()).toBe(false);
       }
 

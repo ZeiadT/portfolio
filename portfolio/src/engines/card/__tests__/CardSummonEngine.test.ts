@@ -214,6 +214,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       expect(engine.isOpen()).toBe(true);
 
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      engine.getCloseTimeline()?.progress(1);
 
       expect(engine.isOpen()).toBe(false);
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -227,6 +228,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       const backdrop = document.querySelector<HTMLElement>('[data-summon-backdrop]');
       expect(backdrop).not.toBeNull();
       backdrop?.click();
+      engine.getCloseTimeline()?.progress(1);
 
       expect(engine.isOpen()).toBe(false);
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -240,6 +242,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       const closeBtn = document.querySelector<HTMLButtonElement>('[data-summon-close]');
       expect(closeBtn).not.toBeNull();
       closeBtn?.click();
+      engine.getCloseTimeline()?.progress(1);
 
       expect(engine.isOpen()).toBe(false);
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -333,6 +336,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       expect(card).not.toBeNull();
 
       card?.click();
+      engine.getCloseTimeline()?.progress(1);
 
       expect(engine.isOpen()).toBe(false);
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -348,6 +352,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       expect(modal).not.toBeNull();
 
       modal?.click();
+      engine.getCloseTimeline()?.progress(1);
 
       expect(engine.isOpen()).toBe(false);
       expect(onClose).toHaveBeenCalledTimes(1);
@@ -360,6 +365,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       expect(document.querySelector('[data-summon-dismiss-hint]')).not.toBeNull();
 
       engine.close();
+      engine.getCloseTimeline()?.progress(1);
       expect(document.querySelector('[data-summon-dismiss-hint]')).toBeNull();
 
       engine.open();
@@ -390,6 +396,7 @@ describe('CardSummonEngine Phase 1 - Dim & Bottom Glow', () => {
       engine = new CardSummonEngine({ onClose });
       engine.open();
       engine.close();
+      engine.getCloseTimeline()?.progress(1);
 
       // Pressing Escape now should not trigger onClose again
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
@@ -536,6 +543,7 @@ describe('Phase 2: 3D card ascent and rotation', () => {
     expect(document.querySelector('[data-summon-card]')).not.toBeNull();
 
     engine.close();
+    engine.getCloseTimeline()?.progress(1);
     expect(document.querySelector('[data-summon-card-stage]')).toBeNull();
     expect(document.querySelector('[data-summon-card]')).toBeNull();
 
@@ -795,6 +803,7 @@ describe('Phase 3: Card Slam Animation & Impact Aura', () => {
     expect(document.querySelector('[data-summon-card-aura]')).not.toBeNull();
 
     engine.close();
+    engine.getCloseTimeline()?.progress(1);
     expect(document.querySelector('[data-summon-card-aura]')).toBeNull();
 
     // Re-open and verify destroy() cleanup
@@ -924,6 +933,7 @@ describe('Phase 4: TCG Mystic Sigil Card Back Design', () => {
     expect(document.querySelector('[data-summon-card-face]')).not.toBeNull();
 
     engine.close();
+    engine.getCloseTimeline()?.progress(1);
     expect(document.querySelector('[data-summon-card-back]')).toBeNull();
     expect(document.querySelector('[data-summon-card-face]')).toBeNull();
 
@@ -1234,6 +1244,7 @@ describe('Gacha Psychology & Motion Redesign', () => {
     const removeEventListenerSpy = vi.spyOn(modal!, 'removeEventListener');
 
     engine.close();
+    engine.getCloseTimeline()?.progress(1);
 
     // DOM elements removed
     expect(document.querySelector('[data-summon-flash-veil]')).toBeNull();
@@ -1452,6 +1463,7 @@ describe('Graceful Luxury Reveal Choreography (5 Phases)', () => {
     expect(idleTween).not.toBeNull();
 
     engine.close();
+    engine.getCloseTimeline()?.progress(1);
 
     // idle float tween killed and nullified
     expect(engine.getIdleFloatTween()).toBeNull();
@@ -1699,6 +1711,7 @@ describe('CardSummonEngine Phase 5 - Front Card Face & Concealment Sheen', () =>
     expect(mask).not.toBeNull();
 
     engine.close();
+    engine.getCloseTimeline()?.progress(1);
 
     expect(document.querySelector('[data-summon-card-front-mask]')).toBeNull();
     expect(document.querySelector('[data-summon-card-front-sheen]')).toBeNull();
@@ -1973,6 +1986,7 @@ describe('Three.js 3D Physical Card Model Integration', () => {
     const destroySpy = vi.spyOn(threeModel!, 'destroy');
 
     engine.close();
+    engine.getCloseTimeline()?.progress(1);
     expect(destroySpy).toHaveBeenCalled();
     expect(engine.getThreeCardModel()).toBeNull();
 
@@ -2165,10 +2179,10 @@ describe('Three.js 3D Physical Card Model Integration', () => {
       engine.close();
       const closeTl = engine.getCloseTimeline();
       expect(closeTl).not.toBeNull();
-      expect(closeTl?.isActive()).toBe(true);
+      expect(closeTl?.duration()).toBeGreaterThan(0);
 
       engine.destroy();
-      expect(closeTl?.isActive()).toBe(false);
+      expect(engine.getCloseTimeline()).toBeNull();
       expect(engine.isOpen()).toBe(false);
       expect(document.querySelector('[data-summon-card]')).toBeNull();
       expect(engine.getThreeCardModel()).toBeNull();

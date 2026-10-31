@@ -77,7 +77,9 @@ export class CardSummonEngine implements Engine {
   private threeCardModel: ThreeCardModel | null = null;
   private closeBtnEl: HTMLButtonElement | null = null;
   private openTimeline: gsap.core.Timeline | null = null;
+  private closeTimeline: gsap.core.Timeline | null = null;
   private isDialogOpen: boolean = false;
+  private isDismissing: boolean = false;
   private isSettled: boolean = false;
   private isFlipped: boolean = false;
   private isMaskConcealedState: boolean = true;
@@ -113,6 +115,20 @@ export class CardSummonEngine implements Engine {
    */
   public isOpen(): boolean {
     return this.isDialogOpen;
+  }
+
+  /**
+   * Returns whether the modal is currently executing its exit dismiss animation.
+   */
+  public isDismissingState(): boolean {
+    return this.isDismissing;
+  }
+
+  /**
+   * Returns the active dismiss exit animation timeline, if any.
+   */
+  public getCloseTimeline(): gsap.core.Timeline | null {
+    return this.closeTimeline;
   }
 
   /**
@@ -231,6 +247,9 @@ export class CardSummonEngine implements Engine {
    * Opens the summon modal and plays the entrance animation.
    */
   public open(): void {
+    if (this.isDismissing) {
+      this.close(true);
+    }
     if (this.isDialogOpen) {
       return;
     }
@@ -1030,23 +1049,170 @@ export class CardSummonEngine implements Engine {
   }
 
   /**
-   * Closes the modal, tears down DOM and listeners, and fires onClose callback.
+   * Closes the modal, executes the downward dismiss and background unblur/undim exit animation,
+   * tears down DOM and listeners, and fires onClose callback.
    */
-  public close(): void {
+  public close(immediate = false): void {
     if (!this.isDialogOpen) {
       return;
     }
-    this.isDialogOpen = false;
+    if (this.isDismissing && !immediate) {
+      return;
+    }
 
-    this.cleanupDomAndListeners();
-    this.options.onClose?.();
+    const isReducedMotion = typeof window !== 'undefined' &&
+      (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false);
+
+    if (immediate || isReducedMotion) {
+      if (this.closeTimeline) {
+        this.closeTimeline.kill();
+        this.closeTimeline = null;
+      }
+      this.isDialogOpen = false;
+      this.isDismissing = false;
+      this.cleanupDomAndListeners();
+      this.options.onClose?.();
+      return;
+    }
+
+    this.isDismissing = true;
+    this.detachInteractiveListeners();
+
+    if (this.idleFloatTween) {
+      this.idleFloatTween.kill();
+      this.idleFloatTween = null;
+    }
+    if (this.sheenTween) {
+      this.sheenTween.kill();
+      this.sheenTween = null;
+    }
+    if (this.flipTween) {
+      this.flipTween.kill();
+      this.flipTween = null;
+    }
+    if (this.maskTween) {
+      this.maskTween.kill();
+      this.maskTween = null;
+    }
+    if (this.openTimeline) {
+      this.openTimeline.pause();
+    }
+
+    this.closeTimeline = gsap.timeline({
+      onComplete: () => {
+        this.cleanupDomAndListeners();
+        this.isDialogOpen = false;
+        this.isDismissing = false;
+        this.closeTimeline = null;
+        this.options.onClose?.();
+      },
+    });
+
+    // 1. Card descent: animates back down towards bottom edge where it came from (yPercent: 120, scale: 0.6, opacity: 0)
+    if (this.cardEl) {
+      this.closeTimeline.to(
+        this.cardEl,
+        {
+          yPercent: 120,
+          scale: 0.6,
+          opacity: 0,
+          duration: 0.45,
+          ease: 'power2.in',
+          onUpdate: () => {
+            this.syncThreeCardModel();
+          },
+        },
+        0
+      );
+    }
+
+    // 2. Card stage fade: ensures Three.js WebGL canvas dissolves smoothly in lockstep
+    if (this.cardStageEl) {
+      this.closeTimeline.to(
+        this.cardStageEl,
+        {
+          opacity: 0,
+          duration: 0.45,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
+
+    // 3. Background undim and unblur
+    if (this.backdropEl) {
+      this.closeTimeline.to(
+        this.backdropEl,
+        {
+          opacity: 0,
+          backdropFilter: 'blur(0px)',
+          duration: 0.40,
+          ease: 'power2.out',
+        },
+        0
+      );
+    }
+
+    // 4. Dismiss prompt and close button blur-fade departure
+    if (this.dismissHintEl) {
+      this.closeTimeline.to(
+        this.dismissHintEl,
+        {
+          opacity: 0,
+          filter: 'blur(8px)',
+          duration: 0.25,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
+
+    if (this.closeBtnEl) {
+      this.closeTimeline.to(
+        this.closeBtnEl,
+        {
+          opacity: 0,
+          duration: 0.20,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
+
+    if (this.cardAuraEl) {
+      this.closeTimeline.to(
+        this.cardAuraEl,
+        {
+          opacity: 0,
+          duration: 0.20,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
+
+    if (this.bottomGlowEl) {
+      this.closeTimeline.to(
+        this.bottomGlowEl,
+        {
+          opacity: 0,
+          duration: 0.20,
+          ease: 'power2.in',
+        },
+        0
+      );
+    }
   }
 
   /**
    * Destroys the engine completely.
    */
   public destroy(): void {
-    this.close();
+    if (this.closeTimeline) {
+      this.closeTimeline.kill();
+      this.closeTimeline = null;
+    }
+    this.close(true);
     if (this.idleFloatTween) {
       this.idleFloatTween.kill();
       this.idleFloatTween = null;
@@ -1062,7 +1228,7 @@ export class CardSummonEngine implements Engine {
     this.container = null;
   }
 
-  private cleanupDomAndListeners(): void {
+  private detachInteractiveListeners(): void {
     if (this.boundOnKeyDown) {
       window.removeEventListener('keydown', this.boundOnKeyDown);
       this.boundOnKeyDown = null;
@@ -1091,6 +1257,10 @@ export class CardSummonEngine implements Engine {
       this.cardEl.removeEventListener('click', this.boundOnCardClick);
       this.boundOnCardClick = null;
     }
+  }
+
+  private cleanupDomAndListeners(): void {
+    this.detachInteractiveListeners();
     this.isSettled = false;
     this.isFlipped = false;
     this.isMaskConcealedState = true;

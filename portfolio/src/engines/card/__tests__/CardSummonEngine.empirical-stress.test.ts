@@ -100,6 +100,7 @@ describe('CardSummonEngine & ThreeCardModel Empirical Stress & Lifecycle Suite',
         expect(engine.getThreeCardModel()).not.toBeNull();
 
         engine.close();
+        engine.getCloseTimeline()?.progress(1);
         expect(engine.isOpen()).toBe(false);
         expect(document.querySelector('[data-card-summon-modal]')).toBeNull();
         expect(engine.getThreeCardModel()).toBeNull();
@@ -255,6 +256,7 @@ describe('CardSummonEngine & ThreeCardModel Empirical Stress & Lifecycle Suite',
 
         // Abrupt close during this phase
         engine.close();
+        engine.getCloseTimeline()?.progress(1);
 
         expect(engine.isOpen()).toBe(false);
         expect(engine.getTimeline()).toBeNull();
@@ -411,6 +413,7 @@ describe('CardSummonEngine & ThreeCardModel Empirical Stress & Lifecycle Suite',
 
       // Press Escape while open -> triggers close()
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      engine.getCloseTimeline()?.progress(1);
       expect(closeCallCount).toBe(1);
       expect(engine.isOpen()).toBe(false);
 
@@ -547,6 +550,7 @@ describe('CardSummonEngine & ThreeCardModel Empirical Stress & Lifecycle Suite',
         engine.open();
         expect(document.body.style.overflow).toBe('hidden');
         engine.close();
+        engine.getCloseTimeline()?.progress(1);
         expect(document.body.style.overflow).toBe('');
       }
 
