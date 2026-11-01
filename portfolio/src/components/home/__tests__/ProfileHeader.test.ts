@@ -134,6 +134,21 @@ describe('ProfileHeader Component', () => {
     ).toBeTruthy();
   });
 
+  it('applies symmetric vertical spacing and distributed row sizing', () => {
+    const header = new ProfileHeader(mockData);
+    header.mount(container);
+
+    const root = container.querySelector<HTMLElement>('.profile-header-root');
+    expect(root?.classList.contains('flex-1')).toBe(true);
+
+    const topRow = container.querySelector<HTMLElement>('[data-bento-hero-left]')?.parentElement;
+    expect(topRow?.classList.contains('lg:flex-1')).toBe(true);
+
+    const bottomRow = container.querySelector<HTMLElement>('[data-bento-bottom-row]')?.parentElement;
+    expect(bottomRow?.classList.contains('mt-[22px]')).toBe(true);
+    expect(bottomRow?.classList.contains('lg:flex-1')).toBe(true);
+  });
+
   it('cleans up all subcomponents and DOM on destroy', () => {
     const header = new ProfileHeader(mockData);
     header.mount(container);

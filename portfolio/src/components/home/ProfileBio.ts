@@ -39,7 +39,7 @@ export class ProfileBio {
     const root = document.createElement('div');
     root.setAttribute('data-bento-bottom-row', 'true');
     root.className =
-      'profile-summary-section w-full grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-6 items-stretch select-text';
+      'profile-summary-section w-full h-full grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-6 items-stretch select-text';
 
     // 1. Column 1: Education Card (md: 6 cols, lg: 3 cols)
     this.educationComponent = new ProfileEducationComponent(this.data.education);
@@ -61,19 +61,19 @@ export class ProfileBio {
     const summaryCard = document.createElement('div');
     summaryCard.setAttribute('data-bento-summary', 'true');
     summaryCard.className =
-      'md:col-span-12 lg:col-span-6 p-4 sm:p-5 lg:p-5.5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text transition-colors duration-200 hover:border-white/20';
+      'md:col-span-12 lg:col-span-6 p-5 sm:p-6 lg:p-7 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text transition-colors duration-200 hover:border-white/20';
 
     summaryCard.innerHTML = `
       <!-- Header with User/Bio Icon Badge on top left -->
-      <div class="flex items-center gap-2 mb-2 sm:mb-2.5">
-        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-[#ff4421]/10 text-[#ff4421] flex items-center justify-center shrink-0">
-          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <div class="flex items-center gap-2.5 mb-2.5 sm:mb-3">
+        <div class="w-7 h-7 rounded-lg bg-[#ff4421]/10 text-[#ff4421] flex items-center justify-center shrink-0">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
         <h2
           data-summary-heading
-          class="uppercase tracking-widest text-[11px] sm:text-xs font-semibold text-[#ff4421]/80"
+          class="uppercase tracking-widest text-xs font-semibold text-[#ff4421]/80"
         >
           SUMMARY
         </h2>
@@ -83,7 +83,7 @@ export class ProfileBio {
       <div class="flex-1 flex items-center">
         <p
           data-profile-summary
-          class="text-xs sm:text-[13px] lg:text-sm text-neutral-200 font-light leading-relaxed sm:leading-normal text-pretty"
+          class="text-base sm:text-lg text-neutral-200 font-light leading-relaxed sm:leading-[1.75] text-pretty"
         >${escapeHtml(this.data.summary || '')}</p>
       </div>
     `;

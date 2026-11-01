@@ -242,34 +242,20 @@ Enhance the portfolio header and about bento grid by:
 
 ---
 
-## 14. Phase 9: Vertical Spacing Balance & Center Distribution
+## 14. Phase 9: Bento Grid Symmetric Vertical Spacing & Equal Row Height Distribution
 
 1. **Requirements & Intent**:
-   - Balance the top clearance (between the 38px docked tabbar and screen content) with the bottom screen clearance.
-   - Distribute vertical space into the center gap (`mt-6 sm:mt-7 lg:mt-8` on bottomRow) to give distinct hierarchy between hero tier and credentials tier.
-   - Increase items vertical space slightly without breaking layout hierarchy or inducing scrolling:
-     - Hero Card 1 & 2: Increase `min-h-[330px] lg:min-h-[340px]` to `min-h-[350px] lg:min-h-[360px]`, gap `gap-5 sm:gap-6`, padding `p-6 sm:p-6.5 lg:p-7.5`.
-     - Education Card: Increase item vertical padding (`px-3.5 py-2.5 sm:py-3`), item gap (`gap-2 sm:gap-2.5`), container padding `p-5.5 sm:p-6.5`.
-     - Globe Card: Padding `p-5.5 sm:p-6.5`, canvas container margin `-mb-14 sm:-mb-20`.
-     - Summary Card: Padding `p-6 sm:p-6.5 lg:p-7.5`, leading `sm:leading-[1.8]`, header margin `mb-3 sm:mb-4`.
-     - App Shell & Root: Update `<main id="app">` to `pt-14 sm:pt-16 pb-6 sm:pb-7` and `profile-header-root` to `pt-1 sm:pt-2 pb-2 sm:pb-3`.
+   - Eliminate disproportionate bottom padding (previously 56px vs 18px top padding).
+   - Increase top padding between tabbar (38px height) and bento content by 10% (from 20px to 22px).
+   - Match row gap (between top bento row and bottom bento row) to 22px (`mt-[22px]`).
+   - Match bottom padding (between bottom bento row and viewport bottom) to 22px (`pb-[22px]`).
+   - Distribute the remaining vertical space on desktop evenly across both rows:
+     - Set `topRow` to `lg:flex-1`.
+     - Set `bottomRow` to `lg:flex-1 flex flex-col`.
+     - Set `profile-header-root` to `flex-1 flex flex-col`.
+     - Cards inside each row use `h-full` to naturally stretch and absorb the distributed height.
 2. **Test Specifications**:
-   - Verify all unit and integration test suites pass with zero regressions.
-
----
-
-## 15. Phase 10: Zero-Scroll Viewport Containment, Reduced Top Tabbar Gap, and Proportional Spacing
-
-1. **Requirements & Intent**:
-   - Reduce the top padding between the docked tab bar (38px) and header items to an exact, tight clearance (~8px - 10px).
-   - Ensure the entire header bento grid fits inside standard viewports (750px - 900px+ height) without triggering any vertical scrollbar.
-   - Maintain balanced, proportional relative paddings across both tiers:
-     - App Shell (`<main id="app">`): `pt-10 sm:pt-11 pb-3 sm:pb-4`
-     - Profile Root: `pt-0 sm:pt-1 pb-1 sm:pb-2`
-     - Hero Row: `min-h-[290px] sm:min-h-[305px] lg:min-h-[315px]`, padding `p-4 sm:p-5 lg:p-5.5`, gap `gap-3 sm:gap-4`
-     - Center Gap (`bottomRow`): `mt-3.5 sm:mt-4 lg:mt-4.5` (14px - 18px)
-     - Education Card: Padding `p-4 sm:p-5`, item padding `px-3 py-1.5 sm:py-2`, gap `gap-1.5 sm:gap-2`
-     - Globe Card: Padding `p-4 sm:p-5`, canvas offset `-mb-18 sm:-mb-24`
-     - Summary Card: Padding `p-4 sm:p-5 lg:p-5.5`, header `mb-2 sm:mb-2.5`, text `text-sm sm:text-[15px] lg:text-base leading-relaxed sm:leading-normal`
-2. **Test Specifications**:
-   - Run full test suite to verify all 29 test files (410 tests) pass with zero regressions.
+   - In `ProfileHeader.test.ts`:
+     - Verify `profile-header-root` class includes `flex-1`.
+     - Verify `topRow` class includes `lg:flex-1`.
+     - Verify `bottomRow` class includes `mt-[22px]` and `lg:flex-1`.
