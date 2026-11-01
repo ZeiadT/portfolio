@@ -165,6 +165,30 @@ describe('ProfileContactComponent', () => {
     expect(isSpacerBeforeResume).toBe(true);
   });
 
+  it('renders phone and email buttons with solid fill icons styled in white', () => {
+    const component = new ProfileContactComponent(mockContact);
+    component.mount(container);
+
+    const phoneBtn = container.querySelector<HTMLButtonElement>('button[data-contact-phone]');
+    const emailBtn = container.querySelector<HTMLButtonElement>('button[data-contact-email]');
+
+    // Leading SVG in phoneBtn
+    const phoneIcon = phoneBtn?.querySelector('svg');
+    expect(phoneIcon).toBeTruthy();
+    expect(phoneIcon?.getAttribute('fill')).toBe('currentColor');
+    const phoneClass = phoneIcon?.className.baseVal || phoneIcon?.getAttribute('class') || '';
+    expect(phoneClass).toContain('text-white');
+    expect(phoneClass).not.toContain('text-[#ff4421]');
+
+    // Leading SVG in emailBtn
+    const emailIcon = emailBtn?.querySelector('svg');
+    expect(emailIcon).toBeTruthy();
+    expect(emailIcon?.getAttribute('fill')).toBe('currentColor');
+    const emailClass = emailIcon?.className.baseVal || emailIcon?.getAttribute('class') || '';
+    expect(emailClass).toContain('text-white');
+    expect(emailClass).not.toContain('text-[#ff4421]');
+  });
+
   it('cleans up elements and timeout listeners on destroy', () => {
     const component = new ProfileContactComponent(mockContact);
     component.mount(container);

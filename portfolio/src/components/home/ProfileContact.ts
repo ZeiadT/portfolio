@@ -48,8 +48,8 @@ export class ProfileContactComponent {
         class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-neutral-300 hover:text-white hover:border-[#ff4421]/50 hover:bg-white/[0.08] transition-all duration-200 cursor-pointer select-none group active:scale-95"
         aria-label="Copy phone number ${this.contact.phoneFormatted}"
       >
-        <svg class="w-3.5 h-3.5 text-[#ff4421] group-hover:scale-110 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+        <svg class="w-3.5 h-3.5 text-white group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z" clip-rule="evenodd" />
         </svg>
         <span>${this.contact.phoneFormatted}</span>
         <span
@@ -91,8 +91,9 @@ export class ProfileContactComponent {
         class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-neutral-300 hover:text-white hover:border-[#ff4421]/50 hover:bg-white/[0.08] transition-all duration-200 cursor-pointer select-none group active:scale-95"
         aria-label="Copy email address ${this.contact.email}"
       >
-        <svg class="w-3.5 h-3.5 text-[#ff4421] group-hover:scale-110 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <svg class="w-3.5 h-3.5 text-white group-hover:scale-110 transition-transform duration-200" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a3 3 0 01-3.144 0L1.5 8.67z" />
+          <path d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a1.5 1.5 0 001.572 0L22.5 6.908z" />
         </svg>
         <span>${this.contact.email}</span>
         <span

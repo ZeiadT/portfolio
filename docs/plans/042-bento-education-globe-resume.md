@@ -191,3 +191,14 @@ Enhance the portfolio header and about bento grid by:
    - This leaves the top bar of Hero Card 1 uncluttered, allowing social links to align cleanly without duplicate location text.
 2. **Test Specification**:
    - In `ProfileHeader.test.ts`, assert that no location chip/address badge is rendered in `[data-bento-hero-left]`.
+
+---
+
+## 11. Phase 6: Contact Action Fill Icons & White Monochrome Styling
+
+1. **Requirements & Intent**:
+   - Replace the phone and email stroke icons with solid filled SVG icons (`fill="currentColor"`).
+   - Change their styling to `text-white` (monochrome white) instead of vermilion `#ff4421`.
+   - Preserve hover scale micro-interactions (`group-hover:scale-110 transition-transform duration-200`) and click-to-copy functionality.
+2. **Test Specifications**:
+   - In `ProfileContact.test.ts`, assert that the leading phone and email icons have `fill="currentColor"`, include `text-white`, and do not have `text-[#ff4421]`.
