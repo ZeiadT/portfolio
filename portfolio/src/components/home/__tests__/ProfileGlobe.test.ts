@@ -167,6 +167,13 @@ describe('ProfileGlobeComponent', () => {
       expect(canvas?.className).toContain('active:cursor-grabbing');
       expect(canvas?.className).toContain('touch-none');
 
+      // Verify compact box height with deep negative bottom margin and large canvas width
+      const canvasWrapper = canvas?.parentElement;
+      expect(canvasWrapper?.className).toContain('sm:w-[420px]');
+      expect(canvasWrapper?.className).toContain('sm:h-[420px]');
+      const outerFlex = canvasWrapper?.parentElement;
+      expect(outerFlex?.className).toContain('sm:-mb-72');
+
       globe.destroy();
     });
   });

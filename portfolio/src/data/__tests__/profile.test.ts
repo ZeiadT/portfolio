@@ -60,7 +60,13 @@ describe('Profile Data', () => {
       : [PROFILE_DATA.education!];
     expect(eduList.length).toBe(3);
     expect(eduList[0].degree).toBe('9-Month Professional Diploma');
-    expect(eduList[1].institution).toContain('Benha University');
+
+    // Entry 2: Faculty of Computers and Artificial Intelligence
+    expect(eduList[1].title || eduList[1].degree).toBe('Faculty of Computers and Artificial Intelligence');
+    expect(eduList[1].track || eduList[1].field).toBe('B.Sc. in Scientific Computing');
+    expect(eduList[1].location || eduList[1].institution).toBe('Benha University');
+    expect(eduList[1].details?.[0]).toContain('Graduation Project: ElevatED');
+
     expect(eduList[2].degree).toContain('Digital Egypt Pioneers Initiative');
   });
 

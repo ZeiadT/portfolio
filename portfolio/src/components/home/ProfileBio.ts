@@ -61,7 +61,7 @@ export class ProfileBio {
     const summaryCard = document.createElement('div');
     summaryCard.setAttribute('data-bento-summary', 'true');
     summaryCard.className =
-      'md:col-span-12 lg:col-span-6 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text transition-colors duration-200 hover:border-white/20';
+      'md:col-span-12 lg:col-span-6 p-5 sm:p-6 lg:p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text transition-colors duration-200 hover:border-white/20';
 
     summaryCard.innerHTML = `
       <!-- Header with User/Bio Icon Badge on top left -->
@@ -83,7 +83,7 @@ export class ProfileBio {
       <div class="flex-1 flex items-center">
         <p
           data-profile-summary
-          class="text-base sm:text-lg text-neutral-200 font-light leading-relaxed sm:leading-[1.75] text-pretty"
+          class="text-sm sm:text-base text-neutral-200 font-light leading-relaxed sm:leading-[1.75] text-pretty"
         >${escapeHtml(this.data.summary || '')}</p>
       </div>
     `;

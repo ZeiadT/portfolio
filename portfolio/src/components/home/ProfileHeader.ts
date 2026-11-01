@@ -36,7 +36,7 @@ export class ProfileHeader {
   public mount(container: HTMLElement): void {
     const root = document.createElement('div');
     root.className =
-      'profile-header-root relative w-full flex flex-col pt-4 sm:pt-6 md:pt-8 pb-16 select-text';
+      'profile-header-root relative w-full flex flex-col pt-2 sm:pt-4 lg:pt-3 pb-4 lg:pb-6 select-text max-w-7xl mx-auto';
 
     // 1. Top Bento Row (Left: Hero Statement Card; Right: 3D Portrait Identity Card)
     const topRow = document.createElement('div');
@@ -47,7 +47,7 @@ export class ProfileHeader {
     const leftHeroCard = document.createElement('div');
     leftHeroCard.setAttribute('data-bento-hero-left', 'true');
     leftHeroCard.className =
-      'lg:col-span-7 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between gap-6 min-h-[380px]';
+      'lg:col-span-7 p-5 sm:p-6 lg:p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between gap-4 sm:gap-5 min-h-[310px] lg:min-h-[330px]';
 
     // Top Bar inside Card 1: Icons on left, Location chip on right
     const card1TopBar = document.createElement('div');
@@ -86,7 +86,7 @@ export class ProfileHeader {
     const rightHeroCard = document.createElement('div');
     rightHeroCard.setAttribute('data-bento-hero-right', 'true');
     rightHeroCard.className =
-      'lg:col-span-5 p-6 sm:p-8 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center justify-center';
+      'lg:col-span-5 p-5 sm:p-6 lg:p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col items-center justify-center';
 
     this.cardSummonEngine = new CardSummonEngine({
       faceRenderer: new EditorialCardFaceRenderer(),
@@ -124,7 +124,7 @@ export class ProfileHeader {
 
     // 2. Bottom Row: 3-Column Editorial Bento Row (Education 3 cols, Globe 3 cols, Summary 6 cols)
     const bottomRow = document.createElement('div');
-    bottomRow.className = 'w-full mt-6';
+    bottomRow.className = 'w-full mt-4 lg:mt-5';
 
     this.bioComponent = new ProfileBio(this.data);
     this.bioComponent.mount(bottomRow);

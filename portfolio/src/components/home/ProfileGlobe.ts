@@ -109,16 +109,18 @@ export class ProfileGlobeComponent {
         </h3>
       </div>
 
-      <!-- Canvas Container with Radial Glow Backdrop -->
-      <div class="relative w-full aspect-square max-w-[340px] sm:max-w-[420px] mx-auto flex items-center justify-center -mb-20 sm:-mb-28 select-none">
-        <div data-globe-glow class="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
-          <div class="w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-[#ff4421]/15 blur-3xl"></div>
+      <!-- Canvas Container with Radial Glow Backdrop (Large 420px globe with compact box height) -->
+      <div class="relative flex justify-center items-center mt-2 -mb-64 sm:-mb-72 select-none pointer-events-auto">
+        <div class="relative w-[340px] sm:w-[420px] h-[340px] sm:h-[420px] flex items-center justify-center">
+          <div data-globe-glow class="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
+            <div class="w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-[#ff4421]/15 blur-3xl"></div>
+          </div>
+          <canvas
+            data-globe-canvas
+            class="w-full h-full cursor-grab active:cursor-grabbing touch-none relative z-10"
+            style="width: 100%; height: 100%;"
+          ></canvas>
         </div>
-        <canvas
-          data-globe-canvas
-          class="w-full h-full cursor-grab active:cursor-grabbing touch-none relative z-10"
-          style="width: 100%; height: 100%;"
-        ></canvas>
       </div>
     `;
 
@@ -140,8 +142,8 @@ export class ProfileGlobeComponent {
     window.addEventListener('resize', this.onResize);
 
     const dpr = Math.min(2, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
-    const width = (canvas.offsetWidth || 300) * dpr;
-    const height = (canvas.offsetHeight || 300) * dpr;
+    const width = (canvas.offsetWidth || 420) * dpr;
+    const height = (canvas.offsetHeight || 420) * dpr;
 
     const onRender = (state: Record<string, any>) => {
       if (this.pointerInteracting === null) {

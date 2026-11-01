@@ -143,6 +143,36 @@ describe('ProfileEducationComponent', () => {
       expect(details?.textContent).toContain('Graduation Project: ElevatED');
       expect(details?.textContent).toContain('Grade: Excellent');
     });
+
+    it('supports title, track, and location aliases cleanly for entries', () => {
+      const aliasEducation: ProfileEducationEntry[] = [
+        {
+          title: 'Faculty of Computers and Artificial Intelligence',
+          track: 'B.Sc. in Scientific Computing',
+          location: 'Benha University',
+          period: 'Oct 2021 – Jun 2025',
+          details: ['Grade: Excellent'],
+        },
+      ];
+
+      const comp = new ProfileEducationComponent(aliasEducation);
+      comp.mount(container);
+
+      const item = container.querySelector('[data-education-item]');
+      expect(item).toBeTruthy();
+
+      const titleEl = item?.querySelector('[data-education-title], [data-education-degree]');
+      expect(titleEl?.textContent?.trim()).toBe('Faculty of Computers and Artificial Intelligence');
+
+      const trackEl = item?.querySelector('[data-education-track], [data-education-field]');
+      expect(trackEl?.textContent?.trim()).toBe('B.Sc. in Scientific Computing');
+
+      const locEl = item?.querySelector('[data-education-location], [data-education-institution]');
+      expect(locEl?.textContent?.trim()).toBe('Benha University');
+
+      const listEl = container.querySelector('[data-education-list]');
+      expect(listEl?.className).toContain('max-h-[220px]');
+    });
   });
 
   describe('Fallback behavior for undefined or incomplete data', () => {

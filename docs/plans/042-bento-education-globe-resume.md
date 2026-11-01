@@ -145,3 +145,29 @@ Enhance the portfolio header and about bento grid by:
 3. **Summary Card Polish**:
    - Replaced simple dot badge with matching icon badge (`w-7 h-7 rounded-lg bg-[#ff4421]/10 text-[#ff4421]`) and uppercase tracking title `SUMMARY` on the top left.
    - Updated narrative copy to focus on native/cross-platform mobile development, backend with C#/.NET, OOP, clean architecture, and Agile delivery.
+
+---
+
+## 8. Phase 3: 1920x1080 Screen Fit, Compact Globe Box, and Education Track Specs
+
+### Objectives & Requirements
+1. **1920x1080 Viewport Fit**:
+   - The entire bento grid (Hero Row + Bottom Bento Row) must comfortably fit within a 1920x1080 desktop screen without vertical scrolling.
+   - Optimize outer vertical margins and paddings:
+     - `index.html` main element: `pt-12 sm:pt-14 lg:pt-14 pb-6 lg:pb-6`
+     - `ProfileHeader.ts` root: `pt-2 sm:pt-4 lg:pt-3 pb-6 lg:pb-6`
+     - Top row min-height adjusted: `min-h-[320px] lg:min-h-[340px]`
+     - Row gap: `mt-4 lg:mt-5`
+   - Total vertical footprint budgeted to ~800px (leaving ample room for Windows taskbar and browser chrome in maximized 1080p).
+2. **Globe Card Box Height vs Sizing**:
+   - The user requested increasing the globe size without increasing its box height.
+   - Use full 420px diameter canvas (`w-[380px] sm:w-[420px] h-[380px] sm:h-[420px]`) for a large, impressive sphere dome.
+   - Apply deep negative margin (`-mb-64 sm:-mb-72`) with card `overflow-hidden` (matching the `awrs.me` reference).
+   - This keeps the card's overall box height compact (~260-290px) while rendering the 3D globe in full large scale.
+3. **Education Item 2 Structure**:
+   - Title: "Faculty of Computers and Artificial Intelligence"
+   - Track: "B.Sc. in Scientific Computing"
+   - Location: "Benha University"
+   - Details: Graduation Project (ElevatED), Technologies (Dart, Flutter, Python), Grade (Excellent).
+   - Support `title`, `track`, `location` aliases in `ProfileEducationEntry` in addition to `degree`, `field`, `institution`.
+   - Constrain education list scroll height (`max-h-[220px] lg:max-h-[235px]`) so the card stays compact.

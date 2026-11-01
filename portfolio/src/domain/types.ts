@@ -48,11 +48,14 @@ export interface ProfileAvatarConfig {
 }
 
 export interface ProfileEducationEntry {
-  institution: string;
-  degree: string;
+  institution?: string;
+  degree?: string;
   period: string;
   field?: string;
   details?: string[];
+  title?: string;
+  track?: string;
+  location?: string;
 }
 
 export interface ProfileData {

@@ -54,9 +54,13 @@ export const PROFILE_DATA: ProfileData = {
       institution: 'Information Technology Institute (ITI), Smart Village Branch',
     },
     {
-      degree: 'B.Sc. in Computer Science',
+      title: 'Faculty of Computers and Artificial Intelligence',
+      degree: 'Faculty of Computers and Artificial Intelligence',
+      track: 'B.Sc. in Scientific Computing',
+      field: 'B.Sc. in Scientific Computing',
+      location: 'Benha University',
+      institution: 'Benha University',
       period: 'Oct 2021 – Jun 2025',
-      institution: 'Faculty of Computers and Artificial Intelligence, Benha University',
       details: [
         'Graduation Project: ElevatED - An AI-powered educational platform with audio analysis for content validation and large-scale media upload via FTP.',
         'Technologies & Architecture: Dart, Flutter, Python',
