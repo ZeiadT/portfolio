@@ -87,6 +87,7 @@ class App {
   public destroy(): void {
     window.removeEventListener('resize', this.handleResize);
     this.projectsSection.destroy();
+    this.profileHeader.destroy();
     this.backgroundEngine.destroy();
     this.bandEngine.destroy();
     this.glareEngine.destroy();
