@@ -328,11 +328,11 @@ export function buildBandToNavTimeline(options: BandToNavOptions): gsap.core.Tim
     });
   }
 
-  // Bento 2-step Tetris puzzle entrance reveal nested into master timeline
+  // Bento reverse-sink entrance reveal nested into master timeline at mid-ascent
   if (bentoController) {
     tl.add(
       bentoController.createRevealTimeline(),
-      `ascent+=${TRANSITION_TIMINGS.bentoWireframeStart}`
+      `ascent+=${TRANSITION_TIMINGS.bentoRevealStart}`
     );
   }
 

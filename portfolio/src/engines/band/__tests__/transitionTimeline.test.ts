@@ -396,7 +396,7 @@ describe('transitionTimeline', () => {
       expect(document.querySelector('.flying-wordmark-clone')).toBeNull();
     });
 
-    it('calls bentoController.prepareInitialState() and nests reveal timeline at ascent + 0.70s', () => {
+    it('calls bentoController.prepareInitialState() and nests reveal timeline at ascent + 0.40s', () => {
       const mockRevealTimeline = gsap.timeline();
       const mockBentoController = {
         prepareInitialState: vi.fn(),
@@ -421,11 +421,11 @@ describe('transitionTimeline', () => {
       expect(mockBentoController.prepareInitialState).toHaveBeenCalledTimes(1);
       expect(mockBentoController.createRevealTimeline).toHaveBeenCalledTimes(1);
 
-      // Verify reveal timeline is nested at label ascent + 0.70s
+      // Verify reveal timeline is nested at label ascent + 0.40s
       const ascentLabelTime = tl.labels.ascent;
       expect(ascentLabelTime).toBeDefined();
       expect(mockRevealTimeline.startTime()).toBeCloseTo(
-        ascentLabelTime + (TRANSITION_TIMINGS.bentoWireframeStart ?? 0.7),
+        ascentLabelTime + TRANSITION_TIMINGS.bentoRevealStart,
         2
       );
     });
