@@ -46,4 +46,10 @@ export const PROFILE_DATA: ProfileData = {
     'Kinetic Motion & WebGL',
     'Clean Architecture & TDD',
   ],
+  education: {
+    institution: 'Helwan University',
+    degree: "Bachelor's in Computer Science",
+    period: '2022 – Present',
+  },
+  resumeUrl: '/resume.pdf',
 };

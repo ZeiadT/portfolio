@@ -52,4 +52,16 @@ describe('Profile Data', () => {
     expect(PROFILE_DATA.pillars).toContain('Mobile & Systems Architecture');
     expect(PROFILE_DATA.pillars).toContain('Deterministic Performance');
   });
+
+  it('contains valid education details', () => {
+    expect(PROFILE_DATA.education).toBeDefined();
+    expect(PROFILE_DATA.education?.institution).toBe('Helwan University');
+    expect(PROFILE_DATA.education?.degree).toBe("Bachelor's in Computer Science");
+    expect(PROFILE_DATA.education?.period).toBe('2022 – Present');
+  });
+
+  it('contains valid resumeUrl', () => {
+    expect(PROFILE_DATA.resumeUrl).toBeDefined();
+    expect(PROFILE_DATA.resumeUrl).toBe('/resume.pdf');
+  });
 });

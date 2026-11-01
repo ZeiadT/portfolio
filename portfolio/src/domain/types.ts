@@ -47,6 +47,12 @@ export interface ProfileAvatarConfig {
   fallbackInitials: string;
 }
 
+export interface ProfileEducationEntry {
+  institution: string;
+  degree: string;
+  period: string;
+}
+
 export interface ProfileData {
   title: string;
   quote: string;
@@ -56,6 +62,8 @@ export interface ProfileData {
   links: ProfileLink[];
   avatar: ProfileAvatarConfig;
   pillars?: string[];
+  education?: ProfileEducationEntry;
+  resumeUrl?: string;
 }
 
 /**
