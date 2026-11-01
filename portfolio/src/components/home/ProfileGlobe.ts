@@ -98,7 +98,7 @@ export class ProfileGlobeComponent {
     const root = document.createElement('div');
     root.setAttribute('data-bento-globe', 'true');
     root.className =
-      'p-5.5 sm:p-6.5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text group/globe overflow-hidden relative transition-colors duration-200 hover:border-white/20';
+      'p-5 sm:p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text group/globe overflow-hidden relative transition-colors duration-200 hover:border-white/20';
 
     root.innerHTML = `
       <!-- Header Copy -->
@@ -110,7 +110,7 @@ export class ProfileGlobeComponent {
       </div>
 
       <!-- Canvas Container with Radial Glow Backdrop -->
-      <div class="relative w-full aspect-square max-w-[320px] sm:max-w-[400px] mx-auto flex items-center justify-center -mb-14 sm:-mb-20 select-none">
+      <div class="relative w-full aspect-square max-w-[260px] sm:max-w-[300px] mx-auto flex items-center justify-center -mb-20 sm:-mb-28 select-none">
         <div data-globe-glow class="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
           <div class="w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-[#ff4421]/15 blur-3xl"></div>
         </div>

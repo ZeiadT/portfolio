@@ -255,3 +255,21 @@ Enhance the portfolio header and about bento grid by:
      - App Shell & Root: Update `<main id="app">` to `pt-14 sm:pt-16 pb-6 sm:pb-7` and `profile-header-root` to `pt-1 sm:pt-2 pb-2 sm:pb-3`.
 2. **Test Specifications**:
    - Verify all unit and integration test suites pass with zero regressions.
+
+---
+
+## 15. Phase 10: Zero-Scroll Viewport Containment, Reduced Top Tabbar Gap, and Proportional Spacing
+
+1. **Requirements & Intent**:
+   - Reduce the top padding between the docked tab bar (38px) and header items to an exact, tight clearance (~8px - 10px).
+   - Ensure the entire header bento grid fits inside standard viewports (750px - 900px+ height) without triggering any vertical scrollbar.
+   - Maintain balanced, proportional relative paddings across both tiers:
+     - App Shell (`<main id="app">`): `pt-10 sm:pt-11 pb-3 sm:pb-4`
+     - Profile Root: `pt-0 sm:pt-1 pb-1 sm:pb-2`
+     - Hero Row: `min-h-[290px] sm:min-h-[305px] lg:min-h-[315px]`, padding `p-4 sm:p-5 lg:p-5.5`, gap `gap-3 sm:gap-4`
+     - Center Gap (`bottomRow`): `mt-3.5 sm:mt-4 lg:mt-4.5` (14px - 18px)
+     - Education Card: Padding `p-4 sm:p-5`, item padding `px-3 py-1.5 sm:py-2`, gap `gap-1.5 sm:gap-2`
+     - Globe Card: Padding `p-4 sm:p-5`, canvas offset `-mb-18 sm:-mb-24`
+     - Summary Card: Padding `p-4 sm:p-5 lg:p-5.5`, header `mb-2 sm:mb-2.5`, text `text-sm sm:text-[15px] lg:text-base leading-relaxed sm:leading-normal`
+2. **Test Specifications**:
+   - Run full test suite to verify all 29 test files (410 tests) pass with zero regressions.
