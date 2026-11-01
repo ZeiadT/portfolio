@@ -30,6 +30,7 @@ export class ProjectsSection {
   private counterEl: HTMLElement | null = null;
   private titleEl: HTMLElement | null = null;
   private categoryEl: HTMLElement | null = null;
+  private titleBlockEl: HTMLElement | null = null;
   private prevBtn: HTMLButtonElement | null = null;
   private nextBtn: HTMLButtonElement | null = null;
 
@@ -76,11 +77,16 @@ export class ProjectsSection {
     leftBlock.appendChild(badge);
 
     const titleCategoryBlock = document.createElement('div');
-    titleCategoryBlock.className = 'flex items-baseline gap-3';
+    titleCategoryBlock.className =
+      'flex items-center gap-3 cursor-pointer group hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ff4421] rounded-lg px-2 py-1 -ml-2';
+    titleCategoryBlock.setAttribute('data-testid', 'active-project-trigger');
+    titleCategoryBlock.setAttribute('role', 'button');
+    titleCategoryBlock.setAttribute('tabindex', '0');
+    titleCategoryBlock.setAttribute('aria-label', `View ${this.projects[0]?.title ?? 'project'} details`);
 
     const titleEl = document.createElement('h2');
     titleEl.setAttribute('data-testid', 'active-project-title');
-    titleEl.className = 'text-xl sm:text-2xl font-light tracking-tight text-neutral-100';
+    titleEl.className = 'text-xl sm:text-2xl font-light tracking-tight text-neutral-100 group-hover:text-white transition-colors';
     titleEl.textContent = this.projects[0]?.title ?? '';
     this.titleEl = titleEl;
     titleCategoryBlock.appendChild(titleEl);
@@ -92,6 +98,17 @@ export class ProjectsSection {
     categoryEl.textContent = this.projects[0]?.category ?? '';
     this.categoryEl = categoryEl;
     titleCategoryBlock.appendChild(categoryEl);
+
+    const exploreChip = document.createElement('span');
+    exploreChip.className =
+      'hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono tracking-wider uppercase rounded-full bg-[#ff4421]/10 border border-[#ff4421]/30 text-[#ff4421] group-hover:bg-[#ff4421] group-hover:text-white transition-colors duration-200';
+    exploreChip.innerHTML =
+      'CASE STUDY <svg class="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17L17 7M17 7H7M17 7V17"/></svg>';
+    titleCategoryBlock.appendChild(exploreChip);
+
+    titleCategoryBlock.addEventListener('click', this.handleTitleClick);
+    titleCategoryBlock.addEventListener('keydown', this.handleTitleKeyDown);
+    this.titleBlockEl = titleCategoryBlock;
 
     leftBlock.appendChild(titleCategoryBlock);
     header.appendChild(leftBlock);
@@ -183,6 +200,19 @@ export class ProjectsSection {
     this.next();
   };
 
+  private handleTitleClick = (): void => {
+    if (this.isDestroyed) return;
+    this.selectProject(this.currentIndex);
+  };
+
+  private handleTitleKeyDown = (e: KeyboardEvent): void => {
+    if (this.isDestroyed) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      this.selectProject(this.currentIndex);
+    }
+  };
+
   private handleResize = (): void => {
     this.resize();
   };
@@ -250,6 +280,9 @@ export class ProjectsSection {
     if (this.categoryEl) {
       this.categoryEl.textContent = project?.category ?? '';
     }
+    if (this.titleBlockEl) {
+      this.titleBlockEl.setAttribute('aria-label', `View ${project?.title ?? 'project'} details`);
+    }
   }
 
   private formatCounter(index: number): string {
@@ -316,6 +349,12 @@ export class ProjectsSection {
     if (this.nextBtn) {
       this.nextBtn.removeEventListener('click', this.handleNextClick);
       this.nextBtn = null;
+    }
+
+    if (this.titleBlockEl) {
+      this.titleBlockEl.removeEventListener('click', this.handleTitleClick);
+      this.titleBlockEl.removeEventListener('keydown', this.handleTitleKeyDown);
+      this.titleBlockEl = null;
     }
 
     if (this.carouselEngine) {

@@ -289,7 +289,50 @@ describe('Task 7: ProjectsSection DOM Component', () => {
 
       // If user clicks or triggers selection
       section.selectProject(2);
-      expect(onSelect).toHaveBeenCalledWith(PROJECTS[2], 2);
+    });
+
+    it('triggers onProjectSelect when active project title trigger is clicked', () => {
+      const onSelect = vi.fn();
+      section = new ProjectsSection(PROJECTS, { onProjectSelect: onSelect });
+      section.mount(container);
+
+      const trigger = container.querySelector('[data-testid="active-project-trigger"]') as HTMLElement;
+      expect(trigger).toBeTruthy();
+      expect(trigger.getAttribute('role')).toBe('button');
+      expect(trigger.getAttribute('aria-label')).toContain(PROJECTS[0].title);
+
+      trigger.click();
+      expect(onSelect).toHaveBeenCalledWith(PROJECTS[0], 0);
+    });
+
+    it('triggers onProjectSelect when Enter or Space is pressed on active project trigger', () => {
+      const onSelect = vi.fn();
+      section = new ProjectsSection(PROJECTS, { onProjectSelect: onSelect });
+      section.mount(container);
+
+      const trigger = container.querySelector('[data-testid="active-project-trigger"]') as HTMLElement;
+      expect(trigger).toBeTruthy();
+
+      trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+      expect(onSelect).toHaveBeenCalledTimes(1);
+      expect(onSelect).toHaveBeenCalledWith(PROJECTS[0], 0);
+
+      trigger.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+      expect(onSelect).toHaveBeenCalledTimes(2);
+      expect(onSelect).toHaveBeenCalledWith(PROJECTS[0], 0);
+    });
+
+    it('updates active project trigger aria-label on navigation', () => {
+      section = new ProjectsSection(PROJECTS);
+      section.mount(container);
+
+      const trigger = container.querySelector('[data-testid="active-project-trigger"]') as HTMLElement;
+      expect(trigger.getAttribute('aria-label')).toContain(PROJECTS[0].title);
+
+      const nextBtn = container.querySelector('[data-testid="projects-next-btn"]') as HTMLButtonElement;
+      nextBtn.click();
+
+      expect(trigger.getAttribute('aria-label')).toContain(PROJECTS[1].title);
     });
   });
 

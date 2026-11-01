@@ -7,6 +7,8 @@ import { GlareNavEngine } from '@/engines/glare';
 import { ProfileHeader } from '@/components/home/ProfileHeader';
 import { ProjectsSection } from '@/components/home/ProjectsSection';
 import { ContactHub } from '@/components/contact';
+import { ProjectDetailsModal } from '@/components/projects/ProjectDetailsModal';
+import type { ProjectDetails } from '@/domain/types';
 
 class App {
   private projectsSection: ProjectsSection;
@@ -15,9 +17,15 @@ class App {
   private glareEngine: GlareNavEngine;
   private profileHeader: ProfileHeader;
   private contactHub: ContactHub;
+  private projectDetailsModal: ProjectDetailsModal;
 
   constructor() {
-    this.projectsSection = new ProjectsSection(PROJECTS);
+    this.projectDetailsModal = new ProjectDetailsModal();
+    this.projectsSection = new ProjectsSection(PROJECTS, {
+      onProjectSelect: (project) => {
+        this.projectDetailsModal.open(project as ProjectDetails);
+      },
+    });
     this.backgroundEngine = new BackgroundCanvasEngine();
     this.profileHeader = new ProfileHeader(PROFILE_DATA);
     this.contactHub = new ContactHub({ profileData: PROFILE_DATA });
@@ -83,7 +91,10 @@ class App {
       this.contactHub.mount(contactContainer);
     }
 
-    // 7. Global resize dispatch
+    // 7. Mount Project Details Deep-Dive Modal into body
+    this.projectDetailsModal.mount(document.body);
+
+    // 8. Global resize dispatch
     window.addEventListener('resize', this.handleResize);
 
     console.log(`[Portfolio] Bootstrapped with ${PROJECTS.length} domain projects and Contact Transmission Hub.`);
@@ -98,6 +109,7 @@ class App {
     this.projectsSection.destroy();
     this.profileHeader.destroy();
     this.contactHub.destroy();
+    this.projectDetailsModal.destroy();
     this.backgroundEngine.destroy();
     this.bandEngine.destroy();
     this.glareEngine.destroy();
