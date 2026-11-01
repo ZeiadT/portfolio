@@ -1,15 +1,15 @@
 import './style.css';
 import { PROJECTS } from '@/data/projects';
 import { PROFILE_DATA } from '@/data/profile';
-import { CarouselGLEngine } from '@/engines/carousel';
 import { ElasticBandEngine } from '@/engines/band';
 import { BackgroundCanvasEngine } from '@/engines/background';
 import { GlareNavEngine } from '@/engines/glare';
 import { ProfileHeader } from '@/components/home/ProfileHeader';
+import { ProjectsSection } from '@/components/home/ProjectsSection';
 import { ContactHub } from '@/components/contact';
 
 class App {
-  private carouselEngine: CarouselGLEngine;
+  private projectsSection: ProjectsSection;
   private bandEngine: ElasticBandEngine;
   private backgroundEngine: BackgroundCanvasEngine;
   private glareEngine: GlareNavEngine;
@@ -17,7 +17,7 @@ class App {
   private contactHub: ContactHub;
 
   constructor() {
-    this.carouselEngine = new CarouselGLEngine(PROJECTS);
+    this.projectsSection = new ProjectsSection(PROJECTS);
     this.backgroundEngine = new BackgroundCanvasEngine();
     this.profileHeader = new ProfileHeader(PROFILE_DATA);
     this.contactHub = new ContactHub({ profileData: PROFILE_DATA });
@@ -67,10 +67,10 @@ class App {
       });
     }
 
-    // 4. Mount Carousel Engine (hidden/ready for subsequent phase)
+    // 4. Mount Projects Section & 3D Carousel Engine
     const carouselContainer = document.getElementById('carousel-container');
-    if (carouselContainer && !carouselContainer.classList.contains('hidden')) {
-      this.carouselEngine.mount(carouselContainer);
+    if (carouselContainer) {
+      this.projectsSection.mount(carouselContainer);
     }
 
     // 5. Mount Glare Navigation Engine
@@ -83,7 +83,24 @@ class App {
       this.contactHub.mount(contactContainer);
     }
 
+    // 7. Global resize dispatch
+    window.addEventListener('resize', this.handleResize);
+
     console.log(`[Portfolio] Bootstrapped with ${PROJECTS.length} domain projects and Contact Transmission Hub.`);
+  }
+
+  private handleResize = (): void => {
+    this.projectsSection.resize();
+  };
+
+  public destroy(): void {
+    window.removeEventListener('resize', this.handleResize);
+    this.projectsSection.destroy();
+    this.profileHeader.destroy();
+    this.contactHub.destroy();
+    this.backgroundEngine.destroy();
+    this.bandEngine.destroy();
+    this.glareEngine.destroy();
   }
 }
 
