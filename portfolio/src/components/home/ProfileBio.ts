@@ -39,7 +39,7 @@ export class ProfileBio {
     const root = document.createElement('div');
     root.setAttribute('data-bento-bottom-row', 'true');
     root.className =
-      'profile-summary-section w-full grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6 items-stretch select-text';
+      'profile-summary-section w-full grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-6 items-stretch select-text';
 
     // 1. Column 1: Education Card (md: 6 cols, lg: 3 cols)
     this.educationComponent = new ProfileEducationComponent(this.data.education);

@@ -61,7 +61,7 @@ describe('ProfileBio Component', () => {
       expect(root?.className).toContain('w-full');
       expect(root?.className).toContain('grid');
       expect(root?.className).toContain('grid-cols-1');
-      expect(root?.className).toContain('md:grid-cols-6');
+      expect(root?.className).toContain('md:grid-cols-12');
       expect(root?.className).toContain('lg:grid-cols-12');
       expect(root?.className).toContain('gap-6');
       expect(root?.className).toContain('items-stretch');
