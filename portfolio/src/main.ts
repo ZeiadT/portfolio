@@ -6,6 +6,7 @@ import { ElasticBandEngine } from '@/engines/band';
 import { BackgroundCanvasEngine } from '@/engines/background';
 import { GlareNavEngine } from '@/engines/glare';
 import { ProfileHeader } from '@/components/home/ProfileHeader';
+import { ContactHub } from '@/components/contact';
 
 class App {
   private carouselEngine: CarouselGLEngine;
@@ -13,11 +14,13 @@ class App {
   private backgroundEngine: BackgroundCanvasEngine;
   private glareEngine: GlareNavEngine;
   private profileHeader: ProfileHeader;
+  private contactHub: ContactHub;
 
   constructor() {
     this.carouselEngine = new CarouselGLEngine(PROJECTS);
     this.backgroundEngine = new BackgroundCanvasEngine();
     this.profileHeader = new ProfileHeader(PROFILE_DATA);
+    this.contactHub = new ContactHub({ profileData: PROFILE_DATA });
     this.bandEngine = new ElasticBandEngine({
       bentoController: () => this.profileHeader.getRevealController(),
       onCollapseStart: () => {
@@ -74,7 +77,13 @@ class App {
     const glareContainer = document.body;
     this.glareEngine.mount(glareContainer);
 
-    console.log(`[Portfolio] Bootstrapped with ${PROJECTS.length} domain projects.`);
+    // 6. Mount Contact Hub
+    const contactContainer = document.getElementById('contact-hub-container');
+    if (contactContainer) {
+      this.contactHub.mount(contactContainer);
+    }
+
+    console.log(`[Portfolio] Bootstrapped with ${PROJECTS.length} domain projects and Contact Transmission Hub.`);
   }
 }
 
