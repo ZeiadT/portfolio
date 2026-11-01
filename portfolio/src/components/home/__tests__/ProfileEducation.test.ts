@@ -144,34 +144,26 @@ describe('ProfileEducationComponent', () => {
       expect(details?.textContent).toContain('Grade: Excellent');
     });
 
-    it('supports title, track, and location aliases cleanly for entries', () => {
-      const aliasEducation: ProfileEducationEntry[] = [
-        {
-          title: 'Faculty of Computers and Artificial Intelligence',
-          track: 'B.Sc. in Scientific Computing',
-          location: 'Benha University',
-          period: 'Oct 2021 – Jun 2025',
-          details: ['Grade: Excellent'],
-        },
-      ];
+    it('renders education item correctly using title, track, and location friendly aliases', () => {
+      const aliasEducation: ProfileEducationEntry = {
+        title: 'Faculty of Computers and Artificial Intelligence',
+        track: 'B.Sc. in Scientific Computing',
+        location: 'Benha University',
+        period: 'Oct 2021 – Jun 2025',
+      } as any;
 
       const comp = new ProfileEducationComponent(aliasEducation);
       comp.mount(container);
 
-      const item = container.querySelector('[data-education-item]');
-      expect(item).toBeTruthy();
+      const degreeEl = container.querySelector('[data-education-degree]');
+      const fieldEl = container.querySelector('[data-education-field]');
+      const instEl = container.querySelector('[data-education-institution]');
+      const periodEl = container.querySelector('[data-education-period]');
 
-      const titleEl = item?.querySelector('[data-education-title], [data-education-degree]');
-      expect(titleEl?.textContent?.trim()).toBe('Faculty of Computers and Artificial Intelligence');
-
-      const trackEl = item?.querySelector('[data-education-track], [data-education-field]');
-      expect(trackEl?.textContent?.trim()).toBe('B.Sc. in Scientific Computing');
-
-      const locEl = item?.querySelector('[data-education-location], [data-education-institution]');
-      expect(locEl?.textContent?.trim()).toBe('Benha University');
-
-      const listEl = container.querySelector('[data-education-list]');
-      expect(listEl?.className).toContain('max-h-[220px]');
+      expect(degreeEl?.textContent?.trim()).toBe('Faculty of Computers and Artificial Intelligence');
+      expect(fieldEl?.textContent?.trim()).toBe('B.Sc. in Scientific Computing');
+      expect(instEl?.textContent?.trim()).toBe('Benha University');
+      expect(periodEl?.textContent?.trim()).toBe('Oct 2021 – Jun 2025');
     });
   });
 

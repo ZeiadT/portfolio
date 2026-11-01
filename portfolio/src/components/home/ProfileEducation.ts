@@ -59,20 +59,22 @@ export class ProfileEducationComponent {
 
     const itemsHtml = this.educationList
       .map((entry) => {
-        const institution = entry.location?.trim() || entry.institution?.trim() || 'University';
-        const degree = entry.title?.trim() || entry.degree?.trim() || 'Computer Science';
+        const institution =
+          (entry.location || entry.institution)?.trim() || 'University';
+        const degree =
+          (entry.title || entry.degree)?.trim() || 'Computer Science';
         const period = entry.period?.trim() || 'Present';
-        const field = entry.track?.trim() || entry.field?.trim();
+        const field = (entry.track || entry.field)?.trim();
         const details = entry.details?.filter((d) => d && d.trim().length > 0);
 
         return `
-          <div data-education-item class="bg-white/[0.03] border border-white/10 rounded-xl p-3.5 sm:p-4 flex flex-col justify-center">
+          <div data-education-item class="bg-white/[0.03] border border-white/10 rounded-xl p-3 sm:p-3.5 flex flex-col justify-center">
             <div class="flex items-start justify-between gap-3">
-              <div data-education-title data-education-degree class="text-sm sm:text-base font-bold text-neutral-100 leading-tight">${escapeHtml(degree)}</div>
+              <div data-education-degree class="text-sm sm:text-base font-bold text-neutral-100 leading-tight">${escapeHtml(degree)}</div>
               <span data-education-period class="text-right text-[11px] font-mono font-medium text-neutral-400 shrink-0 whitespace-nowrap">${escapeHtml(period)}</span>
             </div>
-            ${field ? `<div data-education-track data-education-field class="text-xs text-[#ff4421] font-medium mt-1">${escapeHtml(field)}</div>` : ''}
-            <div data-education-location data-education-institution class="text-xs text-neutral-400 mt-1">${escapeHtml(institution)}</div>
+            ${field ? `<div data-education-field class="text-xs text-[#ff4421] font-medium mt-1">${escapeHtml(field)}</div>` : ''}
+            <div data-education-institution class="text-xs text-neutral-400 mt-1">${escapeHtml(institution)}</div>
             ${
               details && details.length > 0
                 ? `<ul data-education-details class="mt-2 space-y-1 text-xs text-neutral-400/90 list-disc list-inside">
@@ -87,7 +89,7 @@ export class ProfileEducationComponent {
 
     root.innerHTML = `
       <!-- Header with Graduation Cap Icon Badge -->
-      <div class="flex items-center gap-2.5 mb-3 sm:mb-4">
+      <div class="flex items-center gap-2.5 mb-2.5 sm:mb-3">
         <div class="w-7 h-7 rounded-lg bg-[#ff4421]/10 text-[#ff4421] flex items-center justify-center shrink-0">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M22 10v6M2 10l10-5 10 5-10 5z" />
@@ -97,8 +99,8 @@ export class ProfileEducationComponent {
         <span class="uppercase tracking-widest text-xs font-semibold text-[#ff4421]/80">EDUCATION</span>
       </div>
 
-      <!-- Inner Cards List (Compact with max-height to fit 1080p screen) -->
-      <div data-education-list class="flex-1 flex flex-col gap-2.5 overflow-y-auto max-h-[220px] lg:max-h-[235px] pr-1 select-text">
+      <!-- Inner Cards List -->
+      <div data-education-list class="flex-1 flex flex-col gap-2 overflow-y-auto max-h-[300px] pr-1 select-text">
         ${itemsHtml}
       </div>
     `;

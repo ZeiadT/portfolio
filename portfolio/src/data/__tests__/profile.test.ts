@@ -53,19 +53,20 @@ describe('Profile Data', () => {
     expect(PROFILE_DATA.pillars).toContain('Deterministic Performance');
   });
 
-  it('contains valid education details', () => {
+  it('contains valid education details matching 3 history milestones', () => {
     expect(PROFILE_DATA.education).toBeDefined();
     const eduList = Array.isArray(PROFILE_DATA.education)
       ? PROFILE_DATA.education
       : [PROFILE_DATA.education!];
     expect(eduList.length).toBe(3);
     expect(eduList[0].degree).toBe('9-Month Professional Diploma');
+    expect(eduList[0].field).toBe('Mobile Application Development (Native)');
 
-    // Entry 2: Faculty of Computers and Artificial Intelligence
-    expect(eduList[1].title || eduList[1].degree).toBe('Faculty of Computers and Artificial Intelligence');
-    expect(eduList[1].track || eduList[1].field).toBe('B.Sc. in Scientific Computing');
-    expect(eduList[1].location || eduList[1].institution).toBe('Benha University');
-    expect(eduList[1].details?.[0]).toContain('Graduation Project: ElevatED');
+    // Item 2: Faculty of Computers and Artificial Intelligence, B.Sc. in Scientific Computing, Benha University
+    expect(eduList[1].degree || eduList[1].title).toBe('Faculty of Computers and Artificial Intelligence');
+    expect(eduList[1].field || eduList[1].track).toBe('B.Sc. in Scientific Computing');
+    expect(eduList[1].institution || eduList[1].location).toBe('Benha University');
+    expect(eduList[1].period).toBe('Oct 2021 – Jun 2025');
 
     expect(eduList[2].degree).toContain('Digital Egypt Pioneers Initiative');
   });

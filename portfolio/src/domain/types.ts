@@ -53,6 +53,7 @@ export interface ProfileEducationEntry {
   period: string;
   field?: string;
   details?: string[];
+  // Friendly aliases
   title?: string;
   track?: string;
   location?: string;

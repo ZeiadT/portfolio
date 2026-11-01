@@ -148,26 +148,26 @@ Enhance the portfolio header and about bento grid by:
 
 ---
 
-## 8. Phase 3: 1920x1080 Screen Fit, Compact Globe Box, and Education Track Specs
+## 8. Phase 3: Viewport Fitting, Education Copy Alignment, and Globe Scale
 
-### Objectives & Requirements
-1. **1920x1080 Viewport Fit**:
-   - The entire bento grid (Hero Row + Bottom Bento Row) must comfortably fit within a 1920x1080 desktop screen without vertical scrolling.
-   - Optimize outer vertical margins and paddings:
-     - `index.html` main element: `pt-12 sm:pt-14 lg:pt-14 pb-6 lg:pb-6`
-     - `ProfileHeader.ts` root: `pt-2 sm:pt-4 lg:pt-3 pb-6 lg:pb-6`
-     - Top row min-height adjusted: `min-h-[320px] lg:min-h-[340px]`
-     - Row gap: `mt-4 lg:mt-5`
-   - Total vertical footprint budgeted to ~800px (leaving ample room for Windows taskbar and browser chrome in maximized 1080p).
-2. **Globe Card Box Height vs Sizing**:
-   - The user requested increasing the globe size without increasing its box height.
-   - Use full 420px diameter canvas (`w-[380px] sm:w-[420px] h-[380px] sm:h-[420px]`) for a large, impressive sphere dome.
-   - Apply deep negative margin (`-mb-64 sm:-mb-72`) with card `overflow-hidden` (matching the `awrs.me` reference).
-   - This keeps the card's overall box height compact (~260-290px) while rendering the 3D globe in full large scale.
-3. **Education Item 2 Structure**:
-   - Title: "Faculty of Computers and Artificial Intelligence"
-   - Track: "B.Sc. in Scientific Computing"
-   - Location: "Benha University"
-   - Details: Graduation Project (ElevatED), Technologies (Dart, Flutter, Python), Grade (Excellent).
-   - Support `title`, `track`, `location` aliases in `ProfileEducationEntry` in addition to `degree`, `field`, `institution`.
-   - Constrain education list scroll height (`max-h-[220px] lg:max-h-[235px]`) so the card stays compact.
+### 1. Requirements & Intent
+1. **Reduce Bento Grid Vertical Footprint (~10%)**:
+   - Cut dead vertical spacing so the full 2-row Bento grid fits within standard 1080p desktop/laptop viewports without unnecessary scrolling.
+   - Outer shell adjustments: `main#app` padding trimmed (`pt-11 sm:pt-12 pb-6 sm:pb-8`), `profile-header-root` padding trimmed (`pt-1 sm:pt-2 md:pt-3 pb-4 sm:pb-6`), inter-row margin trimmed (`mt-4 sm:mt-5`).
+   - Hero card min-height trimmed from `380px` to `340px`.
+   - Education list max-height adjusted to `290px` with inner item padding `p-3 sm:p-3.5`.
+2. **Education 2nd Item Specific Fields**:
+   - Title / Degree: `Faculty of Computers and Artificial Intelligence`
+   - Track / Field: `B.Sc. in Scientific Computing`
+   - Location / Institution: `Benha University`
+   - Period: `Oct 2021 – Jun 2025`
+   - Details: ElevatED graduation project, Dart/Flutter/Python, Grade: Excellent.
+   - In `types.ts`, support optional friendly aliases `title?: string`, `track?: string`, `location?: string` alongside `degree`, `field`, `institution` in `ProfileEducationEntry`.
+3. **Globe Scale Expansion (20% larger inside canvas box)**:
+   - Pass `scale: 1.2` in `COBEOptions` to enlarge the 3D globe sphere by 20% while strictly preserving the canvas and bento box dimensions.
+   - Update tests in `ProfileGlobe.test.ts` to verify `scale: 1.2`.
+
+### 2. Test Specifications (TDD First)
+- `ProfileGlobe.test.ts`: Verify `createGlobe` is invoked with `scale: 1.2`.
+- `ProfileEducation.test.ts`: Verify rendering with friendly aliases (`title`, `track`, `location`) as well as `degree`, `field`, `institution`.
+- `profile.test.ts`: Verify `PROFILE_DATA.education` item 2 contains `Faculty of Computers and Artificial Intelligence`, `B.Sc. in Scientific Computing`, and `Benha University`.
