@@ -80,7 +80,7 @@ describe('ProfileGlobeComponent', () => {
       globe.destroy();
     });
 
-    it('renders dynamic title with default city Cairo when no location is passed', () => {
+    it('renders dynamic title with default country Egypt when no location is passed', () => {
       const globe = new ProfileGlobeComponent();
       globe.mount(container);
 
@@ -91,7 +91,9 @@ describe('ProfileGlobeComponent', () => {
       expect(title?.className).toContain('font-bold');
       expect(title?.className).toContain('text-neutral-100');
       expect(title?.className).toContain('leading-snug');
-      expect(title?.innerHTML).toContain('Based in Cairo');
+      expect(title?.innerHTML).toContain(
+        'Based in <span class="text-[#ff4421] font-bold">Egypt</span>'
+      );
       expect(title?.innerHTML).toContain(
         '<span class="text-neutral-400 font-normal">available globally</span>'
       );
@@ -99,12 +101,14 @@ describe('ProfileGlobeComponent', () => {
       globe.destroy();
     });
 
-    it('parses city correctly from full location strings', () => {
+    it('parses location correctly from location strings', () => {
       const globeSF = new ProfileGlobeComponent('San Francisco, CA');
       globeSF.mount(container);
 
       const titleSF = container.querySelector<HTMLElement>('[data-globe-title]');
-      expect(titleSF?.innerHTML).toContain('Based in San Francisco');
+      expect(titleSF?.innerHTML).toContain(
+        'Based in <span class="text-[#ff4421] font-bold">San Francisco</span>'
+      );
       expect(titleSF?.innerHTML).toContain(
         '<span class="text-neutral-400 font-normal">available globally</span>'
       );
@@ -114,16 +118,20 @@ describe('ProfileGlobeComponent', () => {
       globeTokyo.mount(container);
 
       const titleTokyo = container.querySelector<HTMLElement>('[data-globe-title]');
-      expect(titleTokyo?.innerHTML).toContain('Based in Tokyo');
+      expect(titleTokyo?.innerHTML).toContain(
+        'Based in <span class="text-[#ff4421] font-bold">Tokyo</span>'
+      );
       globeTokyo.destroy();
     });
 
-    it('falls back to Cairo for empty or whitespace-only locations', () => {
+    it('falls back to Egypt for empty or whitespace-only locations', () => {
       const globeEmpty = new ProfileGlobeComponent('   ');
       globeEmpty.mount(container);
 
       const title = container.querySelector<HTMLElement>('[data-globe-title]');
-      expect(title?.innerHTML).toContain('Based in Cairo');
+      expect(title?.innerHTML).toContain(
+        'Based in <span class="text-[#ff4421] font-bold">Egypt</span>'
+      );
       globeEmpty.destroy();
     });
 
@@ -164,8 +172,8 @@ describe('ProfileGlobeComponent', () => {
   });
 
   describe('Cobe WebGL Initialization', () => {
-    it('initializes createGlobe with the canvas element and required visual options', () => {
-      const globe = new ProfileGlobeComponent('Cairo, Egypt');
+    it('initializes createGlobe without markers and with required visual options', () => {
+      const globe = new ProfileGlobeComponent('Egypt');
       globe.mount(container);
 
       const canvas = container.querySelector<HTMLCanvasElement>('canvas[data-globe-canvas]');
@@ -180,7 +188,7 @@ describe('ProfileGlobeComponent', () => {
           baseColor: [0.3, 0.3, 0.3],
           markerColor: [1, 0.27, 0.13],
           glowColor: [0.15, 0.15, 0.15],
-          markers: [{ location: [30.0444, 31.2357], size: 0.06 }],
+          markers: [],
           onRender: expect.any(Function),
         })
       );
@@ -188,7 +196,7 @@ describe('ProfileGlobeComponent', () => {
       globe.destroy();
     });
 
-    it('increments phi during auto-rotation in onRender callback', () => {
+    it('increments phi slowly during auto-rotation in onRender callback', () => {
       const globe = new ProfileGlobeComponent();
       globe.mount(container);
 
@@ -202,7 +210,9 @@ describe('ProfileGlobeComponent', () => {
       const initialPhi = mockState.phi;
 
       options.onRender(mockState);
-      expect(mockState.phi).toBeGreaterThan(initialPhi);
+      const diff = mockState.phi - initialPhi;
+      expect(diff).toBeGreaterThan(0);
+      expect(diff).toBeLessThanOrEqual(0.002);
 
       globe.destroy();
     });

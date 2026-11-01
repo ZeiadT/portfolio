@@ -51,6 +51,8 @@ export interface ProfileEducationEntry {
   institution: string;
   degree: string;
   period: string;
+  field?: string;
+  details?: string[];
 }
 
 export interface ProfileData {
@@ -62,7 +64,7 @@ export interface ProfileData {
   links: ProfileLink[];
   avatar: ProfileAvatarConfig;
   pillars?: string[];
-  education?: ProfileEducationEntry;
+  education?: ProfileEducationEntry | ProfileEducationEntry[];
   resumeUrl?: string;
 }
 

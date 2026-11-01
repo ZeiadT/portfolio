@@ -11,8 +11,8 @@ describe('Profile Data', () => {
     expect(PROFILE_DATA.summary.trim().length).toBeGreaterThan(50);
   });
 
-  it('contains Cairo, Egypt as the primary location', () => {
-    expect(PROFILE_DATA.location).toBe('Cairo, Egypt');
+  it('contains Egypt as the primary location', () => {
+    expect(PROFILE_DATA.location).toBe('Egypt');
   });
 
   it('provides valid contact details for phone and email matching wireframe', () => {
@@ -55,9 +55,13 @@ describe('Profile Data', () => {
 
   it('contains valid education details', () => {
     expect(PROFILE_DATA.education).toBeDefined();
-    expect(PROFILE_DATA.education?.institution).toBe('Helwan University');
-    expect(PROFILE_DATA.education?.degree).toBe("Bachelor's in Computer Science");
-    expect(PROFILE_DATA.education?.period).toBe('2022 – Present');
+    const eduList = Array.isArray(PROFILE_DATA.education)
+      ? PROFILE_DATA.education
+      : [PROFILE_DATA.education!];
+    expect(eduList.length).toBe(3);
+    expect(eduList[0].degree).toBe('9-Month Professional Diploma');
+    expect(eduList[1].institution).toContain('Benha University');
+    expect(eduList[2].degree).toContain('Digital Egypt Pioneers Initiative');
   });
 
   it('contains valid resumeUrl', () => {

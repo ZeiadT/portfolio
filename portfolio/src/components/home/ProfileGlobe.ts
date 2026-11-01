@@ -13,23 +13,6 @@ function escapeHtml(str: string): string {
 }
 
 /**
- * Known city coordinates mapping (latitude, longitude).
- * Defaults to Cairo ([30.0444, 31.2357]) when not matched.
- */
-const CITY_COORDINATES: Record<string, [number, number]> = {
-  cairo: [30.0444, 31.2357],
-  london: [51.5074, -0.1278],
-  'new york': [40.7128, -74.006],
-  tokyo: [35.6762, 139.6503],
-  'san francisco': [37.7749, -122.4194],
-  dubai: [25.2048, 55.2708],
-  berlin: [52.52, 13.405],
-  paris: [48.8566, 2.3522],
-  amsterdam: [52.3676, 4.9041],
-  singapore: [1.3521, 103.8198],
-};
-
-/**
  * ProfileGlobeComponent
  * Renders an isolated interactive 3D WebGL dot globe powered by `cobe`
  * inside an editorial Bento Card with smooth auto-rotation, grabbing drag
@@ -46,27 +29,19 @@ export class ProfileGlobeComponent {
   private pointerInteracting: number | null = null;
   private pointerInteractionMovement: number = 0;
 
-  constructor(location: string = 'Cairo, Egypt') {
-    this.location = location || 'Cairo, Egypt';
+  constructor(location: string = 'Egypt') {
+    this.location = location || 'Egypt';
   }
 
   /**
-   * Parses the city name from a location string (e.g. "Cairo, Egypt" -> "Cairo").
+   * Parses the location name from a location string (e.g. "Egypt" or "Cairo, Egypt" -> "Egypt").
    */
   private parseCity(locationStr?: string): string {
     if (!locationStr || !locationStr.trim()) {
-      return 'Cairo';
+      return 'Egypt';
     }
     const firstPart = locationStr.split(',')[0]?.trim();
-    return firstPart || 'Cairo';
-  }
-
-  /**
-   * Resolves coordinates for a given location or falls back to Cairo.
-   */
-  private getCoordinates(locationStr: string): [number, number] {
-    const city = this.parseCity(locationStr).toLowerCase();
-    return CITY_COORDINATES[city] || [30.0444, 31.2357];
+    return firstPart || 'Egypt';
   }
 
   private onPointerDown = (e: PointerEvent): void => {
@@ -119,7 +94,6 @@ export class ProfileGlobeComponent {
     }
 
     const city = this.parseCity(this.location);
-    const coordinates = this.getCoordinates(this.location);
 
     const root = document.createElement('div');
     root.setAttribute('data-bento-globe', 'true');
@@ -131,14 +105,14 @@ export class ProfileGlobeComponent {
       <div class="relative z-10 select-text">
         <span data-globe-subtitle class="text-[11px] uppercase tracking-[0.2em] font-semibold text-neutral-400 mb-1.5 block">FLEXIBLE WITH TIMEZONES</span>
         <h3 data-globe-title class="text-base sm:text-lg font-bold text-neutral-100 leading-snug">
-          Based in ${escapeHtml(city)}, <span class="text-neutral-400 font-normal">available globally</span>
+          Based in <span class="text-[#ff4421] font-bold">${escapeHtml(city)}</span>, <span class="text-neutral-400 font-normal">available globally</span>
         </h3>
       </div>
 
       <!-- Canvas Container with Radial Glow Backdrop -->
-      <div class="relative w-full aspect-square max-w-[280px] sm:max-w-[320px] mx-auto flex items-center justify-center -mb-8 sm:-mb-10 select-none">
+      <div class="relative w-full aspect-square max-w-[340px] sm:max-w-[420px] mx-auto flex items-center justify-center -mb-20 sm:-mb-28 select-none">
         <div data-globe-glow class="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
-          <div class="w-44 h-44 sm:w-52 sm:h-52 rounded-full bg-[#ff4421]/15 blur-3xl"></div>
+          <div class="w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-[#ff4421]/15 blur-3xl"></div>
         </div>
         <canvas
           data-globe-canvas
@@ -171,7 +145,7 @@ export class ProfileGlobeComponent {
 
     const onRender = (state: Record<string, any>) => {
       if (this.pointerInteracting === null) {
-        this.phi += 0.005;
+        this.phi += 0.001;
       }
       state.phi = this.phi + this.pointerInteractionMovement / 200;
     };
@@ -189,7 +163,7 @@ export class ProfileGlobeComponent {
       baseColor: [0.3, 0.3, 0.3] as [number, number, number],
       markerColor: [1, 0.27, 0.13] as [number, number, number],
       glowColor: [0.15, 0.15, 0.15] as [number, number, number],
-      markers: [{ location: coordinates, size: 0.06 }],
+      markers: [],
       onRender,
     };
 

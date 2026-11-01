@@ -135,18 +135,24 @@ describe('ProfileBio Component', () => {
       expect(canvas).toBeTruthy();
     });
 
-    it('renders Summary heading, dot badge, and narrative copy inside Summary card', () => {
+    it('renders Summary heading, icon badge, and narrative copy inside Summary card', () => {
       const bio = new ProfileBio(mockData);
       bio.mount(container);
 
       const heading = container.querySelector('[data-summary-heading]');
       expect(heading?.textContent?.trim().toUpperCase()).toBe('SUMMARY');
+      expect(heading?.className).toContain('text-[#ff4421]/80');
+
+      // Verify badge styling
+      const summaryCard = container.querySelector('[data-bento-summary]');
+      const badge = summaryCard?.querySelector('.bg-\\[\\#ff4421\\]\\/10');
+      expect(badge).toBeTruthy();
+      expect(badge?.querySelector('svg')).toBeTruthy();
 
       const summaryText = container.querySelector('[data-profile-summary]');
       expect(summaryText?.textContent?.trim()).toBe(mockData.summary);
 
       // Verify styling of summary card
-      const summaryCard = container.querySelector('[data-bento-summary]');
       expect(summaryCard?.className).toContain('rounded-2xl');
       expect(summaryCard?.className).toContain('border-white/10');
       expect(summaryCard?.className).toContain('backdrop-blur-sm');

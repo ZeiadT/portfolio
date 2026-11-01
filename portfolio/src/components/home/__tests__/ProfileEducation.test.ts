@@ -70,44 +70,78 @@ describe('ProfileEducationComponent', () => {
       expect(label?.className).toContain('text-[#ff4421]/80');
     });
 
-    it('renders institution, degree, and period correctly in inner card', () => {
+    it('renders institution, degree, and period correctly with period on the right in top flex row', () => {
       const comp = new ProfileEducationComponent(mockEducation);
       comp.mount(container);
 
       // Check inner card container
-      const innerCard = container.querySelector('[data-education-institution]')?.parentElement;
+      const innerCard = container.querySelector('[data-education-item]');
       expect(innerCard).toBeTruthy();
       expect(innerCard?.className).toContain('bg-white/[0.03]');
       expect(innerCard?.className).toContain('border-white/10');
       expect(innerCard?.className).toContain('rounded-xl');
-      expect(innerCard?.className).toContain('p-3.5');
-      expect(innerCard?.className).toContain('sm:p-4');
-
-      // Check institution
-      const instEl = container.querySelector('[data-education-institution]');
-      expect(instEl).toBeTruthy();
-      expect(instEl?.textContent?.trim()).toBe('Helwan University');
-      expect(instEl?.className).toContain('text-sm');
-      expect(instEl?.className).toContain('sm:text-base');
-      expect(instEl?.className).toContain('font-bold');
-      expect(instEl?.className).toContain('text-neutral-100');
 
       // Check degree
       const degreeEl = container.querySelector('[data-education-degree]');
       expect(degreeEl).toBeTruthy();
       expect(degreeEl?.textContent?.trim()).toBe("Bachelor's in Computer Science");
-      expect(degreeEl?.className).toContain('text-xs');
-      expect(degreeEl?.className).toContain('text-neutral-400');
-      expect(degreeEl?.className).toContain('mt-1');
 
-      // Check period
+      // Check period placed in flex row on the right
       const periodEl = container.querySelector('[data-education-period]');
       expect(periodEl).toBeTruthy();
       expect(periodEl?.textContent?.trim()).toBe('2022 – Present');
-      expect(periodEl?.className).toContain('text-[11px]');
-      expect(periodEl?.className).toContain('font-mono');
-      expect(periodEl?.className).toContain('text-neutral-400');
-      expect(periodEl?.className).toContain('mt-2');
+      expect(periodEl?.className).toContain('text-right');
+      expect(periodEl?.parentElement?.className).toContain('justify-between');
+
+      // Check institution
+      const instEl = container.querySelector('[data-education-institution]');
+      expect(instEl).toBeTruthy();
+      expect(instEl?.textContent?.trim()).toBe('Helwan University');
+    });
+
+    it('renders multiple education entries with field and details when array is passed', () => {
+      const multiEducation: ProfileEducationEntry[] = [
+        {
+          degree: '9-Month Professional Diploma',
+          period: 'Oct 2025 – Sep 2026',
+          field: 'Mobile Application Development (Native)',
+          institution: 'Information Technology Institute (ITI), Smart Village Branch',
+        },
+        {
+          degree: 'B.Sc. in Computer Science',
+          period: 'Oct 2021 – Jun 2025',
+          institution: 'Faculty of Computers and Artificial Intelligence, Benha University',
+          details: [
+            'Graduation Project: ElevatED',
+            'Technologies & Architecture: Dart, Flutter, Python',
+            'Grade: Excellent',
+          ],
+        },
+      ];
+
+      const comp = new ProfileEducationComponent(multiEducation);
+      comp.mount(container);
+
+      const items = container.querySelectorAll('[data-education-item]');
+      expect(items.length).toBe(2);
+
+      expect(items[0].querySelector('[data-education-degree]')?.textContent?.trim()).toBe(
+        '9-Month Professional Diploma'
+      );
+      expect(items[0].querySelector('[data-education-field]')?.textContent?.trim()).toBe(
+        'Mobile Application Development (Native)'
+      );
+      expect(items[0].querySelector('[data-education-period]')?.textContent?.trim()).toBe(
+        'Oct 2025 – Sep 2026'
+      );
+
+      expect(items[1].querySelector('[data-education-institution]')?.textContent?.trim()).toBe(
+        'Faculty of Computers and Artificial Intelligence, Benha University'
+      );
+      const details = items[1].querySelector('[data-education-details]');
+      expect(details).toBeTruthy();
+      expect(details?.textContent).toContain('Graduation Project: ElevatED');
+      expect(details?.textContent).toContain('Grade: Excellent');
     });
   });
 
