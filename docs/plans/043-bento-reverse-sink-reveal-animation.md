@@ -113,13 +113,13 @@
 - Consumes: `bentoController.createRevealTimeline()`, `TRANSITION_TIMINGS.bentoRevealStart`
 - Produces: `buildBandToNavTimeline()`
 
-- [ ] **Step 1: Write failing tests in `transitionTimeline.test.ts`**
+- [x] **Step 1: Write failing tests in `transitionTimeline.test.ts`**
   - Update test assertion to verify `bentoController.createRevealTimeline()` is nested at `ascent + 0.40s` (`TRANSITION_TIMINGS.bentoRevealStart`).
 
-- [ ] **Step 2: Run tests to verify failure (RED)**
+- [x] **Step 2: Run tests to verify failure (RED)**
   - Run `cd portfolio; npx vitest run src/engines/band/__tests__/transitionTimeline.test.ts`.
 
-- [ ] **Step 3: Update `transitionTimeline.ts`**
+- [x] **Step 3: Update `transitionTimeline.ts`**
   - Update timeline attachment:
     ```typescript
     if (bentoController) {
@@ -130,10 +130,10 @@
     }
     ```
 
-- [ ] **Step 4: Run tests to verify passing (GREEN)**
+- [x] **Step 4: Run tests to verify passing (GREEN)**
   - Run `cd portfolio; npx vitest run src/engines/band/__tests__/transitionTimeline.test.ts`.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
   - Run `git add` and `git commit -m "feat(band): sync bento reverse-sink reveal at mid-ascent"`.
 
 ---
@@ -143,11 +143,11 @@
 **Files:**
 - None (verification phase)
 
-- [ ] **Step 1: Run all Vitest test suites**
+- [x] **Step 1: Run all Vitest test suites**
   - Run `cd portfolio; npm test`. Verify all 28 test suites pass cleanly.
 
-- [ ] **Step 2: Run TypeScript check and production build**
+- [x] **Step 2: Run TypeScript check and production build**
   - Run `cd portfolio; npm run build`. Verify 0 errors.
 
-- [ ] **Step 3: Commit and summarize**
+- [x] **Step 3: Commit and summarize**
   - Final git status check and verification report.
