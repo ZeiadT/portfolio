@@ -61,11 +61,11 @@ export class ProfileBio {
     const summaryCard = document.createElement('div');
     summaryCard.setAttribute('data-bento-summary', 'true');
     summaryCard.className =
-      'md:col-span-12 lg:col-span-6 p-5 sm:p-6 lg:p-7 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text transition-colors duration-200 hover:border-white/20';
+      'md:col-span-12 lg:col-span-6 p-6 sm:p-6.5 lg:p-7.5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text transition-colors duration-200 hover:border-white/20';
 
     summaryCard.innerHTML = `
       <!-- Header with User/Bio Icon Badge on top left -->
-      <div class="flex items-center gap-2.5 mb-2.5 sm:mb-3">
+      <div class="flex items-center gap-2.5 mb-3 sm:mb-4">
         <div class="w-7 h-7 rounded-lg bg-[#ff4421]/10 text-[#ff4421] flex items-center justify-center shrink-0">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -83,7 +83,7 @@ export class ProfileBio {
       <div class="flex-1 flex items-center">
         <p
           data-profile-summary
-          class="text-base sm:text-lg text-neutral-200 font-light leading-relaxed sm:leading-[1.75] text-pretty"
+          class="text-base sm:text-lg text-neutral-200 font-light leading-relaxed sm:leading-[1.8] text-pretty"
         >${escapeHtml(this.data.summary || '')}</p>
       </div>
     `;

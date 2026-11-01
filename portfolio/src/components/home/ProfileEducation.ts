@@ -55,7 +55,7 @@ export class ProfileEducationComponent {
     const root = document.createElement('div');
     root.setAttribute('data-bento-education', 'true');
     root.className =
-      'p-5 sm:p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text group/education transition-colors duration-200 hover:border-white/20';
+      'p-5.5 sm:p-6.5 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between h-full select-text group/education transition-colors duration-200 hover:border-white/20';
 
     const itemsHtml = this.educationList
       .map((entry) => {
@@ -68,7 +68,7 @@ export class ProfileEducationComponent {
         const details = entry.details?.filter((d) => d && d.trim().length > 0);
 
         return `
-          <div data-education-item class="bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2 sm:py-2.5 flex flex-col justify-center">
+          <div data-education-item class="bg-white/[0.03] border border-white/10 rounded-xl px-3.5 py-2.5 sm:py-3 flex flex-col justify-center">
             <div class="flex items-start justify-between gap-2.5">
               <div data-education-degree class="text-xs sm:text-sm font-bold text-neutral-100 leading-snug">${escapeHtml(degree)}</div>
               <span data-education-period class="text-right text-[10px] sm:text-[11px] font-mono font-medium text-neutral-400 shrink-0 whitespace-nowrap">${escapeHtml(period)}</span>
@@ -92,7 +92,7 @@ export class ProfileEducationComponent {
 
     root.innerHTML = `
       <!-- Header with Graduation Cap Icon Badge -->
-      <div class="flex items-center gap-2.5 mb-2 sm:mb-2.5">
+      <div class="flex items-center gap-2.5 mb-2.5 sm:mb-3">
         <div class="w-7 h-7 rounded-lg bg-[#ff4421]/10 text-[#ff4421] flex items-center justify-center shrink-0">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M22 10v6M2 10l10-5 10 5-10 5z" />
@@ -103,7 +103,7 @@ export class ProfileEducationComponent {
       </div>
 
       <!-- Inner Cards List (Compact, Non-Scrollable) -->
-      <div data-education-list class="flex-1 flex flex-col justify-between gap-1.5 sm:gap-2 select-text">
+      <div data-education-list class="flex-1 flex flex-col justify-between gap-2 sm:gap-2.5 select-text">
         ${itemsHtml}
       </div>
     `;

@@ -239,3 +239,19 @@ Enhance the portfolio header and about bento grid by:
      - Assert Codewars link URL is `https://www.codewars.com/users/ZeiadT`.
      - Assert LinkedIn link URL is `https://linkedin.com/in/zeiad-mohammed`.
      - Assert `PROFILE_DATA.resumeUrl` is `https://drive.google.com/file/d/1nxESDH7D4pVdaa_3cl7Y7QlMjlBNnRQl/view?usp=sharing`.
+
+---
+
+## 14. Phase 9: Vertical Spacing Balance & Center Distribution
+
+1. **Requirements & Intent**:
+   - Balance the top clearance (between the 38px docked tabbar and screen content) with the bottom screen clearance.
+   - Distribute vertical space into the center gap (`mt-6 sm:mt-7 lg:mt-8` on bottomRow) to give distinct hierarchy between hero tier and credentials tier.
+   - Increase items vertical space slightly without breaking layout hierarchy or inducing scrolling:
+     - Hero Card 1 & 2: Increase `min-h-[330px] lg:min-h-[340px]` to `min-h-[350px] lg:min-h-[360px]`, gap `gap-5 sm:gap-6`, padding `p-6 sm:p-6.5 lg:p-7.5`.
+     - Education Card: Increase item vertical padding (`px-3.5 py-2.5 sm:py-3`), item gap (`gap-2 sm:gap-2.5`), container padding `p-5.5 sm:p-6.5`.
+     - Globe Card: Padding `p-5.5 sm:p-6.5`, canvas container margin `-mb-14 sm:-mb-20`.
+     - Summary Card: Padding `p-6 sm:p-6.5 lg:p-7.5`, leading `sm:leading-[1.8]`, header margin `mb-3 sm:mb-4`.
+     - App Shell & Root: Update `<main id="app">` to `pt-14 sm:pt-16 pb-6 sm:pb-7` and `profile-header-root` to `pt-1 sm:pt-2 pb-2 sm:pb-3`.
+2. **Test Specifications**:
+   - Verify all unit and integration test suites pass with zero regressions.
