@@ -223,34 +223,41 @@ Expected: PASS.
 **Interfaces:**
 - Implements: `Engine` (`id = 'carousel-gl'`, `mount(container: HTMLElement)`, `destroy()`, `resize()`).
 - Integrates:
-  - Three.js WebGLRenderer, PerspectiveCamera, Scene.
-  - 3-replica track geometry projecting the 6 projects.
-  - `CarouselKinematics`, `AudioClickSynth`, `VermilionParticleBurst`, `CarouselGestureController`.
-  - Receding cards have perspective curvature, lighting falloff, and Rec.601 luma desaturation (`uGray`).
-  - Active card centered in full focus.
-  - `onProjectSelect?: (project: Project, index: number) => void`.
+  - Three.js WebGLRenderer, PerspectiveCamera (FOV 50, Z = 8.0), Scene.
+  - 3-replica track geometry projecting the 6 flagship projects (-1, 0, 1 replicas, 18 tiles total) with 16:9 aspect ratio (`TILE_HEIGHT = 2.25`, `TILE_WIDTH = 4.0`, `TILE_GAP = 0.1`, `TILE_UNIT = 4.1`).
+  - `CarouselKinematics`: coordinate transformations, 0.92 spring damping, non-linear warp deformation.
+  - `AudioClickSynth`: synthesized zero-asset mechanical audio clicks on index boundary crossings.
+  - `VermilionParticleBurst`: 3D vermilion `#ff4421` radial particle shockwave on active card double-click.
+  - `ProjectCardTexture`: High-DPI canvas texture generation with Swiss typography, category badges, tags, and accent pills.
+  - `createCarouselMaterial`: Cylindrical exponential roll vertex shader and Rec.601 luma desaturation fragment shader.
+  - `CarouselGestureController`: unified pointer drag, inertia, wheel, keyboard (`ArrowLeft`/`ArrowRight` snapping with `power3.out`), and double-click handling.
+  - Active card centered in full focus (`uGray -> 0.0`), receding cards have perspective curvature, lighting falloff, and desaturation (`uGray -> 1.0`).
+  - Raycast click detection with `onProjectSelect?: (project: Project, index: number) => void`.
+  - Headless environment resilient (fallback WebGL renderer for happy-dom/SSR).
+  - Complete memory and WebGL disposal in `destroy()` (no dangling listeners, textures, materials, or rAF loops).
 
-- [ ] **Step 1: Write failing tests for CarouselGLEngine**
+- [x] **Step 1: Write failing tests for CarouselGLEngine**
 Create `portfolio/src/engines/carousel/__tests__/CarouselGLEngine.test.ts` asserting:
-- `mount(container)` initializes Three.js scene, camera, renderer, meshes for all projects, and gesture controller.
-- `setSelectedIndex(index, immediate)` smoothly navigates to target project and updates audio click.
+- `mount(container)` initializes Three.js scene, camera (FOV 50, Z = 8.0), renderer, 18 mesh tiles for the 6 projects across 3 replicas, audio synth, particle burst, and gesture controller.
+- `setSelectedIndex(index, immediate)` navigates to target project with GSAP `power3.out` easing, updates active card, and triggers mechanical audio tick.
 - Active card has `uGray = 0` (color), receding cards transition toward `uGray = 1` (desaturated).
-- Double clicking active card triggers `VermilionParticleBurst`.
-- `resize()` recalculates camera aspect, renderer viewport, and shader uniforms.
-- `destroy()` cleanly disposes renderer, scene, meshes, materials, textures, rAF loop, and audio synth.
+- Double clicking active card triggers `VermilionParticleBurst` shockwave at active card world coordinates.
+- Raycasting clicks on card tiles invokes `onProjectSelect` callback.
+- `resize()` recalculates camera aspect, renderer viewport, and shader uniforms (`uViewportWidth`).
+- `destroy()` cleanly disposes renderer, scene, meshes, materials, textures, rAF loop, gesture controller, particle burst, and audio synth with zero leaks.
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 Run: `npm test src/engines/carousel/__tests__/CarouselGLEngine.test.ts`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement CarouselGLEngine in index.ts**
+- [x] **Step 3: Implement CarouselGLEngine in index.ts**
 Refactor `portfolio/src/engines/carousel/index.ts` with complete integration.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 Run: `npm test src/engines/carousel/__tests__/CarouselGLEngine.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 `git add src/engines/carousel/index.ts src/engines/carousel/__tests__/CarouselGLEngine.test.ts`
 `git commit -m "feat(carousel): implement complete curved 3D WebGL CarouselGLEngine"`
 
