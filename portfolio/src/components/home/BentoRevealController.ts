@@ -24,6 +24,16 @@ export const BENTO_REVEAL_TIMINGS = {
   heroDropDuration: 0.42,
   flashDuration: 0.08,
   reducedMotionDuration: 0.4,
+  stagger: 0.08,
+  cardDuration: 0.55,
+  initialY: 24,
+  initialScale: 0.96,
+  initialBlur: 12,
+} as const;
+
+export const BENTO_REVEAL_EASES = {
+  transform: 'back.out(1.1)',
+  fade: 'power2.out',
 } as const;
 
 export const BENTO_REVEAL_STYLES = {
