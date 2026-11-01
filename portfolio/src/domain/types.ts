@@ -86,4 +86,58 @@ export interface Engine {
 /**
  * Global navigation / portfolio views
  */
-export type ViewState = 'home' | 'projects' | 'about' | 'contact';
+export type ViewState = 'home' | 'projects' | 'about' | 'contact' | 'wall';
+
+// --- Project Deep-Dive Contract ---
+export interface ProjectDetails extends Project {
+  longDescription?: string;
+  architectureDiagram?: string;
+  architectureHighlights?: string[];
+  metrics?: { label: string; value: string; detail?: string }[];
+}
+
+// --- Skills Domain Contract ---
+export interface SkillItem {
+  name: string;
+  level?: 'Expert' | 'Advanced' | 'Proficient';
+  highlight?: boolean;
+  tag?: string;
+}
+
+export interface SkillCategory {
+  id: string;
+  name: string;
+  icon: string;
+  color?: string;
+  skills: SkillItem[];
+}
+
+// --- Wall (Guestbook Canvas) Domain Contract ---
+export type WallItemType = 'note' | 'drawing' | 'sticker' | 'media';
+
+export interface WallItem {
+  id: string;
+  type: WallItemType;
+  author: string;
+  timestamp: number;
+  x: number;
+  y: number;
+  rotation?: number;
+  scale?: number;
+  color?: string;
+  content: {
+    text?: string;
+    drawingDataUrl?: string;
+    imageUrl?: string;
+  };
+  likes: number;
+}
+
+// --- Contact Transmission Contract ---
+export interface ContactPayload {
+  name: string;
+  emailOrHandle: string;
+  channel: 'telegram' | 'email';
+  message: string;
+  timestamp: number;
+}
