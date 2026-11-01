@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProfileHeader } from '../ProfileHeader';
+import { BentoRevealController } from '../BentoRevealController';
 import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
 import type { ProfileData } from '@/domain/types';
 
@@ -180,5 +181,18 @@ describe('ProfileHeader Component', () => {
 
     openSpy.mockRestore();
     destroySpy.mockRestore();
+  });
+
+  it('manages BentoRevealController lifecycle via getRevealController()', () => {
+    const header = new ProfileHeader(mockData);
+    expect(header.getRevealController()).toBeNull();
+
+    header.mount(container);
+    const controller = header.getRevealController();
+    expect(controller).toBeTruthy();
+    expect(controller).toBeInstanceOf(BentoRevealController);
+
+    header.destroy();
+    expect(header.getRevealController()).toBeNull();
   });
 });

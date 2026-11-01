@@ -8,10 +8,12 @@ import { MarqueeMotionController } from './marqueeMotion';
 import { EnterPillController } from './enterPill';
 import { NavBarController } from './navBar';
 import { buildBandToNavTimeline } from './transitionTimeline';
+import type { BentoRevealController } from '@/components/home/BentoRevealController';
 
 export interface ElasticBandEngineOptions {
   curtainEl?: HTMLElement | null;
   backgroundEl?: HTMLElement | null;
+  bentoController?: BentoRevealController | (() => BentoRevealController | null) | null;
   onCollapseStart?: () => void;
   onMarqueeReady?: () => void;
   onTransitionComplete?: () => void;
@@ -210,6 +212,11 @@ export class ElasticBandEngine implements Engine {
     const appContainer = document.getElementById('app');
     const marqueeCanvas = this.container.querySelector<HTMLCanvasElement>('#marquee-canvas');
 
+    const bentoController =
+      typeof this.options.bentoController === 'function'
+        ? this.options.bentoController()
+        : this.options.bentoController;
+
     this.transitionTimeline = buildBandToNavTimeline({
       brandBar,
       brandTrack,
@@ -218,6 +225,7 @@ export class ElasticBandEngine implements Engine {
       background: this.backgroundEl,
       appContainer,
       marqueeCanvas,
+      bentoController,
       onComplete: () => {
         this.navBar?.setMode('nav');
         this.navBar?.revealNavCluster();

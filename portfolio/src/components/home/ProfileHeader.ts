@@ -6,6 +6,7 @@ import { ProfileContactComponent } from './ProfileContact';
 import { ProfileAvatarComponent } from './ProfileAvatar';
 import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
 import { EditorialCardFaceRenderer } from '@/engines/card/renderers/EditorialCardFaceRenderer';
+import { BentoRevealController } from './BentoRevealController';
 
 /**
  * ProfileHeader Component
@@ -28,6 +29,7 @@ export class ProfileHeader {
   private avatarComponent: ProfileAvatarComponent | null = null;
   private bioComponent: ProfileBio | null = null;
   private cardSummonEngine: CardSummonEngine | null = null;
+  private revealController: BentoRevealController | null = null;
 
   constructor(data: ProfileData) {
     this.data = data;
@@ -119,9 +121,19 @@ export class ProfileHeader {
 
     container.appendChild(root);
     this.rootEl = root;
+
+    this.revealController = new BentoRevealController(root);
+  }
+
+  public getRevealController(): BentoRevealController | null {
+    return this.revealController;
   }
 
   public destroy(): void {
+    if (this.revealController) {
+      this.revealController.destroy();
+      this.revealController = null;
+    }
     if (this.cardSummonEngine) {
       this.cardSummonEngine.destroy();
       this.cardSummonEngine = null;

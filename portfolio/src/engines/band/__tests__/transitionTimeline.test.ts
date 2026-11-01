@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { gsap } from 'gsap';
 import { findNearestLockup, buildBandToNavTimeline, type BandToNavOptions } from '../transitionTimeline';
-import { TRANSITION_EASES } from '../constants';
+import { TRANSITION_EASES, TRANSITION_TIMINGS } from '../constants';
+import type { BentoRevealController } from '@/components/home/BentoRevealController';
 
 describe('transitionTimeline', () => {
   describe('findNearestLockup', () => {
@@ -393,6 +394,63 @@ describe('transitionTimeline', () => {
 
       expect(onComplete).toHaveBeenCalled();
       expect(document.querySelector('.flying-wordmark-clone')).toBeNull();
+    });
+
+    it('calls bentoController.prepareInitialState() and nests reveal timeline at ascent + 0.70s', () => {
+      const mockRevealTimeline = gsap.timeline();
+      const mockBentoController = {
+        prepareInitialState: vi.fn(),
+        createRevealTimeline: vi.fn().mockReturnValue(mockRevealTimeline),
+        destroy: vi.fn(),
+        queryElements: vi.fn(),
+      } as unknown as BentoRevealController;
+
+      const options: BandToNavOptions = {
+        brandBar,
+        brandTrack,
+        navLogoAnchor,
+        heroHeader,
+        background,
+        appContainer,
+        marqueeCanvas,
+        bentoController: mockBentoController,
+      };
+
+      const tl = buildBandToNavTimeline(options);
+
+      expect(mockBentoController.prepareInitialState).toHaveBeenCalledTimes(1);
+      expect(mockBentoController.createRevealTimeline).toHaveBeenCalledTimes(1);
+
+      // Verify reveal timeline is nested at label ascent + 0.70s
+      const ascentLabelTime = tl.labels.ascent;
+      expect(ascentLabelTime).toBeDefined();
+      expect(mockRevealTimeline.startTime()).toBeCloseTo(
+        ascentLabelTime + (TRANSITION_TIMINGS.bentoWireframeStart ?? 0.7),
+        2
+      );
+    });
+
+    it('sets appContainer immediately to opacity 1 and y 0 without monolithic slide animation', () => {
+      const options: BandToNavOptions = {
+        brandBar,
+        brandTrack,
+        navLogoAnchor,
+        heroHeader,
+        background,
+        appContainer,
+        marqueeCanvas,
+      };
+
+      const tl = buildBandToNavTimeline(options);
+
+      // Verify no tween animating appContainer on the timeline
+      const appTweens = tl
+        .getChildren()
+        .filter((child: any) => child.targets?.().includes(appContainer));
+      expect(appTweens.length).toBe(0);
+
+      // Verify appContainer inline styles or gsap properties
+      expect(appContainer.style.opacity).toBe('1');
     });
   });
 });

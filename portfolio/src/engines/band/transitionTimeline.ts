@@ -1,5 +1,6 @@
 import { gsap } from 'gsap';
 import { TRANSITION_TIMINGS, TRANSITION_EASES, NAV_DIMENSIONS } from './constants';
+import type { BentoRevealController } from '@/components/home/BentoRevealController';
 
 export interface BandToNavOptions {
   brandBar: HTMLElement;
@@ -9,6 +10,7 @@ export interface BandToNavOptions {
   background?: HTMLElement | null;
   appContainer?: HTMLElement | null;
   marqueeCanvas?: HTMLCanvasElement | null;
+  bentoController?: BentoRevealController | null;
   onStart?: () => void;
   onGlideStart?: () => void;
   onAscentStart?: () => void;
@@ -75,11 +77,17 @@ export function buildBandToNavTimeline(options: BandToNavOptions): gsap.core.Tim
     background,
     appContainer,
     marqueeCanvas,
+    bentoController,
     onStart,
     onGlideStart,
     onAscentStart,
     onComplete,
   } = options;
+
+  // 0. Prepare initial hidden state of bento cards before animations begin
+  if (bentoController) {
+    bentoController.prepareInitialState();
+  }
 
   // 1. Freeze track animation at current rendered transform
   const currentTrackTransform = getComputedStyle(brandTrack).transform;
@@ -312,20 +320,19 @@ export function buildBandToNavTimeline(options: BandToNavOptions): gsap.core.Tim
     );
   }
 
-  // Main screen 3D carousel slides up from viewport bottom
+  // Main screen container is set visible immediately without monolithic slide
   if (appContainer) {
     gsap.set(appContainer, {
-      y: typeof window !== 'undefined' ? window.innerHeight : 900,
       opacity: 1,
+      y: 0,
     });
-    tl.to(
-      appContainer,
-      {
-        y: 0,
-        duration: TRANSITION_TIMINGS.upwardAscent,
-        ease: TRANSITION_EASES.appEntrance,
-      },
-      'ascent'
+  }
+
+  // Bento 2-step Tetris puzzle entrance reveal nested into master timeline
+  if (bentoController) {
+    tl.add(
+      bentoController.createRevealTimeline(),
+      `ascent+=${TRANSITION_TIMINGS.bentoWireframeStart}`
     );
   }
 

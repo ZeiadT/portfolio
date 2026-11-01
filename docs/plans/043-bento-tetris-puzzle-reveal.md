@@ -69,30 +69,11 @@ export class BentoRevealController {
 }
 ```
 
-- [ ] **Step 1: Write failing unit tests for `BentoRevealController`**
-  - Test query of all 5 cards by data attributes (`[data-bento-hero-left]`, `[data-bento-hero-right]`, `[data-bento-education]`, `[data-bento-globe]`, `[data-bento-summary]`).
-  - Test `prepareInitialState()` sets `opacity: 0`, negative `translateY`, initial scale and rotation without layout changes.
-  - Test `createRevealTimeline()` returns a GSAP timeline sequencing wireframe outline trace at `t = 0` and foundation-up drops starting at `t = 0.35s` (Education -> Globe -> Summary -> Hero Left -> Hero Right).
-  - Test `reducedMotion: true` produces a simple opacity fade timeline without `translateY` or rotation.
-  - Test `destroy()` cleans up active tweens and clears inline style properties.
-
-- [ ] **Step 2: Run test to confirm failure**
-  - Run `cd portfolio; npm test src/components/home/__tests__/BentoRevealController.test.ts`
-  - Verify tests fail with module/class not found.
-
-- [ ] **Step 3: Implement `BentoRevealController`**
-  - Implement query helper and cached `BentoElements` reference.
-  - Implement `prepareInitialState()` using `gsap.set()` with `force3D: true` and `will-change`.
-  - Implement `createRevealTimeline()`:
-    - Step 1: Wireframe trace-in (`border-color` pulse and initial box-shadow glow).
-    - Step 2: Foundation drop cascade with `back.out(1.4)` on bottom cards and `back.out(1.3)` on hero cards.
-    - Flash hairline feedback on each card's arrival (`box-shadow` pulse for 80ms).
-  - Implement `destroy()` with `timeline.kill()` and `gsap.set(elements, { clearProps: 'all' })`.
-
-- [ ] **Step 4: Run tests and verify 100% pass**
-  - Run `cd portfolio; npm test src/components/home/__tests__/BentoRevealController.test.ts`
-
-- [ ] **Step 5: Commit Task 1**
+- [x] **Step 1: Write failing unit tests for `BentoRevealController`**
+- [x] **Step 2: Run test to confirm failure**
+- [x] **Step 3: Implement `BentoRevealController`**
+- [x] **Step 4: Run tests and verify 100% pass**
+- [x] **Step 5: Commit Task 1**
   - Run `git add portfolio/src/components/home/BentoRevealController.ts portfolio/src/components/home/__tests__/BentoRevealController.test.ts; git commit -m "feat(home): implement BentoRevealController with TDD"`
 
 ---
@@ -116,28 +97,12 @@ export interface BandToNavOptions {
 }
 ```
 
-- [ ] **Step 1: Write failing tests for transition timeline integration**
-  - In `transitionTimeline.test.ts`: test that when `bentoController` is provided to `buildBandToNavTimeline()`, `bentoController.prepareInitialState()` is called before movement, and `bentoController.createRevealTimeline()` is nested into the master timeline at label `'ascent'` (offset $+0.70\text{s}$).
-  - In `ProfileHeader.test.ts`: test that `ProfileHeader` exposes `getRevealController(): BentoRevealController | null`.
-
-- [ ] **Step 2: Run tests to confirm failure**
-  - Run `cd portfolio; npm test src/engines/band/__tests__/transitionTimeline.test.ts`
-
-- [ ] **Step 3: Update `constants.ts` with reveal timing tokens**
-  - Add `bentoWireframeStart`: 0.70 (relative to ascent), `bentoWireframeDuration`: 0.35, `bentoDropStart`: 1.05.
-
-- [ ] **Step 4: Update `ProfileHeader.ts` and `transitionTimeline.ts`**
-  - Instantiate and expose `BentoRevealController` in `ProfileHeader`.
-  - In `transitionTimeline.ts`:
-    - Remove the monolithic `y: window.innerHeight` slide on `appContainer`.
-    - Set `appContainer` opacity to 1 immediately so only the individual bento cards are controlled.
-    - If `bentoController` is provided, call `prepareInitialState()` and embed `createRevealTimeline()` into `tl` at `ascent+=0.70`.
-  - In `main.ts`: pass `this.profileHeader.getRevealController()` to `ElasticBandEngine`.
-
-- [ ] **Step 5: Run tests and verify 100% pass**
-  - Run `cd portfolio; npm test`
-
-- [ ] **Step 6: Commit Task 2**
+- [x] **Step 1: Write failing tests for transition timeline integration**
+- [x] **Step 2: Run tests to confirm failure**
+- [x] **Step 3: Update `constants.ts` with reveal timing tokens**
+- [x] **Step 4: Update `ProfileHeader.ts` and `transitionTimeline.ts`**
+- [x] **Step 5: Run tests and verify 100% pass**
+- [x] **Step 6: Commit Task 2**
   - Run `git add portfolio/src/components/home/ProfileHeader.ts portfolio/src/engines/band/constants.ts portfolio/src/engines/band/transitionTimeline.ts portfolio/src/main.ts; git commit -m "feat(band): integrate 2-step bento tetris reveal into transition timeline"`
 
 ---

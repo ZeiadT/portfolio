@@ -19,6 +19,7 @@ class App {
     this.backgroundEngine = new BackgroundCanvasEngine();
     this.profileHeader = new ProfileHeader(PROFILE_DATA);
     this.bandEngine = new ElasticBandEngine({
+      bentoController: () => this.profileHeader.getRevealController(),
       onCollapseStart: () => {
         this.backgroundEngine.triggerShockwave();
       },
@@ -49,16 +50,18 @@ class App {
       this.backgroundEngine.mount(bgContainer);
     }
 
-    // 2. Mount Elastic Band / Splash Engine
-    const bandContainer = document.getElementById('band-container');
-    if (bandContainer) {
-      this.bandEngine.mount(bandContainer);
-    }
-
-    // 3. Mount Home Profile Header
+    // 2. Mount Home Profile Header
     const profileContainer = document.getElementById('home-profile-section');
     if (profileContainer) {
       this.profileHeader.mount(profileContainer);
+    }
+
+    // 3. Mount Elastic Band / Splash Engine
+    const bandContainer = document.getElementById('band-container');
+    if (bandContainer) {
+      this.bandEngine.mount(bandContainer, {
+        bentoController: this.profileHeader.getRevealController(),
+      });
     }
 
     // 4. Mount Carousel Engine (hidden/ready for subsequent phase)

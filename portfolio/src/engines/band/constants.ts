@@ -40,6 +40,9 @@ export const TRANSITION_TIMINGS = {
   upwardAscent: 1.3,
   navTabsStagger: 0.08,
   navTabsDuration: 0.45,
+  bentoWireframeStart: 0.70,
+  bentoWireframeDuration: 0.35,
+  bentoDropStart: 1.05,
 } as const;
 
 export const TRANSITION_EASES = {
