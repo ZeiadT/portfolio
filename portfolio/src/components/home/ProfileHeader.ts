@@ -49,26 +49,13 @@ export class ProfileHeader {
     leftHeroCard.className =
       'lg:col-span-7 p-5 sm:p-6 lg:p-7 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-sm shadow-[0_8px_32px_rgba(0,0,0,0.37)] flex flex-col justify-between gap-4 sm:gap-5 min-h-[330px] lg:min-h-[340px]';
 
-    // Top Bar inside Card 1: Icons on left, Location chip on right
+    // Top Bar inside Card 1: Social Links
     const card1TopBar = document.createElement('div');
-    card1TopBar.className = 'w-full flex items-center justify-between';
+    card1TopBar.className = 'w-full flex items-center justify-start';
 
     // Top-Left Links
     this.linksComponent = new ProfileLinksComponent(this.data.links);
     this.linksComponent.mount(card1TopBar);
-
-    // Location Chip
-    const locationChip = document.createElement('div');
-    locationChip.className =
-      'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-300 select-none';
-    locationChip.innerHTML = `
-      <svg class="w-3.5 h-3.5 text-[#ff4421] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 7.2c0 7.3-8 11.8-8 11.8z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-      <span>${this.data.location}</span>
-    `;
-    card1TopBar.appendChild(locationChip);
     leftHeroCard.appendChild(card1TopBar);
 
     // Center Quote inside Card 1

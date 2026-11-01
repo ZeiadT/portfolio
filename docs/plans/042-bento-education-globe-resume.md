@@ -180,3 +180,14 @@ Enhance the portfolio header and about bento grid by:
    - Location set to `Benha University, Benha, Egypt`.
 2. **Details Removal**:
    - Remove bullet points / `details` array from item 2 so it displays cleanly without the graduation project bullets.
+
+---
+
+## 10. Phase 5: Hero Card 1 Address Badge Removal
+
+1. **Address Badge Removal**:
+   - Remove the redundant location chip (`locationChip` pill) from the top bar of Hero Card 1 (quote section).
+   - The location is already prominently featured in the dedicated Globe card ("Based in Egypt, available globally").
+   - This leaves the top bar of Hero Card 1 uncluttered, allowing social links to align cleanly without duplicate location text.
+2. **Test Specification**:
+   - In `ProfileHeader.test.ts`, assert that no location chip/address badge is rendered in `[data-bento-hero-left]`.

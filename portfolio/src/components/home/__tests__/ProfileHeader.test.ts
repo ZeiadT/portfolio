@@ -99,6 +99,11 @@ describe('ProfileHeader Component', () => {
     expect(contactResumeLink?.getAttribute('href')).toBe('/resume.pdf');
     expect(container.querySelector('[data-contact-spacer]')).toBeTruthy();
 
+    // Confirm no location/address badge inside Hero Card 1 (quote section)
+    const heroLeftCard = container.querySelector('[data-bento-hero-left]');
+    expect(heroLeftCard?.textContent).not.toContain(mockData.location);
+    expect(container.querySelector('[data-location-chip]')).toBeNull();
+
     // Confirm no phone elements under portrait card
     expect(container.querySelector('[data-avatar-phone]')).toBeNull();
     expect(container.querySelector('[data-phone-copy]')).toBeNull();
