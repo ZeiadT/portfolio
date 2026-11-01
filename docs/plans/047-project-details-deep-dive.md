@@ -1,200 +1,503 @@
-# Feature Specification: Project Details Deep-Dive Screen (Feature 4)
+# Project Details Deep-Dive Screen (Feature 4) Implementation Plan
 
-**Document Version:** 1.0.0  
-**Date:** 2026-11-01  
-**Status:** Approved  
-**Worktree:** `../portfolio-details`  
-**Branch:** `feat/project-details-modal`  
-**Tech Stack:** Vanilla TypeScript 5+, Vite 6, GSAP 3.12+, Tailwind CSS v4, Vitest, Happy-DOM  
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a fully isolated, drop-in editorial case study modal (`ProjectDetailsModal`) for 6 flagship projects, featuring an interactive SVG architecture diagram with a reactive Node Inspector Easter egg, performance telemetry dials, live syntax-highlighted code scratchpad, media gallery with lightbox, and card-to-modal FLIP kinematics.
+
+**Architecture:** Composed sub-component architecture where a master `ProjectDetailsModal` orchestrates lifecycle (`mount`, `open`, `close`, `destroy`), body scroll locking, focus trapping, and GSAP kinematics, while dedicated sub-components (`ProjectHeader`, `ProjectMetrics`, `ProjectArchitecture`, `ProjectCodeScratchpad`, `ProjectGallery`, `ProjectFooter`) handle isolated visual domains.
+
+**Tech Stack:** Vanilla TypeScript 5+, GSAP 3.12+, Tailwind CSS v4, Lucide icons, Vitest, Happy-DOM.
+
+## Global Constraints
+
+- **Component Isolation**: 100% self-contained modal in `portfolio/src/components/projects/` implementing `mount(container: HTMLElement)`, `destroy()`, leaving zero memory leaks, DOM residues, or scroll locks on unmount.
+- **Strict TDD**: Write failing tests before implementation code for all utilities, sub-components, modal state management, keyboard trap/escape listeners, media gallery navigation, and teardown.
+- **Zero Direct File Copying**: All code must be written from scratch in clean, modern, strongly-typed TypeScript tailored to the portfolio's Clean Architecture structure.
+- **Kinematics & Micro-Interactions**:
+  - Open: FLIP zoom transition `scale: 0.95 -> 1`, `opacity: 0 -> 1`, duration `400ms`, ease `power3.out`.
+  - Close: slide-down with backdrop blur fade-out duration `350ms`, ease `power3.inOut`.
+  - Node Inspector: vermilion `#ff4421` luminescence on active and downstream nodes, dimming unrelated nodes to `0.25` opacity.
+  - Code Scratchpad: zero-dependency regex tokenizer supporting Kotlin, Swift, Dart, and C# with copy-to-clipboard and 2s visual confirmation reset.
+- **Browser/DOM Hygiene**: Parity check between `addEventListener` and `removeEventListener`; `document.body.style.overflow` must be cleanly restored to empty string on close and destroy.
 
 ---
 
-## 1. Executive Summary & Purpose
-
-The **Project Details Deep-Dive Screen** is an editorial case-study modal/sheet presenting deep engineering breakdowns for Zeiad's 6 flagship projects (`Dusk`, `Cargo`, `Gusto`, `SportX`, `ElevatED`, `Wireless Mouse`).
-
-It elevates standard project cards into a comprehensive technical showcase featuring:
-1. **Interactive Visual Architecture Diagrams**: Semantic SVG layer flows with a reactive **Node Inspector** Easter egg (illuminating dependency trees and data streams in vermilion `#ff4421` luminescence).
-2. **Performance Telemetry Dials**: High-salience metric cards (e.g. *"< 16ms render"*, *"100% offline-ready"*, *"Clean Architecture"*).
-3. **Live Code Scratchpad**: Collapsible drawer presenting authentic Kotlin Coroutine, KMP, Swift, Dart, and C# source snippets with zero-dependency syntax highlighting and instant copy-to-clipboard.
-4. **Media Walkthrough Gallery**: Horizontal device screenshot snap-strip with click-to-expand keyboard-accessible Lightbox.
-5. **Sticky Glass Action Footer**: Anchored action bar with direct GitHub repository routing, live demo, and APK download links.
-6. **Card-to-Modal Kinematics**: Synchronized FLIP zoom transition from the 3D carousel card into the full-screen case study sheet (`scale: 0.95 -> 1`, `opacity: 0 -> 1`, `400ms`), with smooth slide-down and backdrop blur fade-out dismissal.
-
----
-
-## 2. Component Hierarchy & Architectural Boundaries
-
-In compliance with `AGENTS.md` (100% self-contained, drop-in reusability, zero memory leaks), the feature is decomposed into focused sub-components orchestrated by `ProjectDetailsModal`:
+## File Structure
 
 ```
 portfolio/src/
 ├── domain/
-│   └── types.ts                    # Enriched ProjectDetails, ArchitectureGraph, CodeSnippet contracts
+│   └── types.ts                             # ProjectDetails, ArchitectureGraph, CodeSnippet contracts
 ├── data/
-│   └── projects.ts                 # Full technical records for 6 flagship projects
+│   ├── projects.ts                          # Comprehensive engineering data for 6 projects
+│   └── __tests__/
+│       └── projects.test.ts                 # Tests for project details data completeness
 ├── utils/
-│   └── codeTokenizer.ts            # Zero-dependency syntax tokenizer (Kotlin, Swift, Dart, C#)
+│   ├── codeTokenizer.ts                     # Zero-dependency syntax tokenizer
+│   └── __tests__/
+│       └── codeTokenizer.test.ts            # Tokenizer unit tests
 └── components/
     └── projects/
-        ├── ProjectDetailsModal.ts  # Master orchestrator (lifecycle, FLIP kinematics, keyboard/swipe)
-        ├── ProjectHeader.ts        # Hero header, category badge, live beacon, close CTA
-        ├── ProjectArchitecture.ts  # Semantic SVG diagram + Interactive Node Inspector
-        ├── ProjectMetrics.ts       # Telemetry metric dials & performance cards
-        ├── ProjectCodeScratchpad.ts# Collapsible code drawer + syntax tokenizer + copy button
-        ├── ProjectGallery.ts       # Horizontal snap strip + expandable full-res Lightbox
-        └── ProjectFooter.ts        # Sticky glass action bar (GitHub, APK, Live Demo)
+        ├── ProjectDetailsModal.ts           # Top-level orchestrator & FLIP kinematics
+        ├── ProjectHeader.ts                 # Hero header, badges, status beacon
+        ├── ProjectMetrics.ts                # Salient telemetry metric cards
+        ├── ProjectArchitecture.ts           # SVG Clean Architecture diagram + Node Inspector
+        ├── ProjectCodeScratchpad.ts         # Collapsible code drawer + copy action
+        ├── ProjectGallery.ts                # Screenshot strip + Lightbox modal
+        ├── ProjectFooter.ts                 # Sticky glass action bar (GitHub, APK, Demo)
+        └── __tests__/
+            ├── ProjectHeader.test.ts
+            ├── ProjectMetrics.test.ts
+            ├── ProjectArchitecture.test.ts
+            ├── ProjectCodeScratchpad.test.ts
+            ├── ProjectGallery.test.ts
+            ├── ProjectFooter.test.ts
+            ├── ProjectDetailsModal.test.ts
+            └── ProjectDetailsModal.stress.test.ts
 ```
 
 ---
 
-## 3. Detailed Component Specifications
+## Tasks
 
-### 3.1 Domain Contracts (`src/domain/types.ts`)
+### Task 1: Domain Model & Project Data Extensions
+
+**Files:**
+- Modify: `portfolio/src/domain/types.ts`
+- Modify: `portfolio/src/data/projects.ts`
+- Test: `portfolio/src/data/__tests__/projects.test.ts`
+
+**Interfaces:**
+- Consumes: Existing `Project` and `ProjectMedia` in `src/domain/types.ts`
+- Produces: `ArchitectureNode`, `ArchitectureFlow`, `ArchitectureGraph`, `CodeSnippet`, `ProjectMetric`, `ProjectDetails`, enriched `PROJECTS` array containing all 6 projects with deep-dive technical specs.
+
+- [ ] **Step 1: Write failing test for extended project details**
 
 ```typescript
-export interface ArchitectureNode {
-  id: string;
-  label: string;
-  layer: 'presentation' | 'domain' | 'data' | 'platform';
-  description: string;
-  dependsOn?: string[]; // IDs of downstream layers/nodes highlighted during inspection
-}
+// portfolio/src/data/__tests__/projects.test.ts
+import { describe, it, expect } from 'vitest';
+import { PROJECTS } from '../projects';
+import type { ProjectDetails } from '@/domain/types';
 
-export interface ArchitectureFlow {
-  from: string;
-  to: string;
-  label?: string;
-}
+describe('Project Deep-Dive Data Suite', () => {
+  it('contains exactly 6 flagship projects', () => {
+    expect(PROJECTS).toHaveLength(6);
+  });
 
-export interface ArchitectureGraph {
-  summary: string;
-  nodes: ArchitectureNode[];
-  flows: ArchitectureFlow[];
-}
+  it('populates deep-dive details for each flagship project', () => {
+    const requiredProjectIds = ['dusk', 'cargo', 'gusto', 'sportx', 'elevated', 'wireless-mouse'];
+    const projectIds = PROJECTS.map((p) => p.id);
+    expect(projectIds).toEqual(requiredProjectIds);
 
-export interface CodeSnippet {
-  language: 'kotlin' | 'swift' | 'dart' | 'csharp';
-  title: string;
-  code: string;
-  explanation?: string;
-}
+    PROJECTS.forEach((project) => {
+      const p = project as ProjectDetails;
+      expect(p.longDescription).toBeDefined();
+      expect(p.longDescription!.length).toBeGreaterThan(50);
+      expect(p.liveStatus).toBeDefined();
 
-export interface ProjectMetric {
-  label: string;
-  value: string;
-  detail?: string;
-}
+      // Architecture graph verification
+      expect(p.architectureGraph).toBeDefined();
+      expect(p.architectureGraph!.nodes.length).toBeGreaterThanOrEqual(3);
+      expect(p.architectureGraph!.flows.length).toBeGreaterThanOrEqual(2);
 
-export interface ProjectDetails extends Project {
-  longDescription?: string;
-  liveStatus?: 'Live' | 'Production' | 'Open Source' | 'Archived';
-  architectureGraph?: ArchitectureGraph;
-  architectureHighlights?: string[];
-  metrics?: ProjectMetric[];
-  codeSnippet?: CodeSnippet;
-  galleryScreenshots?: string[];
-}
+      // Metrics verification
+      expect(p.metrics).toBeDefined();
+      expect(p.metrics!.length).toBeGreaterThanOrEqual(2);
+
+      // Code snippet verification
+      expect(p.codeSnippet).toBeDefined();
+      expect(p.codeSnippet!.language).toMatch(/^(kotlin|swift|dart|csharp)$/);
+      expect(p.codeSnippet!.code.length).toBeGreaterThan(20);
+
+      // Screenshots
+      expect(p.galleryScreenshots).toBeDefined();
+      expect(p.galleryScreenshots!.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+});
 ```
 
-### 3.2 Lightweight Syntax Tokenizer (`src/utils/codeTokenizer.ts`)
+- [ ] **Step 2: Run test to verify it fails**
 
-A zero-dependency regex tokenizer mapping tokens to Tailwind classes:
-- Keywords (`val`, `var`, `fun`, `suspend`, `override`, `class`, `interface`, `async`, `await`, `struct`, `import`): `text-sky-400 font-semibold`
-- Annotations/Decorators (`@Composable`, `@Inject`, `@Entity`, `@Dao`): `text-amber-400 font-medium`
-- Types & Interfaces (`Flow`, `StateFlow`, `Result`, `CoroutineScope`, `Repository`): `text-emerald-400`
-- String Literals (`"..."`): `text-lime-300`
-- Comments (`//...`, `/*...*/`): `text-neutral-500 italic`
-- Numeric Literals: `text-orange-300`
-- Raw HTML characters (`<`, `>`, `&`, `"`) are escaped before tokenization to prevent XSS.
+Run: `cd portfolio; npx vitest run src/data/__tests__/projects.test.ts`  
+Expected: FAIL due to missing fields in `ProjectDetails` and missing data in `PROJECTS`.
 
-### 3.3 Modal Orchestrator (`src/components/projects/ProjectDetailsModal.ts`)
+- [ ] **Step 3: Update domain types and populate project deep-dive data**
 
-- **Lifecycle Implementation**:
-  - `mount(container: HTMLElement)`: Injects outer backdrop and sheet container into `#app` or root container.
-  - `open(project: ProjectDetails, sourceRect?: DOMRect)`: Sets `isOpen = true`, locks background scroll (`document.body.style.overflow = 'hidden'`), renders sub-components, initiates FLIP card zoom transition, and traps focus.
-  - `close()`: Executes exit animation, restores previous focus, unlocks background scroll, and fires optional `onClose` callback.
-  - `destroy()`: Unconditionally unmounts all sub-components, removes all global event listeners (`keydown`, `click`, `touch`, `resize`), restores `body.style.overflow`, and removes DOM nodes.
-- **Kinematics (GSAP)**:
-  - Open: `gsap.fromTo(modalSheet, { scale: 0.95, opacity: 0, y: 30 }, { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: "power3.out" })`
-  - Backdrop: `gsap.fromTo(backdrop, { opacity: 0 }, { opacity: 1, duration: 0.3 })`
-  - Close: `gsap.to(modalSheet, { scale: 0.96, opacity: 0, y: 20, duration: 0.3, ease: "power3.in" })`
-- **Dismissal Triggers**:
-  - `Escape` keypress
-  - Click on backdrop overlay
-  - Close button in header
-  - Mobile swipe-down gesture ($dy > 100\text{px}$)
+Update `portfolio/src/domain/types.ts` to add `ArchitectureNode`, `ArchitectureFlow`, `ArchitectureGraph`, `CodeSnippet`, `ProjectMetric`, and update `ProjectDetails`.  
+Update `portfolio/src/data/projects.ts` with authentic engineering data for Dusk, Cargo, Gusto, SportX, ElevatED, and Wireless Mouse (including realistic architectures, telemetry metrics, and code snippets).
 
-### 3.4 Interactive Visual Architecture Diagram (`src/components/projects/ProjectArchitecture.ts`)
+- [ ] **Step 4: Run test to verify it passes**
 
-- **Responsive SVG Canvas**:
-  - Rendered with `viewBox="0 0 800 320"`, `w-full h-auto`.
-  - Layers: Presentation, Domain, Data, Platform/Infrastructure.
-  - Directional cubic Bézier `<path>` connectors with SVG arrowhead markers (`marker-end="url(#arrow)"`).
-- **Interactive Node Inspector (Easter Egg)**:
-  - On `mouseenter` or keyboard `focus` of Node $N$:
-    - Node $N$'s `<rect>` and border illuminate in glowing vermilion (`stroke: #ff4421`, `fill: rgba(255,68,33,0.12)`, `filter: drop-shadow(0 0 12px rgba(255,68,33,0.8))`).
-    - Connected Bézier flow lines highlight with vermilion stroke and active `stroke-dashoffset` pulse animation.
-    - Connected downstream nodes receive a secondary amber/vermilion accent.
-    - Unrelated nodes and paths dim to `opacity: 0.25` via GSAP ($200\text{ms}$).
-  - On `mouseleave` or `blur`:
-    - GSAP restores all nodes and connectors to default styling ($250\text{ms}$).
+Run: `cd portfolio; npx vitest run src/data/__tests__/projects.test.ts`  
+Expected: PASS (all 6 projects satisfy deep-dive contracts).
 
-### 3.5 Live Code Scratchpad (`src/components/projects/ProjectCodeScratchpad.ts`)
+- [ ] **Step 5: Commit**
 
-- **Collapsible Drawer**:
-  - High-tech header with code file tag, language badge, and toggle chevron icon.
-  - **Copy-to-Clipboard Action**: Copies code to `navigator.clipboard.writeText`, changes button to green checkmark pill *"Copied to clipboard!"*, and reverts after $2\text{s}$.
-- **Monospace Code View**:
-  - Line-numbered gutter.
-  - Formatted and color-tokenized code lines using `codeTokenizer.ts`.
-
-### 3.6 Media Gallery & Expandable Lightbox (`src/components/projects/ProjectGallery.ts`)
-
-- **Horizontal Snap Strip**:
-  - Scrollable container with `scroll-snap-type: x mandatory` and screenshot thumbnails.
-  - Previous / Next navigation buttons with disabled edge bounds.
-- **Expandable Lightbox**:
-  - Clicking any screenshot opens full-screen overlay.
-  - Keyboard navigation: `ArrowRight` (next), `ArrowLeft` (previous), and `Escape` (dismiss).
-  - Mobile swipe navigation.
-
-### 3.7 Sticky Glass Action Footer (`src/components/projects/ProjectFooter.ts`)
-
-- Fixed sticky bar at bottom of modal viewport (`sticky bottom-0 bg-neutral-950/85 backdrop-blur-xl border-t border-white/10`).
-- CTA buttons: *"View GitHub Repository ↗"* and *"Download APK / Run Demo"* with secure target attributes.
+```bash
+git add src/domain/types.ts src/data/projects.ts src/data/__tests__/projects.test.ts
+git commit -m "feat(domain): extend project details domain types and deep-dive data"
+```
 
 ---
 
-## 4. Test-Driven Development (TDD) Specifications
+### Task 2: Lightweight Zero-Dependency Syntax Tokenizer
 
-### Test Suite Structure
-1. `src/utils/__tests__/codeTokenizer.test.ts`:
-   - Tokenizes Kotlin, Swift, Dart, and C# keywords, annotations, types, strings, comments.
-   - HTML entity escaping tests (`<script>`, `&amp;`, etc.).
-   - Edge cases: empty code, unclosed strings, multiline comments.
-2. `src/components/projects/__tests__/ProjectArchitecture.test.ts`:
-   - Node and connector SVG DOM generation.
-   - Node Inspector hover and focus states (vermilion luminescence, dimming of non-connected nodes).
-   - Mouseleave / blur reset.
-   - Teardown: `destroy()` disposes GSAP tweens and listeners.
-3. `src/components/projects/__tests__/ProjectCodeScratchpad.test.ts`:
-   - Header, file tag, line numbers, and token rendering.
-   - Collapsible expand/collapse toggle and `aria-expanded` attributes.
-   - Copy to clipboard interaction and visual state timeout.
-   - Teardown: `destroy()` disposes timeouts and click listeners.
-4. `src/components/projects/__tests__/ProjectGallery.test.ts`:
-   - Thumbnail rendering and navigation button states.
-   - Lightbox open on thumbnail click.
-   - Lightbox keyboard controls (`ArrowRight`, `ArrowLeft`, `Escape`).
-   - Touch swipe navigation.
-   - Teardown: `destroy()` removes lightbox DOM and listeners.
-5. `src/components/projects/__tests__/ProjectDetailsModal.test.ts`:
-   - Shell mounting with `role="dialog"` and `aria-modal="true"`.
-   - `open(project)` scroll lock, data population, sub-component mounting.
-   - `close()` scroll restoration, exit animation, `onClose` callback.
-   - Dismissal triggers: `Escape`, backdrop click, close button, swipe down.
-   - **Empirical Stress & Zero-Leak Verification**:
-     - 50 rapid open/close cycles without DOM corruption or state drift.
-     - Parity check for `window.addEventListener` vs `window.removeEventListener`.
-     - `destroy()` unmounts cleanly with zero orphaned elements.
+**Files:**
+- Create: `portfolio/src/utils/codeTokenizer.ts`
+- Test: `portfolio/src/utils/__tests__/codeTokenizer.test.ts`
+
+**Interfaces:**
+- Consumes: `code: string`, `language: 'kotlin' | 'swift' | 'dart' | 'csharp'`
+- Produces: `tokenizeCode(code: string, language: string): string` (safe HTML string with Tailwind-styled spans)
+
+- [ ] **Step 1: Write failing tests for codeTokenizer**
+
+```typescript
+// portfolio/src/utils/__tests__/codeTokenizer.test.ts
+import { describe, it, expect } from 'vitest';
+import { tokenizeCode } from '../codeTokenizer';
+
+describe('codeTokenizer Utility', () => {
+  it('escapes raw HTML to prevent XSS injection', () => {
+    const input = 'val tag = "<script>alert(1)</script>" & a < b';
+    const output = tokenizeCode(input, 'kotlin');
+    expect(output).not.toContain('<script>');
+    expect(output).toContain('&lt;script&gt;');
+    expect(output).toContain('&amp;');
+  });
+
+  it('tokenizes Kotlin keywords and annotations', () => {
+    const code = '@Composable\nsuspend fun loadWeather(): Flow<Forecast> = flow { emit(data) }';
+    const output = tokenizeCode(code, 'kotlin');
+    expect(output).toContain('text-amber-400'); // annotation
+    expect(output).toContain('text-sky-400'); // keyword
+    expect(output).toContain('Flow');
+  });
+
+  it('tokenizes Swift keywords and comments', () => {
+    const code = '// Fetch fixtures\nfunc fetchFixtures() async throws -> [Fixture]';
+    const output = tokenizeCode(code, 'swift');
+    expect(output).toContain('text-neutral-500'); // comment
+    expect(output).toContain('text-sky-400'); // func, async
+  });
+
+  it('handles empty code or unknown language gracefully', () => {
+    expect(tokenizeCode('', 'kotlin')).toBe('');
+    expect(tokenizeCode('val x = 10', 'unknown')).toContain('val x = 10');
+  });
+});
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd portfolio; npx vitest run src/utils/__tests__/codeTokenizer.test.ts`  
+Expected: FAIL ("cannot find module '../codeTokenizer'").
+
+- [ ] **Step 3: Implement minimal codeTokenizer**
+
+Create `portfolio/src/utils/codeTokenizer.ts` using regex pattern matching for keywords, decorators, types, string literals, and comments with strict HTML escaping.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd portfolio; npx vitest run src/utils/__tests__/codeTokenizer.test.ts`  
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/utils/codeTokenizer.ts src/utils/__tests__/codeTokenizer.test.ts
+git commit -m "feat(utils): add zero-dependency multi-language syntax tokenizer"
+```
+
+---
+
+### Task 3: ProjectHeader & ProjectMetrics Components
+
+**Files:**
+- Create: `portfolio/src/components/projects/ProjectHeader.ts`
+- Create: `portfolio/src/components/projects/ProjectMetrics.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectHeader.test.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectMetrics.test.ts`
+
+**Interfaces:**
+- Consumes: `ProjectDetails`, `ProjectMetric`
+- Produces:
+  - `ProjectHeader.render(project: ProjectDetails, onClose: () => void): HTMLElement`
+  - `ProjectMetrics.render(metrics: ProjectMetric[]): HTMLElement`
+
+- [ ] **Step 1: Write failing tests for ProjectHeader and ProjectMetrics**
+
+Write unit tests verifying:
+- `ProjectHeader` renders title, subtitle, category pill with accent color, live status beacon, and close button calling `onClose`.
+- `ProjectMetrics` renders metric dial cards with label, value, and detail note.
+- `destroy()` cleans up event listeners.
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectHeader.test.ts src/components/projects/__tests__/ProjectMetrics.test.ts`  
+Expected: FAIL.
+
+- [ ] **Step 3: Implement ProjectHeader and ProjectMetrics**
+
+Implement `ProjectHeader` and `ProjectMetrics` using clean DOM construction and Tailwind v4 classes with accessible ARIA tags.
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectHeader.test.ts src/components/projects/__tests__/ProjectMetrics.test.ts`  
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/projects/ProjectHeader.ts src/components/projects/ProjectMetrics.ts src/components/projects/__tests__/ProjectHeader.test.ts src/components/projects/__tests__/ProjectMetrics.test.ts
+git commit -m "feat(projects): add ProjectHeader and ProjectMetrics components"
+```
+
+---
+
+### Task 4: ProjectArchitecture & Interactive Node Inspector Component
+
+**Files:**
+- Create: `portfolio/src/components/projects/ProjectArchitecture.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectArchitecture.test.ts`
+
+**Interfaces:**
+- Consumes: `ArchitectureGraph`, `architectureHighlights?: string[]`
+- Produces: `ProjectArchitecture` class with `render(graph: ArchitectureGraph, highlights?: string[]): HTMLElement` and `destroy(): void`.
+
+- [ ] **Step 1: Write failing tests for ProjectArchitecture**
+
+Test SVG viewport (`viewBox="0 0 800 320"`), node rects, bezier connectors, and the vermilion luminescence hover/focus effect:
+- Hovering node $N$ sets active styling and vermilion glow on $N$ and downstream flows.
+- Unrelated nodes are dimmed (`opacity: 0.25`).
+- Mouseleave resets opacities and styles.
+- `destroy()` clears GSAP tweens and DOM listeners.
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectArchitecture.test.ts`  
+Expected: FAIL.
+
+- [ ] **Step 3: Implement ProjectArchitecture**
+
+Construct the responsive SVG architecture diagram with computed cubic bezier curves (`d="M x1 y1 C ... x2 y2"`), arrowheads, and GSAP hover/focus luminescence bindings.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectArchitecture.test.ts`  
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/projects/ProjectArchitecture.ts src/components/projects/__tests__/ProjectArchitecture.test.ts
+git commit -m "feat(projects): add ProjectArchitecture SVG diagram and Node Inspector"
+```
+
+---
+
+### Task 5: ProjectCodeScratchpad Component
+
+**Files:**
+- Create: `portfolio/src/components/projects/ProjectCodeScratchpad.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectCodeScratchpad.test.ts`
+
+**Interfaces:**
+- Consumes: `CodeSnippet`, `tokenizeCode`
+- Produces: `ProjectCodeScratchpad` with `render(snippet: CodeSnippet): HTMLElement` and `destroy(): void`.
+
+- [ ] **Step 1: Write failing tests for ProjectCodeScratchpad**
+
+Test rendering:
+- Header with filename, language badge, and toggle chevron.
+- Gutter with line numbers and tokenized code container.
+- Collapsible toggle updating `aria-expanded` and container height.
+- Copy button invoking `navigator.clipboard.writeText` and showing "Copied! ✓" with timeout.
+- `destroy()` disposing timers and listeners.
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectCodeScratchpad.test.ts`  
+Expected: FAIL.
+
+- [ ] **Step 3: Implement ProjectCodeScratchpad**
+
+Implement collapsible code card with copy-to-clipboard logic and fallback.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectCodeScratchpad.test.ts`  
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/projects/ProjectCodeScratchpad.ts src/components/projects/__tests__/ProjectCodeScratchpad.test.ts
+git commit -m "feat(projects): add ProjectCodeScratchpad with syntax highlighting and copy action"
+```
+
+---
+
+### Task 6: ProjectGallery Component with Expandable Lightbox
+
+**Files:**
+- Create: `portfolio/src/components/projects/ProjectGallery.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectGallery.test.ts`
+
+**Interfaces:**
+- Consumes: `screenshots: string[]`, `title: string`
+- Produces: `ProjectGallery` with `render(screenshots: string[], title: string): HTMLElement` and `destroy(): void`.
+
+- [ ] **Step 1: Write failing tests for ProjectGallery**
+
+Test:
+- Rendering horizontal snap strip and thumbnails.
+- Next / Prev pagination buttons.
+- Clicking thumbnail opens enlarged Lightbox modal.
+- Lightbox keyboard controls: `ArrowRight` (next), `ArrowLeft` (prev), `Escape` (dismiss).
+- Touch swipe navigation.
+- `destroy()` unmounting Lightbox and disposing all listeners.
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectGallery.test.ts`  
+Expected: FAIL.
+
+- [ ] **Step 3: Implement ProjectGallery**
+
+Implement horizontal snap carousel with embedded high-resolution Lightbox overlay.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectGallery.test.ts`  
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/projects/ProjectGallery.ts src/components/projects/__tests__/ProjectGallery.test.ts
+git commit -m "feat(projects): add ProjectGallery with horizontal snap strip and Lightbox"
+```
+
+---
+
+### Task 7: ProjectFooter & Sticky Action Bar Component
+
+**Files:**
+- Create: `portfolio/src/components/projects/ProjectFooter.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectFooter.test.ts`
+
+**Interfaces:**
+- Consumes: `links: ProjectLinks`, `accentColor?: string`
+- Produces: `ProjectFooter` with `render(links: ProjectLinks, accentColor?: string): HTMLElement` and `destroy(): void`.
+
+- [ ] **Step 1: Write failing tests for ProjectFooter**
+
+Test:
+- Sticky glass bar container (`sticky bottom-0`).
+- "View GitHub Repository ↗" button with `target="_blank"` and `rel="noopener noreferrer"`.
+- Conditional rendering of "Download APK / Run Demo" button when link is present.
+- `destroy()` lifecycle.
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectFooter.test.ts`  
+Expected: FAIL.
+
+- [ ] **Step 3: Implement ProjectFooter**
+
+Implement sticky glass action bar with verified link targets and hover styling.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectFooter.test.ts`  
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/projects/ProjectFooter.ts src/components/projects/__tests__/ProjectFooter.test.ts
+git commit -m "feat(projects): add ProjectFooter sticky glass action bar"
+```
+
+---
+
+### Task 8: ProjectDetailsModal Master Orchestrator & Stress Suite
+
+**Files:**
+- Create: `portfolio/src/components/projects/ProjectDetailsModal.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectDetailsModal.test.ts`
+- Test: `portfolio/src/components/projects/__tests__/ProjectDetailsModal.stress.test.ts`
+
+**Interfaces:**
+- Consumes: All sub-components (`ProjectHeader`, `ProjectMetrics`, `ProjectArchitecture`, `ProjectCodeScratchpad`, `ProjectGallery`, `ProjectFooter`), `ProjectDetails`
+- Produces: `ProjectDetailsModal` class with:
+  - `mount(container: HTMLElement): void`
+  - `open(project: ProjectDetails, sourceRect?: DOMRect): void`
+  - `close(): void`
+  - `isOpen(): boolean`
+  - `destroy(): void`
+
+- [ ] **Step 1: Write failing tests for ProjectDetailsModal**
+
+Unit & Lifecycle Suite (`ProjectDetailsModal.test.ts`):
+- Mounts dialog shell into container with `role="dialog"` and `aria-modal="true"`.
+- `open(project)` sets `isOpen() === true`, locks body scroll (`overflow = 'hidden'`), renders sub-components.
+- FLIP zoom animation executes from `sourceRect`.
+- `close()` restores body scroll, fires `onClose` callback, runs exit animation.
+- Dismissals verified: `Escape` key, backdrop click, close button, swipe down.
+
+Stress & Zero-Leak Suite (`ProjectDetailsModal.stress.test.ts`):
+- 50 rapid sequential `open()` and `close()` cycles without DOM leak or state corruption.
+- Parity check between `window.addEventListener` and `window.removeEventListener`.
+- `destroy()` unmounts all sub-components, removes all DOM nodes, and restores scroll lock.
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectDetailsModal.test.ts`  
+Expected: FAIL.
+
+- [ ] **Step 3: Implement ProjectDetailsModal**
+
+Implement the master orchestrator coordinating sub-component lifecycles, GSAP FLIP zoom transitions, scroll locks, and gesture/keyboard listeners.
+
+- [ ] **Step 4: Run tests to verify they pass**
+
+Run: `cd portfolio; npx vitest run src/components/projects/__tests__/ProjectDetailsModal.test.ts src/components/projects/__tests__/ProjectDetailsModal.stress.test.ts`  
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/components/projects/ProjectDetailsModal.ts src/components/projects/__tests__/ProjectDetailsModal.test.ts src/components/projects/__tests__/ProjectDetailsModal.stress.test.ts
+git commit -m "feat(projects): add ProjectDetailsModal orchestrator and empirical stress suite"
+```
+
+---
+
+### Task 9: Full Suite Verification & Build Checkpoint
+
+**Files:**
+- Run all tests across the repository.
+
+- [ ] **Step 1: Run complete Vitest suite**
+
+Run: `cd portfolio; npm test`  
+Expected: All tests pass (previous 411 + new test suites).
+
+- [ ] **Step 2: Run TypeScript typecheck**
+
+Run: `cd portfolio; npx tsc --noEmit`  
+Expected: Zero TypeScript errors.
+
+- [ ] **Step 3: Run Vite production build**
+
+Run: `cd portfolio; npm run build`  
+Expected: Clean production build with zero bundling errors.
+
+- [ ] **Step 4: Commit and finalize**
+
+```bash
+git commit --allow-empty -m "chore(release): complete Feature 4 project details deep-dive modal"
+```
