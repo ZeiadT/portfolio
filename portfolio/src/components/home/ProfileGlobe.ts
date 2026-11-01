@@ -110,7 +110,7 @@ export class ProfileGlobeComponent {
       </div>
 
       <!-- Canvas Container with Radial Glow Backdrop -->
-      <div class="relative w-full aspect-square max-w-[260px] sm:max-w-[300px] mx-auto flex items-center justify-center -mb-20 sm:-mb-28 select-none">
+      <div class="relative w-full aspect-square max-w-[320px] sm:max-w-[400px] mx-auto flex items-center justify-center -mb-16 sm:-mb-24 select-none">
         <div data-globe-glow class="absolute inset-0 pointer-events-none flex items-center justify-center" aria-hidden="true">
           <div class="w-56 h-56 sm:w-72 sm:h-72 rounded-full bg-[#ff4421]/15 blur-3xl"></div>
         </div>
