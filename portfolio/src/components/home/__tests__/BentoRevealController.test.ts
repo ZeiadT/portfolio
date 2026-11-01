@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import {
   BentoRevealController,
   BENTO_REVEAL_TIMINGS,
-  BENTO_REVEAL_STYLES,
+  BENTO_REVEAL_EASES,
   type BentoElements,
 } from '../BentoRevealController';
 
@@ -77,33 +77,27 @@ describe('BentoRevealController', () => {
   });
 
   describe('prepareInitialState', () => {
-    it('sets initial hidden state with opacity 0 and negative translateY offsets', () => {
+    it('sets initial reverse-sink hidden state with y: 24, scale: 0.96, opacity: 0, and blur(12px) for all 5 cards', () => {
       controller.prepareInitialState();
 
-      // Bottom cards offset: y: -32px
-      expect(Number(gsap.getProperty(education, 'opacity'))).toBe(0);
-      expect(Number(gsap.getProperty(education, 'y'))).toBe(-32);
-
-      expect(Number(gsap.getProperty(globe, 'opacity'))).toBe(0);
-      expect(Number(gsap.getProperty(globe, 'y'))).toBe(-32);
-      expect(Number(gsap.getProperty(globe, 'scale'))).toBeCloseTo(0.94, 2);
-
-      expect(Number(gsap.getProperty(summary, 'opacity'))).toBe(0);
-      expect(Number(gsap.getProperty(summary, 'y'))).toBe(-32);
-
-      // Hero cards offset: y: -40px
-      expect(Number(gsap.getProperty(heroLeft, 'opacity'))).toBe(0);
-      expect(Number(gsap.getProperty(heroLeft, 'y'))).toBe(-40);
-
-      expect(Number(gsap.getProperty(heroRight, 'opacity'))).toBe(0);
-      expect(Number(gsap.getProperty(heroRight, 'y'))).toBe(-40);
-      expect(Number(gsap.getProperty(heroRight, 'rotationX'))).toBeCloseTo(-6, 1);
+      const cards = [heroRight, heroLeft, globe, education, summary];
+      cards.forEach((card) => {
+        expect(Number(gsap.getProperty(card, 'opacity'))).toBe(0);
+        expect(Number(gsap.getProperty(card, 'y'))).toBe(BENTO_REVEAL_TIMINGS.initialY);
+        expect(Number(gsap.getProperty(card, 'scale'))).toBeCloseTo(BENTO_REVEAL_TIMINGS.initialScale, 2);
+        const filterVal = card.style.filter || (gsap.getProperty(card, 'filter') as string);
+        expect(filterVal).toContain(`blur(${BENTO_REVEAL_TIMINGS.initialBlur}px)`);
+      });
     });
 
-    it('applies hardware accelerated will-change style', () => {
+    it('applies hardware accelerated will-change style including transform, opacity, and filter to all cards', () => {
       controller.prepareInitialState();
-      expect(education.style.willChange).toContain('transform');
-      expect(education.style.willChange).toContain('opacity');
+      const cards = [heroRight, heroLeft, globe, education, summary];
+      cards.forEach((card) => {
+        expect(card.style.willChange).toContain('transform');
+        expect(card.style.willChange).toContain('opacity');
+        expect(card.style.willChange).toContain('filter');
+      });
     });
 
     it('gracefully handles containers with missing elements without throwing', () => {
@@ -127,96 +121,58 @@ describe('BentoRevealController', () => {
       expect(tl.getChildren().length).toBe(0);
     });
 
-    it('sequences Step 1: wireframe outline trace at t = 0 with 350ms duration', () => {
-      const tl = controller.createRevealTimeline();
-      const children = tl.getChildren();
-
-      // Wireframe trace tween starting at t = 0
-      const wireframeTween = children.find((c: any) => {
-        const targets = c.targets?.() || [];
-        return (
-          c.startTime() === BENTO_REVEAL_TIMINGS.wireframeStart &&
-          targets.includes(education)
-        );
-      }) as gsap.core.Tween | undefined;
-
-      expect(wireframeTween).toBeDefined();
-      expect(wireframeTween?.duration()).toBeCloseTo(BENTO_REVEAL_TIMINGS.wireframeDuration, 2);
-      expect(wireframeTween?.startTime()).toBe(0);
-    });
-
-    it('sequences Step 2: foundation-up Tetris drop cascade starting at t = 0.35s', () => {
+    it('sequences Identity-First stagger order with transform and visual tweens for each card', () => {
       const tl = controller.createRevealTimeline();
 
       const getTweensFor = (el: HTMLElement) =>
         tl.getChildren().filter((c: any) => c.targets?.().includes(el));
 
-      // 1. Education (bottom left): starts at t = 0.35s, y -> 0, back.out(1.4)
-      const eduTweens = getTweensFor(education);
-      const eduDrop = eduTweens.find((t: any) => t.vars.y === 0);
-      expect(eduDrop).toBeDefined();
-      expect(eduDrop?.startTime()).toBeCloseTo(BENTO_REVEAL_TIMINGS.educationDropStart, 2);
-      expect(eduDrop?.vars.ease).toBe('back.out(1.4)');
+      // Ordered cards and expected start times
+      const sequence = [
+        { el: heroRight, expectedStart: 0.00 },
+        { el: heroLeft, expectedStart: 0.08 },
+        { el: globe, expectedStart: 0.16 },
+        { el: education, expectedStart: 0.24 },
+        { el: summary, expectedStart: 0.32 },
+      ];
 
-      // 2. Globe (bottom middle): starts at t = 0.43s (stagger +80ms), scale -> 1.0, back.out(1.4)
-      const globeTweens = getTweensFor(globe);
-      const globeDrop = globeTweens.find((t: any) => t.vars.y === 0);
-      expect(globeDrop).toBeDefined();
-      expect(globeDrop?.startTime()).toBeCloseTo(BENTO_REVEAL_TIMINGS.globeDropStart, 2);
-      expect(globeDrop?.vars.ease).toBe('back.out(1.4)');
-      const globeScale = globeTweens.find((t: any) => t.vars.scale === 1);
-      expect(globeScale).toBeDefined();
+      sequence.forEach(({ el, expectedStart }) => {
+        const tweens = getTweensFor(el);
 
-      // 3. Summary (bottom right): starts at t = 0.51s (stagger +80ms), y -> 0, back.out(1.4)
-      const summaryTweens = getTweensFor(summary);
-      const summaryDrop = summaryTweens.find((t: any) => t.vars.y === 0);
-      expect(summaryDrop).toBeDefined();
-      expect(summaryDrop?.startTime()).toBeCloseTo(BENTO_REVEAL_TIMINGS.summaryDropStart, 2);
-      expect(summaryDrop?.vars.ease).toBe('back.out(1.4)');
+        // Transform tween: y: 0, scale: 1, duration: 0.55, ease: back.out(1.1)
+        const transformTween = tweens.find(
+          (t: any) => t.vars.y === 0 && t.vars.scale === 1
+        );
+        expect(transformTween).toBeDefined();
+        expect(transformTween?.startTime()).toBeCloseTo(expectedStart, 2);
+        expect(transformTween?.duration()).toBeCloseTo(BENTO_REVEAL_TIMINGS.cardDuration, 2);
+        expect(transformTween?.vars.ease).toBe(BENTO_REVEAL_EASES.transform);
 
-      // 4. Hero Left (top left): starts at t = 0.63s, y -> 0, back.out(1.3)
-      const heroLeftTweens = getTweensFor(heroLeft);
-      const heroLeftDrop = heroLeftTweens.find((t: any) => t.vars.y === 0);
-      expect(heroLeftDrop).toBeDefined();
-      expect(heroLeftDrop?.startTime()).toBeCloseTo(BENTO_REVEAL_TIMINGS.heroLeftDropStart, 2);
-      expect(heroLeftDrop?.vars.ease).toBe('back.out(1.3)');
-
-      // 5. Hero Right (top right): starts at t = 0.71s (stagger +80ms), y -> 0, rotationX -> 0, back.out(1.3)
-      const heroRightTweens = getTweensFor(heroRight);
-      const heroRightDrop = heroRightTweens.find((t: any) => t.vars.y === 0);
-      expect(heroRightDrop).toBeDefined();
-      expect(heroRightDrop?.startTime()).toBeCloseTo(BENTO_REVEAL_TIMINGS.heroRightDropStart, 2);
-      expect(heroRightDrop?.vars.ease).toBe('back.out(1.3)');
-      const heroRightRot = heroRightTweens.find((t: any) => t.vars.rotationX === 0 || t.vars.rotateX === 0);
-      expect(heroRightRot).toBeDefined();
-    });
-
-    it('triggers hairline pulse box-shadow for 80ms on each landing', () => {
-      const tl = controller.createRevealTimeline();
-
-      const eduTweens = tl.getChildren().filter((c: any) => c.targets?.().includes(education));
-      const pulseTween = eduTweens.find((t: any) => {
-        const shadow = t.vars.boxShadow || t.vars.css?.boxShadow;
-        return typeof shadow === 'string' && shadow.includes(BENTO_REVEAL_STYLES.restingBoxShadow);
+        // Visual tween: opacity: 1, filter: blur(0px), duration: 0.55, ease: power2.out
+        const visualTween = tweens.find(
+          (t: any) => t.vars.opacity === 1 && (t.vars.filter === 'blur(0px)' || t.vars.css?.filter === 'blur(0px)')
+        );
+        expect(visualTween).toBeDefined();
+        expect(visualTween?.startTime()).toBeCloseTo(expectedStart, 2);
+        expect(visualTween?.duration()).toBeCloseTo(BENTO_REVEAL_TIMINGS.cardDuration, 2);
+        expect(visualTween?.vars.ease).toBe(BENTO_REVEAL_EASES.fade);
       });
-
-      expect(pulseTween).toBeDefined();
-      expect(pulseTween?.duration()).toBeCloseTo(BENTO_REVEAL_TIMINGS.flashDuration, 2);
     });
 
-    it('restores resting glass shadow and clears willChange on completion of reveal animation', () => {
+    it('clears filter and willChange via clearProps upon completion of reveal animation', () => {
       controller.prepareInitialState();
-      expect(education.style.willChange).toContain('transform');
+      expect(heroRight.style.willChange).toContain('filter');
 
       const tl = controller.createRevealTimeline();
       tl.progress(1);
 
-      // Verify all cards cleanly restore resting glass shadow
-      const cards = [heroLeft, heroRight, education, globe, summary];
+      const cards = [heroRight, heroLeft, globe, education, summary];
       cards.forEach((card) => {
-        expect(card.style.boxShadow).toBe(BENTO_REVEAL_STYLES.restingBoxShadow);
-        expect(card.style.borderColor).toBe(BENTO_REVEAL_STYLES.restingBorderColor);
         expect(card.style.willChange).toBe('');
+        expect(card.style.filter).toBe('');
+        expect(Number(gsap.getProperty(card, 'opacity'))).toBe(1);
+        expect(Number(gsap.getProperty(card, 'y'))).toBe(0);
+        expect(Number(gsap.getProperty(card, 'scale'))).toBe(1);
       });
     });
 
@@ -231,24 +187,25 @@ describe('BentoRevealController', () => {
       expect(heroRight.style.willChange).toBe('');
     });
 
-    it('handles reducedMotion by cross-fading opacity only without transform drops', () => {
+    it('handles reducedMotion by cross-fading opacity only without transform drops or blur filters', () => {
       controller.prepareInitialState();
       const tl = controller.createRevealTimeline({ reducedMotion: true });
 
       const children = tl.getChildren();
       expect(children.length).toBeGreaterThan(0);
 
-      // Verify no transform tweens (y, scale, rotationX) exist
-      const hasTransform = children.some((c: any) => {
+      // Verify no transform tweens (y, scale, rotationX) or filter tweens exist
+      const hasTransformOrFilter = children.some((c: any) => {
         const vars = c.vars || {};
         return (
           vars.y !== undefined ||
           vars.scale !== undefined ||
           vars.rotationX !== undefined ||
-          vars.rotateX !== undefined
+          vars.rotateX !== undefined ||
+          vars.filter !== undefined
         );
       });
-      expect(hasTransform).toBe(false);
+      expect(hasTransformOrFilter).toBe(false);
 
       // Verify opacity tweens exist
       const opacityTween = children.find((c: any) => c.vars?.opacity === 1);
@@ -272,16 +229,17 @@ describe('BentoRevealController', () => {
       const tl = controller.createRevealTimeline(); // no options passed
 
       const children = tl.getChildren();
-      const hasTransform = children.some((c: any) => {
+      const hasTransformOrFilter = children.some((c: any) => {
         const vars = c.vars || {};
         return (
           vars.y !== undefined ||
           vars.scale !== undefined ||
           vars.rotationX !== undefined ||
-          vars.rotateX !== undefined
+          vars.rotateX !== undefined ||
+          vars.filter !== undefined
         );
       });
-      expect(hasTransform).toBe(false);
+      expect(hasTransformOrFilter).toBe(false);
 
       const opacityTween = children.find((c: any) => c.vars?.opacity === 1);
       expect(opacityTween).toBeDefined();
@@ -298,10 +256,14 @@ describe('BentoRevealController', () => {
 
       controller.destroy();
 
-      // Ensure inline properties cleared
-      expect(education.style.transform).toBe('');
-      expect(education.style.opacity).toBe('');
-      expect(heroRight.style.transform).toBe('');
+      // Ensure inline properties cleared including filter, transform, opacity, willChange
+      const cards = [heroRight, heroLeft, globe, education, summary];
+      cards.forEach((card) => {
+        expect(card.style.transform).toBe('');
+        expect(card.style.opacity).toBe('');
+        expect(card.style.filter).toBe('');
+        expect(card.style.willChange).toBe('');
+      });
     });
 
     it('is safe to call multiple times', () => {

@@ -37,10 +37,10 @@
   - `BENTO_REVEAL_TIMINGS`: `stagger: 0.08`, `cardDuration: 0.55`, `reducedMotionDuration: 0.4`, `initialY: 24`, `initialScale: 0.96`, `initialBlur: 12`
   - `BENTO_REVEAL_EASES`: `transform: 'back.out(1.1)'`, `fade: 'power2.out'`
 
-- [ ] **Step 1: Update `TRANSITION_TIMINGS` in `constants.ts`**
+- [x] **Step 1: Update `TRANSITION_TIMINGS` in `constants.ts`**
   - Add `bentoRevealStart: 0.40` (and deprecate/replace `bentoWireframeStart`).
 
-- [ ] **Step 2: Update `BENTO_REVEAL_TIMINGS` and easing tokens in `BentoRevealController.ts`**
+- [x] **Step 2: Update `BENTO_REVEAL_TIMINGS` and easing tokens in `BentoRevealController.ts`**
   - Replace the wireframe and drop timings with the new reverse-sink timings and constants.
 
 ---
@@ -55,7 +55,7 @@
 - Consumes: `BENTO_REVEAL_TIMINGS`, `BENTO_REVEAL_EASES`
 - Produces: `BentoRevealController.prepareInitialState()`, `BentoRevealController.createRevealTimeline()`, `BentoRevealController.destroy()`
 
-- [ ] **Step 1: Write failing tests in `BentoRevealController.test.ts`**
+- [x] **Step 1: Write failing tests in `BentoRevealController.test.ts`**
   - Test that `prepareInitialState()` sets `y: 24`, `scale: 0.96`, `opacity: 0`, and `filter: blur(12px)`.
   - Test that `prepareInitialState()` sets `willChange` to include `transform`, `opacity`, and `filter`.
   - Test that `createRevealTimeline()` creates tweens with the Identity-First stagger order: `heroRight` (0.00s), `heroLeft` (0.08s), `globe` (0.16s), `education` (0.24s), `summary` (0.32s).
@@ -64,10 +64,10 @@
   - Test reduced motion mode: crossfades opacity only, with no transforms or blurs.
   - Test that `destroy()` clears all inline styles and transforms without leaks.
 
-- [ ] **Step 2: Run tests to verify failure (RED)**
+- [x] **Step 2: Run tests to verify failure (RED)**
   - Run `cd portfolio; npx vitest run src/components/home/__tests__/BentoRevealController.test.ts`.
 
-- [ ] **Step 3: Implement reverse-sink logic in `BentoRevealController.ts`**
+- [x] **Step 3: Implement reverse-sink logic in `BentoRevealController.ts`**
   - Update `prepareInitialState()`:
     ```typescript
     gsap.set(allCards, {
@@ -95,10 +95,10 @@
     - At timeline completion, clear `filter` and `willChange` props.
   - Update `destroy()` to clear `filter`, `transform`, `opacity`, and `willChange`.
 
-- [ ] **Step 4: Run tests to verify passing (GREEN)**
+- [x] **Step 4: Run tests to verify passing (GREEN)**
   - Run `cd portfolio; npx vitest run src/components/home/__tests__/BentoRevealController.test.ts`.
 
-- [ ] **Step 5: Commit changes**
+- [x] **Step 5: Commit changes**
   - Run `git add` and `git commit -m "feat(home): implement reverse-sink bento reveal animation"`.
 
 ---

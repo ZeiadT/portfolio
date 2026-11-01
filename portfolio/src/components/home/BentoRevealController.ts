@@ -13,19 +13,9 @@ export interface BentoRevealOptions {
 }
 
 export const BENTO_REVEAL_TIMINGS = {
-  wireframeStart: 0,
-  wireframeDuration: 0.35,
-  educationDropStart: 0.35,
-  globeDropStart: 0.43,
-  summaryDropStart: 0.51,
-  heroLeftDropStart: 0.63,
-  heroRightDropStart: 0.71,
-  dropDuration: 0.38,
-  heroDropDuration: 0.42,
-  flashDuration: 0.08,
-  reducedMotionDuration: 0.4,
   stagger: 0.08,
   cardDuration: 0.55,
+  reducedMotionDuration: 0.4,
   initialY: 24,
   initialScale: 0.96,
   initialBlur: 12,
@@ -36,30 +26,26 @@ export const BENTO_REVEAL_EASES = {
   fade: 'power2.out',
 } as const;
 
-export const BENTO_REVEAL_STYLES = {
-  restingBoxShadow: '0 8px 32px rgba(0, 0, 0, 0.37)',
-  impactBoxShadow: '0 0 16px rgba(255, 68, 33, 0.4)',
-  wireframeBorderColor: 'rgba(255, 255, 255, 0.2)',
-  restingBorderColor: 'rgba(255, 255, 255, 0.1)',
-} as const;
-
 /**
  * BentoRevealController
  *
- * Encapsulates the 2-step Tetris puzzle entrance reveal for the Bento Grid cards:
- * - Step 1 (t = 0..0.35s): Ghost wireframe outlines trace in with glowing vermilion/white borders.
- * - Step 2 (t = 0.35s+): Foundation-up Tetris cascade drops each card into place:
- *   1. Education (bottom left 3 cols): y: -32px -> 0, back.out(1.4)
- *   2. Globe (bottom middle 3 cols): y: -32px -> 0, scale: 0.94 -> 1.0, back.out(1.4) (stagger +80ms)
- *   3. Summary (bottom right 6 cols): y: -32px -> 0, back.out(1.4) (stagger +80ms)
- *   4. Hero Left (top left 7 cols): y: -40px -> 0, back.out(1.3) (starts at t = 0.63s)
- *   5. Hero Right (top right 5 cols): y: -40px -> 0, rotationX: -6deg -> 0deg, back.out(1.3) (stagger +80ms)
+ * Encapsulates the Reverse-Sink reveal animation for the Bento Grid cards:
+ * Surfacing 5 cards out of deep spatial perspective (y: 24px, scale: 0.96, filter: blur(12px), opacity: 0)
+ * along an Identity-First storytelling hierarchy:
+ *   1. Hero Right (Avatar & Identity) (t = 0.00s)
+ *   2. Hero Left (Quote/Contact) (t = 0.08s)
+ *   3. Globe (WebGL Dot Globe) (t = 0.16s)
+ *   4. Education (Milestones & Credentials) (t = 0.24s)
+ *   5. Summary (Editorial narrative) (t = 0.32s)
  *
- * Impact Feedback:
- * - On arrival, cards pulse a vermilion hairline box-shadow for 80ms before settling to resting glass shadow.
+ * Physics & Performance:
+ * - Transforms animate to resting scale (1.0) and y (0) with a micro-spring cushion: back.out(1.1) (550ms).
+ * - Opacity (1) and filter (blur(0px)) animate via power2.out (550ms).
+ * - Hardware acceleration hints (willChange: 'transform, opacity, filter') and blur filters are
+ *   automatically cleared via clearProps upon landing for crisp typography and 60/120fps lock.
  *
  * Accessibility:
- * - When reducedMotion is active, transforms are bypassed in favor of a soft opacity cross-fade.
+ * - When reducedMotion is active, transforms and blurs are bypassed in favor of a soft opacity cross-fade.
  */
 export class BentoRevealController {
   private rootContainer: HTMLElement;
@@ -101,8 +87,8 @@ export class BentoRevealController {
   }
 
   /**
-   * Prepares the initial hidden state for all 5 cards without causing layout shifts.
-   * Sets opacity: 0, negative translateY, initial scale and 3D tilt.
+   * Prepares the initial reverse-sink hidden state for all 5 cards without causing layout shifts.
+   * Sets opacity: 0, y: 24px, scale: 0.96, and filter: blur(12px).
    */
   public prepareInitialState(): void {
     const elements = this.queryElements();
@@ -110,53 +96,30 @@ export class BentoRevealController {
       return;
     }
 
-    const bottomCards = [elements.education, elements.globe, elements.summary];
-    const topCards = [elements.heroLeft, elements.heroRight];
-    const allCards = [...bottomCards, ...topCards];
+    const allCards = [
+      elements.heroRight,
+      elements.heroLeft,
+      elements.globe,
+      elements.education,
+      elements.summary,
+    ];
 
     // Hardware accelerated will-change hint
     allCards.forEach((card) => {
-      card.style.willChange = 'transform, opacity';
+      card.style.willChange = 'transform, opacity, filter';
     });
 
-    // Bottom foundation cards (Education, Globe, Summary)
-    gsap.set(elements.education, {
+    gsap.set(allCards, {
       opacity: 0,
-      y: -32,
-      force3D: true,
-    });
-
-    gsap.set(elements.globe, {
-      opacity: 0,
-      y: -32,
-      scale: 0.94,
-      force3D: true,
-    });
-
-    gsap.set(elements.summary, {
-      opacity: 0,
-      y: -32,
-      force3D: true,
-    });
-
-    // Top hero row cards (Hero Left, Hero Right)
-    gsap.set(elements.heroLeft, {
-      opacity: 0,
-      y: -40,
-      force3D: true,
-    });
-
-    gsap.set(elements.heroRight, {
-      opacity: 0,
-      y: -40,
-      rotationX: -6,
-      transformPerspective: 1000,
+      y: BENTO_REVEAL_TIMINGS.initialY,
+      scale: BENTO_REVEAL_TIMINGS.initialScale,
+      filter: `blur(${BENTO_REVEAL_TIMINGS.initialBlur}px)`,
       force3D: true,
     });
   }
 
   /**
-   * Creates and returns the orchestrated GSAP reveal timeline.
+   * Creates and returns the orchestrated GSAP reverse-sink reveal timeline.
    */
   public createRevealTimeline(options?: BentoRevealOptions): gsap.core.Timeline {
     if (this.currentTimeline) {
@@ -173,14 +136,14 @@ export class BentoRevealController {
     }
 
     const allCards = [
-      elements.education,
-      elements.globe,
-      elements.summary,
-      elements.heroLeft,
       elements.heroRight,
+      elements.heroLeft,
+      elements.globe,
+      elements.education,
+      elements.summary,
     ];
 
-    // Accessibility fallback: simple opacity cross-fade without physical drop/tilt
+    // Accessibility fallback: simple opacity cross-fade without physical transforms/blurs
     const isReducedMotion =
       options?.reducedMotion ??
       (typeof window !== 'undefined' &&
@@ -190,9 +153,9 @@ export class BentoRevealController {
       gsap.set(allCards, {
         y: 0,
         scale: 1,
-        rotationX: 0,
+        filter: 'none',
         opacity: 0,
-        clearProps: 'transform',
+        clearProps: 'transform,filter',
       });
 
       tl.to(
@@ -216,147 +179,51 @@ export class BentoRevealController {
       return tl;
     }
 
-    // Step 1: Wireframe outline trace-in at t = 0 (350ms duration)
-    tl.to(
-      allCards,
-      {
-        opacity: 0.25,
-        borderColor: BENTO_REVEAL_STYLES.wireframeBorderColor,
-        boxShadow: '0 0 12px rgba(255, 68, 33, 0.15)',
-        duration: BENTO_REVEAL_TIMINGS.wireframeDuration,
-        ease: 'power2.out',
-      },
-      BENTO_REVEAL_TIMINGS.wireframeStart
-    );
-
-    // Step 2: Foundation-up Tetris drop cascade starting at t = 0.35s
-    // 1. Education (bottom left 3 cols): y: -32px -> 0, back.out(1.4)
-    tl.to(
-      elements.education,
-      {
-        y: 0,
-        opacity: 1,
-        duration: BENTO_REVEAL_TIMINGS.dropDuration,
-        ease: 'back.out(1.4)',
-      },
-      BENTO_REVEAL_TIMINGS.educationDropStart
-    );
-    tl.fromTo(
-      elements.education,
-      { boxShadow: BENTO_REVEAL_STYLES.impactBoxShadow },
-      {
-        boxShadow: BENTO_REVEAL_STYLES.restingBoxShadow,
-        borderColor: BENTO_REVEAL_STYLES.restingBorderColor,
-        duration: BENTO_REVEAL_TIMINGS.flashDuration,
-        ease: 'power2.out',
-      },
-      BENTO_REVEAL_TIMINGS.educationDropStart + BENTO_REVEAL_TIMINGS.dropDuration
-    );
-
-    // 2. Globe (bottom middle 3 cols): y: -32px -> 0, scale: 0.94 -> 1.0, back.out(1.4) (stagger +80ms)
-    tl.to(
-      elements.globe,
-      {
-        y: 0,
-        scale: 1,
-        opacity: 1,
-        duration: BENTO_REVEAL_TIMINGS.dropDuration,
-        ease: 'back.out(1.4)',
-      },
-      BENTO_REVEAL_TIMINGS.globeDropStart
-    );
-    tl.fromTo(
-      elements.globe,
-      { boxShadow: BENTO_REVEAL_STYLES.impactBoxShadow },
-      {
-        boxShadow: BENTO_REVEAL_STYLES.restingBoxShadow,
-        borderColor: BENTO_REVEAL_STYLES.restingBorderColor,
-        duration: BENTO_REVEAL_TIMINGS.flashDuration,
-        ease: 'power2.out',
-      },
-      BENTO_REVEAL_TIMINGS.globeDropStart + BENTO_REVEAL_TIMINGS.dropDuration
-    );
-
-    // 3. Summary (bottom right 6 cols): y: -32px -> 0, back.out(1.4) (stagger +80ms)
-    tl.to(
-      elements.summary,
-      {
-        y: 0,
-        opacity: 1,
-        duration: BENTO_REVEAL_TIMINGS.dropDuration,
-        ease: 'back.out(1.4)',
-      },
-      BENTO_REVEAL_TIMINGS.summaryDropStart
-    );
-    tl.fromTo(
-      elements.summary,
-      { boxShadow: BENTO_REVEAL_STYLES.impactBoxShadow },
-      {
-        boxShadow: BENTO_REVEAL_STYLES.restingBoxShadow,
-        borderColor: BENTO_REVEAL_STYLES.restingBorderColor,
-        duration: BENTO_REVEAL_TIMINGS.flashDuration,
-        ease: 'power2.out',
-      },
-      BENTO_REVEAL_TIMINGS.summaryDropStart + BENTO_REVEAL_TIMINGS.dropDuration
-    );
-
-    // 4. Hero Left (top left 7 cols): y: -40px -> 0, back.out(1.3) (starts at t = 0.63s)
-    tl.to(
-      elements.heroLeft,
-      {
-        y: 0,
-        opacity: 1,
-        duration: BENTO_REVEAL_TIMINGS.heroDropDuration,
-        ease: 'back.out(1.3)',
-      },
-      BENTO_REVEAL_TIMINGS.heroLeftDropStart
-    );
-    tl.fromTo(
-      elements.heroLeft,
-      { boxShadow: BENTO_REVEAL_STYLES.impactBoxShadow },
-      {
-        boxShadow: BENTO_REVEAL_STYLES.restingBoxShadow,
-        borderColor: BENTO_REVEAL_STYLES.restingBorderColor,
-        duration: BENTO_REVEAL_TIMINGS.flashDuration,
-        ease: 'power2.out',
-      },
-      BENTO_REVEAL_TIMINGS.heroLeftDropStart + BENTO_REVEAL_TIMINGS.heroDropDuration
-    );
-
-    // 5. Hero Right (top right 5 cols): y: -40px -> 0, rotationX: -6deg -> 0deg, back.out(1.3) (stagger +80ms)
-    tl.to(
+    // Identity-First ordered sequence
+    const orderedCards = [
       elements.heroRight,
-      {
-        y: 0,
-        rotationX: 0,
-        opacity: 1,
-        duration: BENTO_REVEAL_TIMINGS.heroDropDuration,
-        ease: 'back.out(1.3)',
-      },
-      BENTO_REVEAL_TIMINGS.heroRightDropStart
-    );
-    tl.fromTo(
-      elements.heroRight,
-      { boxShadow: BENTO_REVEAL_STYLES.impactBoxShadow },
-      {
-        boxShadow: BENTO_REVEAL_STYLES.restingBoxShadow,
-        borderColor: BENTO_REVEAL_STYLES.restingBorderColor,
-        duration: BENTO_REVEAL_TIMINGS.flashDuration,
-        ease: 'power2.out',
-      },
-      BENTO_REVEAL_TIMINGS.heroRightDropStart + BENTO_REVEAL_TIMINGS.heroDropDuration
-    );
+      elements.heroLeft,
+      elements.globe,
+      elements.education,
+      elements.summary,
+    ];
 
-    // Release willChange GPU layer allocation when sequence finishes
+    orderedCards.forEach((card, index) => {
+      const startTime = index * BENTO_REVEAL_TIMINGS.stagger;
+
+      // Transform tween: y: 0, scale: 1
+      tl.to(
+        card,
+        {
+          y: 0,
+          scale: 1,
+          duration: BENTO_REVEAL_TIMINGS.cardDuration,
+          ease: BENTO_REVEAL_EASES.transform,
+        },
+        startTime
+      );
+
+      // Visual tween: opacity: 1, filter: blur(0px)
+      tl.to(
+        card,
+        {
+          opacity: 1,
+          filter: 'blur(0px)',
+          duration: BENTO_REVEAL_TIMINGS.cardDuration,
+          ease: BENTO_REVEAL_EASES.fade,
+        },
+        startTime
+      );
+    });
+
     const totalDuration =
-      BENTO_REVEAL_TIMINGS.heroRightDropStart +
-      BENTO_REVEAL_TIMINGS.heroDropDuration +
-      BENTO_REVEAL_TIMINGS.flashDuration;
+      (orderedCards.length - 1) * BENTO_REVEAL_TIMINGS.stagger +
+      BENTO_REVEAL_TIMINGS.cardDuration;
 
     tl.set(
       allCards,
       {
-        clearProps: 'willChange',
+        clearProps: 'filter,willChange',
       },
       totalDuration
     );
@@ -375,11 +242,11 @@ export class BentoRevealController {
 
     if (this.cachedElements) {
       const cards = [
-        this.cachedElements.education,
-        this.cachedElements.globe,
-        this.cachedElements.summary,
-        this.cachedElements.heroLeft,
         this.cachedElements.heroRight,
+        this.cachedElements.heroLeft,
+        this.cachedElements.globe,
+        this.cachedElements.education,
+        this.cachedElements.summary,
       ];
 
       gsap.killTweensOf(cards);
@@ -389,6 +256,7 @@ export class BentoRevealController {
         card.style.willChange = '';
         card.style.transform = '';
         card.style.opacity = '';
+        card.style.filter = '';
         card.style.boxShadow = '';
         card.style.borderColor = '';
       });
