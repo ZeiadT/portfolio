@@ -3,6 +3,16 @@ import { ProfileHeader } from '../ProfileHeader';
 import { CardSummonEngine } from '@/engines/card/CardSummonEngine';
 import type { ProfileData } from '@/domain/types';
 
+// Mock cobe to avoid canvas/WebGL execution during unit testing
+vi.mock('cobe', () => {
+  return {
+    default: vi.fn(() => ({
+      update: vi.fn(),
+      destroy: vi.fn(),
+    })),
+  };
+});
+
 describe('ProfileHeader Component', () => {
   let container: HTMLElement;
   const mockData: ProfileData = {
@@ -38,6 +48,11 @@ describe('ProfileHeader Component', () => {
       alt: 'Portrait',
       fallbackInitials: 'ZM',
     },
+    education: {
+      institution: 'Helwan University',
+      degree: "Bachelor's in Computer Science",
+      period: '2022 – Present',
+    },
     pillars: [
       'Mobile & Systems Architecture',
       'Deterministic Performance',
@@ -55,7 +70,7 @@ describe('ProfileHeader Component', () => {
     container.remove();
   });
 
-  it('mounts Bento Grid layout with Hero Card 1, Hero Card 2, and Bottom Summary Card', () => {
+  it('mounts Bento Grid layout with Hero Card 1, Hero Card 2, and Bottom 3-Column Bento Row', () => {
     const header = new ProfileHeader(mockData);
     header.mount(container);
 
@@ -88,11 +103,29 @@ describe('ProfileHeader Component', () => {
     expect(container.querySelector('[data-avatar-phone]')).toBeNull();
     expect(container.querySelector('[data-phone-copy]')).toBeNull();
 
-    const summaryHeading = container.querySelector('[data-summary-heading]');
-    expect(summaryHeading?.textContent?.trim()).toBe('Summary');
+    // Verify presence of Bottom Row 3-Column Bento Cards
+    const eduCard = container.querySelector<HTMLElement>('[data-bento-education]');
+    expect(eduCard).toBeTruthy();
+    expect(container.querySelector('[data-education-institution]')?.textContent?.trim()).toBe('Helwan University');
 
-    const pillarEls = container.querySelectorAll('[data-pillar-tag]');
-    expect(pillarEls.length).toBe(4);
+    const globeCard = container.querySelector<HTMLElement>('[data-bento-globe]');
+    expect(globeCard).toBeTruthy();
+    expect(container.querySelector('[data-globe-title]')?.textContent).toContain('Cairo');
+    expect(container.querySelector('canvas[data-globe-canvas]')).toBeTruthy();
+
+    const summaryCard = container.querySelector<HTMLElement>('[data-bento-summary]');
+    expect(summaryCard).toBeTruthy();
+    const summaryHeading = container.querySelector('[data-summary-heading]');
+    expect(summaryHeading?.textContent?.trim().toUpperCase()).toBe('SUMMARY');
+    expect(container.querySelector('[data-profile-summary]')?.textContent?.trim()).toBe(mockData.summary);
+
+    // Verify strict LTR ordering of the bottom bento row
+    expect(
+      eduCard!.compareDocumentPosition(globeCard!) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      globeCard!.compareDocumentPosition(summaryCard!) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
   });
 
   it('cleans up all subcomponents and DOM on destroy', () => {
@@ -102,6 +135,9 @@ describe('ProfileHeader Component', () => {
 
     header.destroy();
     expect(container.children.length).toBe(0);
+    expect(container.querySelector('[data-bento-education]')).toBeNull();
+    expect(container.querySelector('[data-bento-globe]')).toBeNull();
+    expect(container.querySelector('[data-bento-summary]')).toBeNull();
   });
 
   it('passes custom resumeUrl to ProfileContactComponent if defined', () => {

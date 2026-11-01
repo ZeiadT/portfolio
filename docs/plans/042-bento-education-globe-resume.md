@@ -1,6 +1,6 @@
 # Bento Education, Globe, and Resume Button Implementation Plan
 
-- **Status**: Proposed
+- **Status**: In Progress (Task 5: ProfileBio & ProfileHeader 3-Column Bento Integration)
 - **Created**: 2026-11-01
 - **Last Updated**: 2026-11-01
 
@@ -81,9 +81,13 @@ Enhance the portfolio header and about bento grid by:
    - Verify call to `destroy()` disposes `cobe` and mouse/touch drag listeners.
 
 4. `ProfileBio.test.ts` & `ProfileHeader.test.ts`:
-   - Verify 3-column layout structure with 12-column grid.
-   - Verify LTR order: Column 1 is Education (`lg:col-span-3`), Column 2 is Globe (`lg:col-span-3`), Column 3 is Summary (`lg:col-span-6`).
-   - Verify full destruction cascades cleanly to child components.
+   - Verify 3-column layout structure with 12-column grid (`w-full grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-6 items-stretch select-text`).
+   - Verify strict LTR ordering: Column 1 is Education (`lg:col-span-3`, `[data-bento-education]`), Column 2 is Globe (`lg:col-span-3`, `[data-bento-globe]`), Column 3 is Summary (`lg:col-span-6`, `[data-summary-heading]`).
+   - Verify Education renders institution, degree, and period.
+   - Verify Globe renders location and WebGL canvas container.
+   - Verify Summary renders user summary copy with `[data-profile-summary]`.
+   - Verify lifecycle teardown: `destroy()` cascades to `educationComponent.destroy()`, `globeComponent.destroy()`, detaches DOM root, and cleans up references.
+   - Verify `ProfileHeader.test.ts` mounts Top Row and 3-Column Bottom Bento Row and tears down without residual elements.
 
 ---
 

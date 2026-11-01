@@ -14,8 +14,10 @@ import { EditorialCardFaceRenderer } from '@/engines/card/renderers/EditorialCar
  *   centered personal quote, and direct contact buttons.
  * - Hero Card 2 (Right 5 cols): Glowing 3D bending portrait card,
  *   role title ("Software Developer"), and phone number with copy icon.
- * - Bottom Bento Card (12 cols): Structured summary narrative (8 cols)
- *   and core engineering pillars (4 cols).
+ * - Bottom Bento Row (12 cols): 3-column editorial bento row arranged strictly LTR:
+ *   1. Education Card (3 cols)
+ *   2. Globe Card (3 cols)
+ *   3. Summary Narrative Card (6 cols)
  */
 export class ProfileHeader {
   private data: ProfileData;
@@ -120,7 +122,7 @@ export class ProfileHeader {
     topRow.appendChild(rightHeroCard);
     root.appendChild(topRow);
 
-    // 2. Bottom Row: Summary & Core Pillars Bento Card (Full 12 cols)
+    // 2. Bottom Row: 3-Column Editorial Bento Row (Education 3 cols, Globe 3 cols, Summary 6 cols)
     const bottomRow = document.createElement('div');
     bottomRow.className = 'w-full mt-6';
 
