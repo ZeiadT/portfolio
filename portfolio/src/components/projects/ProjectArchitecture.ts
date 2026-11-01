@@ -96,7 +96,6 @@ export class ProjectArchitecture {
   private rootEl: HTMLElement | null = null;
   private cleanups: Array<() => void> = [];
   private animatedElements: Set<Element> = new Set();
-  private graph: ArchitectureGraph | null = null;
   private calloutEl: HTMLElement | null = null;
 
   public render(graph?: ArchitectureGraph | null, highlights?: string[]): HTMLElement {
@@ -113,7 +112,6 @@ export class ProjectArchitecture {
       return root;
     }
 
-    this.graph = graph;
     const nodes = graph.nodes;
     const flows = graph.flows || [];
     const nodeMap = new Map<string, ArchitectureNode>();
@@ -326,7 +324,6 @@ export class ProjectArchitecture {
 
   private bindInteractions(root: HTMLElement, graph: ArchitectureGraph): void {
     const nodes = graph.nodes;
-    const flows = graph.flows || [];
 
     nodes.forEach((node) => {
       const nodeEl = root.querySelector(`[data-node-id="${node.id}"]`);
@@ -502,6 +499,5 @@ export class ProjectArchitecture {
       this.rootEl = null;
     }
     this.calloutEl = null;
-    this.graph = null;
   }
 }
