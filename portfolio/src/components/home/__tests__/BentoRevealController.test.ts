@@ -204,6 +204,33 @@ describe('BentoRevealController', () => {
       expect(pulseTween?.duration()).toBeCloseTo(BENTO_REVEAL_TIMINGS.flashDuration, 2);
     });
 
+    it('restores resting glass shadow and clears willChange on completion of reveal animation', () => {
+      controller.prepareInitialState();
+      expect(education.style.willChange).toContain('transform');
+
+      const tl = controller.createRevealTimeline();
+      tl.progress(1);
+
+      // Verify all cards cleanly restore resting glass shadow
+      const cards = [heroLeft, heroRight, education, globe, summary];
+      cards.forEach((card) => {
+        expect(card.style.boxShadow).toBe(BENTO_REVEAL_STYLES.restingBoxShadow);
+        expect(card.style.borderColor).toBe(BENTO_REVEAL_STYLES.restingBorderColor);
+        expect(card.style.willChange).toBe('');
+      });
+    });
+
+    it('clears willChange on completion in reducedMotion mode', () => {
+      controller.prepareInitialState();
+      expect(education.style.willChange).toContain('transform');
+
+      const tl = controller.createRevealTimeline({ reducedMotion: true });
+      tl.progress(1);
+
+      expect(education.style.willChange).toBe('');
+      expect(heroRight.style.willChange).toBe('');
+    });
+
     it('handles reducedMotion by cross-fading opacity only without transform drops', () => {
       controller.prepareInitialState();
       const tl = controller.createRevealTimeline({ reducedMotion: true });

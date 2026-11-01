@@ -190,6 +190,14 @@ export class BentoRevealController {
         0
       );
 
+      tl.set(
+        allCards,
+        {
+          clearProps: 'willChange',
+        },
+        BENTO_REVEAL_TIMINGS.reducedMotionDuration
+      );
+
       return tl;
     }
 
@@ -322,6 +330,20 @@ export class BentoRevealController {
         ease: 'power2.out',
       },
       BENTO_REVEAL_TIMINGS.heroRightDropStart + BENTO_REVEAL_TIMINGS.heroDropDuration
+    );
+
+    // Release willChange GPU layer allocation when sequence finishes
+    const totalDuration =
+      BENTO_REVEAL_TIMINGS.heroRightDropStart +
+      BENTO_REVEAL_TIMINGS.heroDropDuration +
+      BENTO_REVEAL_TIMINGS.flashDuration;
+
+    tl.set(
+      allCards,
+      {
+        clearProps: 'willChange',
+      },
+      totalDuration
     );
 
     return tl;

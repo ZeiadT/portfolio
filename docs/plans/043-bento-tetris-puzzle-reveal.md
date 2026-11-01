@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-- **Status**: Proposed
+- **Status**: Completed
 - **Created**: 2026-11-01
 - **Last Updated**: 2026-11-01
 
@@ -114,19 +114,19 @@ export interface BandToNavOptions {
 - Test: All suites (`npm test`)
 - Build: `npm run build`
 
-- [ ] **Step 1: Fine-tune hairline pulse and 3D tilt recovery**
+- [x] **Step 1: Fine-tune hairline pulse and 3D tilt recovery**
   - Ensure the vermilion flash on landing (`box-shadow: 0 0 16px rgba(255,68,33,0.4)`) transitions cleanly back to resting glass shadow (`box-shadow: 0 8px 32px rgba(0,0,0,0.37)`).
   - Verify Globe component canvas is properly triggered without WebGL redraw glitches.
 
-- [ ] **Step 2: Full automated test run**
+- [x] **Step 2: Full automated test run**
   - Run `cd portfolio; npm test`
   - Verify all 29+ test suites pass with 0 errors.
 
-- [ ] **Step 3: Production build verification**
+- [x] **Step 3: Production build verification**
   - Run `cd portfolio; npm run build`
   - Confirm bundle size, TypeScript type checks, and zero warnings.
 
-- [ ] **Step 4: Commit Task 3**
+- [x] **Step 4: Commit Task 3**
   - Run `git add -A; git commit -m "feat(home): polish bento tetris drop physics and verify production build"`
 
 ---
