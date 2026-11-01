@@ -9,6 +9,7 @@ import type { ProfileContact } from '@/domain/types';
  */
 export class ProfileContactComponent {
   private contact: ProfileContact;
+  private resumeUrl: string;
   private rootEl: HTMLElement | null = null;
   private phoneBtn: HTMLButtonElement | null = null;
   private emailBtn: HTMLButtonElement | null = null;
@@ -21,13 +22,14 @@ export class ProfileContactComponent {
   private phoneClickHandler: (() => void) | null = null;
   private emailClickHandler: (() => void) | null = null;
 
-  constructor(contact: ProfileContact) {
+  constructor(contact: ProfileContact, resumeUrl: string = '/resume.pdf') {
     this.contact = contact;
+    this.resumeUrl = resumeUrl || '/resume.pdf';
   }
 
   public mount(container: HTMLElement): void {
     const root = document.createElement('div');
-    root.className = 'profile-contact flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-mono';
+    root.className = 'profile-contact w-full flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-mono';
 
     root.innerHTML = `
       <!-- Phone Button with Click-to-Copy -->
@@ -115,6 +117,35 @@ export class ProfileContactComponent {
           </svg>
         </span>
       </button>
+
+      <!-- Expanding Flex Spacer -->
+      <div data-contact-spacer class="flex-1"></div>
+
+      <!-- View Resume Button -->
+      <a
+        href="${this.resumeUrl}"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-contact-resume
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-neutral-300 hover:text-white hover:border-[#ff4421]/50 hover:bg-white/[0.08] transition-all duration-200 cursor-pointer select-none group active:scale-95 text-xs font-mono"
+        aria-label="View Resume"
+      >
+        <span>View Resume</span>
+        <svg
+          class="w-3.5 h-3.5 text-[#ff4421] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+          />
+        </svg>
+      </a>
     `;
 
     container.appendChild(root);

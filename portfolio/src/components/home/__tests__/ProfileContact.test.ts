@@ -120,12 +120,61 @@ describe('ProfileContactComponent', () => {
     vi.useRealTimers();
   });
 
+  it('renders resume button with default resumeUrl and required attributes', () => {
+    const component = new ProfileContactComponent(mockContact);
+    component.mount(container);
+
+    const resumeLink = container.querySelector<HTMLAnchorElement>('a[data-contact-resume]');
+    expect(resumeLink).toBeTruthy();
+    expect(resumeLink?.getAttribute('href')).toBe('/resume.pdf');
+    expect(resumeLink?.getAttribute('target')).toBe('_blank');
+    expect(resumeLink?.getAttribute('rel')).toBe('noopener noreferrer');
+    expect(resumeLink?.textContent).toContain('Resume');
+    expect(resumeLink?.querySelector('svg')).toBeTruthy();
+  });
+
+  it('renders resume button with custom resumeUrl if provided', () => {
+    const customUrl = 'https://example.com/custom-cv.pdf';
+    const component = new ProfileContactComponent(mockContact, customUrl);
+    component.mount(container);
+
+    const resumeLink = container.querySelector<HTMLAnchorElement>('a[data-contact-resume]');
+    expect(resumeLink).toBeTruthy();
+    expect(resumeLink?.getAttribute('href')).toBe(customUrl);
+  });
+
+  it('renders flex-1 spacer positioned between email button and resume link', () => {
+    const component = new ProfileContactComponent(mockContact);
+    component.mount(container);
+
+    const emailBtn = container.querySelector('[data-contact-email]');
+    const spacer = container.querySelector('[data-contact-spacer]');
+    const resumeLink = container.querySelector('[data-contact-resume]');
+
+    expect(spacer).toBeTruthy();
+    expect(spacer?.classList.contains('flex-1')).toBe(true);
+
+    expect(emailBtn).toBeTruthy();
+    expect(resumeLink).toBeTruthy();
+
+    // Verify ordering: emailBtn comes before spacer, spacer comes before resumeLink
+    const isEmailBeforeSpacer = !!(emailBtn && spacer && (emailBtn.compareDocumentPosition(spacer) & Node.DOCUMENT_POSITION_FOLLOWING));
+    const isSpacerBeforeResume = !!(spacer && resumeLink && (spacer.compareDocumentPosition(resumeLink) & Node.DOCUMENT_POSITION_FOLLOWING));
+
+    expect(isEmailBeforeSpacer).toBe(true);
+    expect(isSpacerBeforeResume).toBe(true);
+  });
+
   it('cleans up elements and timeout listeners on destroy', () => {
     const component = new ProfileContactComponent(mockContact);
     component.mount(container);
     expect(container.children.length).toBeGreaterThan(0);
+    expect(container.querySelector('[data-contact-resume]')).toBeTruthy();
+    expect(container.querySelector('[data-contact-spacer]')).toBeTruthy();
 
     component.destroy();
     expect(container.children.length).toBe(0);
+    expect(container.querySelector('[data-contact-resume]')).toBeNull();
+    expect(container.querySelector('[data-contact-spacer]')).toBeNull();
   });
 });

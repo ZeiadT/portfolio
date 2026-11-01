@@ -79,6 +79,11 @@ describe('ProfileHeader Component', () => {
     const contactEmailBtn = container.querySelector('button[data-contact-email]');
     expect(contactEmailBtn).toBeTruthy();
 
+    const contactResumeLink = container.querySelector('a[data-contact-resume]');
+    expect(contactResumeLink).toBeTruthy();
+    expect(contactResumeLink?.getAttribute('href')).toBe('/resume.pdf');
+    expect(container.querySelector('[data-contact-spacer]')).toBeTruthy();
+
     // Confirm no phone elements under portrait card
     expect(container.querySelector('[data-avatar-phone]')).toBeNull();
     expect(container.querySelector('[data-phone-copy]')).toBeNull();
@@ -97,6 +102,19 @@ describe('ProfileHeader Component', () => {
 
     header.destroy();
     expect(container.children.length).toBe(0);
+  });
+
+  it('passes custom resumeUrl to ProfileContactComponent if defined', () => {
+    const customHeader = new ProfileHeader({
+      ...mockData,
+      resumeUrl: 'https://example.com/custom-resume.pdf',
+    });
+    customHeader.mount(container);
+
+    const resumeLink = container.querySelector('a[data-contact-resume]');
+    expect(resumeLink?.getAttribute('href')).toBe('https://example.com/custom-resume.pdf');
+
+    customHeader.destroy();
   });
 
   it('opens CardSummonEngine when avatar card is clicked and cleans it up on destroy', () => {

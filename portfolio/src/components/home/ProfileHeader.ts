@@ -76,7 +76,7 @@ export class ProfileHeader {
     // Bottom Contact Bar inside Card 1
     const contactWrapper = document.createElement('div');
     contactWrapper.className = 'w-full pt-2 border-t border-white/[0.06] flex items-center';
-    this.contactComponent = new ProfileContactComponent(this.data.contact);
+    this.contactComponent = new ProfileContactComponent(this.data.contact, this.data.resumeUrl);
     this.contactComponent.mount(contactWrapper);
     leftHeroCard.appendChild(contactWrapper);
 
