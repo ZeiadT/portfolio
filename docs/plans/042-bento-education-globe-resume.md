@@ -219,3 +219,23 @@ Enhance the portfolio header and about bento grid by:
 3. **Test Specifications**:
    - `ProfileContact.test.ts`: Verify phone and email text spans have class `text-neutral-400`.
    - `ProfileEducation.test.ts`: Verify `[data-education-list]` does not contain `overflow-y-auto` and each item fits without overflow.
+
+---
+
+## 13. Phase 8: Official CV Social Links & Google Drive Resume URL Integration
+
+1. **Requirements & Intent**:
+   - Update `PROFILE_DATA` in `portfolio/src/data/profile.ts` with authentic links from user's official CV:
+     - Email: `zeiadm4business@gmail.com`
+     - Phone: `+20 1019880091` / `+201019880091`
+     - GitHub: `https://github.com/ZeiadT`
+     - Codewars: `https://www.codewars.com/users/ZeiadT`
+     - LinkedIn: `https://linkedin.com/in/zeiad-mohammed`
+     - Resume URL: `https://drive.google.com/file/d/1nxESDH7D4pVdaa_3cl7Y7QlMjlBNnRQl/view?usp=sharing`
+2. **Test Specifications**:
+   - In `portfolio/src/data/__tests__/profile.test.ts`:
+     - Assert `PROFILE_DATA.contact.email` is `zeiadm4business@gmail.com`.
+     - Assert GitHub link URL is `https://github.com/ZeiadT`.
+     - Assert Codewars link URL is `https://www.codewars.com/users/ZeiadT`.
+     - Assert LinkedIn link URL is `https://linkedin.com/in/zeiad-mohammed`.
+     - Assert `PROFILE_DATA.resumeUrl` is `https://drive.google.com/file/d/1nxESDH7D4pVdaa_3cl7Y7QlMjlBNnRQl/view?usp=sharing`.

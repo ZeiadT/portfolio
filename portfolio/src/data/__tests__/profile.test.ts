@@ -19,7 +19,7 @@ describe('Profile Data', () => {
     expect(PROFILE_DATA.contact).toBeDefined();
     expect(PROFILE_DATA.contact.phone).toBe('+201019880091');
     expect(PROFILE_DATA.contact.phoneFormatted).toBe('+20 1019880091');
-    expect(PROFILE_DATA.contact.email).toMatch(/^[^@\s]+@[^@\s]+\.[^@\s]+$/);
+    expect(PROFILE_DATA.contact.email).toBe('zeiadm4business@gmail.com');
   });
 
   it('includes links for GitHub, Codewars, and LinkedIn with valid URLs', () => {
@@ -28,11 +28,11 @@ describe('Profile Data', () => {
 
     const githubLink = PROFILE_DATA.links.find((l) => l.icon === 'github');
     expect(githubLink).toBeDefined();
-    expect(githubLink?.url).toMatch(/^https:\/\/(www\.)?github\.com\//);
+    expect(githubLink?.url).toBe('https://github.com/ZeiadT');
 
     const codewarsLink = PROFILE_DATA.links.find((l) => l.icon === 'codewars');
     expect(codewarsLink).toBeDefined();
-    expect(codewarsLink?.url).toMatch(/^https:\/\/(www\.)?codewars\.com\//);
+    expect(codewarsLink?.url).toBe('https://www.codewars.com/users/ZeiadT');
 
     const linkedinLink = PROFILE_DATA.links.find((l) => l.icon === 'linkedin');
     expect(linkedinLink).toBeDefined();
@@ -74,6 +74,8 @@ describe('Profile Data', () => {
 
   it('contains valid resumeUrl', () => {
     expect(PROFILE_DATA.resumeUrl).toBeDefined();
-    expect(PROFILE_DATA.resumeUrl).toBe('/resume.pdf');
+    expect(PROFILE_DATA.resumeUrl).toBe(
+      'https://drive.google.com/file/d/1nxESDH7D4pVdaa_3cl7Y7QlMjlBNnRQl/view?usp=sharing'
+    );
   });
 });

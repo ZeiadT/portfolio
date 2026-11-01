@@ -13,18 +13,18 @@ export const PROFILE_DATA: ProfileData = {
   contact: {
     phone: '+201019880091',
     phoneFormatted: '+20 1019880091',
-    email: 'contact@zeiad.dev',
+    email: 'zeiadm4business@gmail.com',
   },
   links: [
     {
       label: 'GitHub',
-      url: 'https://github.com/zeiad-mohammed',
+      url: 'https://github.com/ZeiadT',
       icon: 'github',
       ariaLabel: 'View GitHub Profile',
     },
     {
       label: 'Codewars',
-      url: 'https://www.codewars.com/users/zeiad-mohammed',
+      url: 'https://www.codewars.com/users/ZeiadT',
       icon: 'codewars',
       ariaLabel: 'View Codewars Profile',
     },
@@ -69,5 +69,6 @@ export const PROFILE_DATA: ProfileData = {
       institution: 'Ministry of Communications and Information Technology (MCIT) – Benha, Egypt',
     },
   ],
-  resumeUrl: '/resume.pdf',
+  resumeUrl:
+    'https://drive.google.com/file/d/1nxESDH7D4pVdaa_3cl7Y7QlMjlBNnRQl/view?usp=sharing',
 };
