@@ -474,6 +474,10 @@ export class ProjectDetailsModal {
       if (!this.isOpenState) return;
 
       if (e.key === 'Escape' || e.key === 'Esc') {
+        // If an inner lightbox is active, let it handle Escape dismissal first
+        if (document.querySelector('[data-gallery-lightbox]')) {
+          return;
+        }
         e.preventDefault();
         this.close();
         return;
@@ -485,6 +489,8 @@ export class ProjectDetailsModal {
           this.rootEl.querySelectorAll<HTMLElement>(
             'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
           )
+        ).filter((el) =>
+          typeof el.checkVisibility === 'function' ? el.checkVisibility() : el.offsetParent !== null || (el.getClientRects && el.getClientRects().length > 0) || el.style.display !== 'none'
         );
 
         if (focusables.length > 0) {
