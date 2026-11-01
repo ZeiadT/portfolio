@@ -171,7 +171,12 @@ export class BentoRevealController {
     ];
 
     // Accessibility fallback: simple opacity cross-fade without physical drop/tilt
-    if (options?.reducedMotion) {
+    const isReducedMotion =
+      options?.reducedMotion ??
+      (typeof window !== 'undefined' &&
+        window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true);
+
+    if (isReducedMotion) {
       gsap.set(allCards, {
         y: 0,
         scale: 1,

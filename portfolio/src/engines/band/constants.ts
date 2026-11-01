@@ -42,6 +42,7 @@ export const TRANSITION_TIMINGS = {
   navTabsDuration: 0.45,
   bentoWireframeStart: 0.70,
   bentoWireframeDuration: 0.35,
+  /** Absolute time in seconds from transition start when Tetris drop begins (0.70s + 0.35s duration) */
   bentoDropStart: 1.05,
 } as const;
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { gsap } from 'gsap';
 import {
   BentoRevealController,
@@ -254,6 +254,39 @@ describe('BentoRevealController', () => {
       const opacityTween = children.find((c: any) => c.vars?.opacity === 1);
       expect(opacityTween).toBeDefined();
       expect(opacityTween?.duration()).toBeCloseTo(BENTO_REVEAL_TIMINGS.reducedMotionDuration, 2);
+    });
+
+    it('auto-detects OS prefers-reduced-motion media query when options are omitted', () => {
+      const matchMediaSpy = vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      } as any));
+
+      controller.prepareInitialState();
+      const tl = controller.createRevealTimeline(); // no options passed
+
+      const children = tl.getChildren();
+      const hasTransform = children.some((c: any) => {
+        const vars = c.vars || {};
+        return (
+          vars.y !== undefined ||
+          vars.scale !== undefined ||
+          vars.rotationX !== undefined ||
+          vars.rotateX !== undefined
+        );
+      });
+      expect(hasTransform).toBe(false);
+
+      const opacityTween = children.find((c: any) => c.vars?.opacity === 1);
+      expect(opacityTween).toBeDefined();
+
+      matchMediaSpy.mockRestore();
     });
   });
 
