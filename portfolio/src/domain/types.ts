@@ -13,6 +13,8 @@ export interface ProjectLinks {
   github?: string;
   live?: string;
   doc?: string;
+  demo?: string;
+  apk?: string;
 }
 
 export interface Project {
@@ -88,12 +90,51 @@ export interface Engine {
  */
 export type ViewState = 'home' | 'projects' | 'about' | 'contact' | 'wall';
 
-// --- Project Deep-Dive Contract ---
+// --- Architecture & Deep-Dive Contracts ---
+
+export interface ArchitectureNode {
+  id: string;
+  label: string;
+  layer?: 'Presentation' | 'Domain' | 'Data' | 'Network' | 'Hardware' | string;
+  x: number;
+  y: number;
+  description?: string;
+}
+
+export interface ArchitectureFlow {
+  from: string;
+  to: string;
+  label?: string;
+  bidirectional?: boolean;
+}
+
+export interface ArchitectureGraph {
+  nodes: ArchitectureNode[];
+  flows: ArchitectureFlow[];
+}
+
+export interface CodeSnippet {
+  filename: string;
+  language: 'kotlin' | 'swift' | 'dart' | 'csharp';
+  code: string;
+  description?: string;
+}
+
+export interface ProjectMetric {
+  label: string;
+  value: string;
+  detail?: string;
+}
+
 export interface ProjectDetails extends Project {
   longDescription?: string;
+  liveStatus?: 'Production' | 'Archived' | 'Active Beta' | 'Open Source' | string;
   architectureDiagram?: string;
+  architectureGraph?: ArchitectureGraph;
   architectureHighlights?: string[];
-  metrics?: { label: string; value: string; detail?: string }[];
+  metrics?: ProjectMetric[];
+  codeSnippet?: CodeSnippet;
+  galleryScreenshots?: string[];
 }
 
 // --- Skills Domain Contract ---
