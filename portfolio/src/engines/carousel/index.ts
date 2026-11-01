@@ -111,7 +111,7 @@ export class CarouselGLEngine implements Engine {
    * Mounts the engine into the specified DOM container.
    */
   public mount(container: HTMLElement): void {
-    if (this.isDestroyed) return;
+    if (this.isDestroyed || this.container) return;
     this.container = container;
 
     const width = container.clientWidth || (typeof window !== 'undefined' ? window.innerWidth : 1200);
@@ -353,7 +353,10 @@ export class CarouselGLEngine implements Engine {
 
     const isDragging = this.gestureController?.isDragging ?? false;
 
-    if (!isDragging) {
+    if (this.snapTween) {
+      // Advance GSAP ticker if in a headless/manual frame environment
+      gsap.ticker.tick();
+    } else if (!isDragging) {
       // Smooth interpolation to target scroll coordinate
       this.scrollX += (this.targetScrollX - this.scrollX) * 0.15;
     }
