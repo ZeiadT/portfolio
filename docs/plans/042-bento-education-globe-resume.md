@@ -202,3 +202,20 @@ Enhance the portfolio header and about bento grid by:
    - Preserve hover scale micro-interactions (`group-hover:scale-110 transition-transform duration-200`) and click-to-copy functionality.
 2. **Test Specifications**:
    - In `ProfileContact.test.ts`, assert that the leading phone and email icons have `fill="currentColor"`, include `text-white`, and do not have `text-[#ff4421]`.
+
+---
+
+## 12. Phase 7: Dimmed Contact Text & Compact Non-Scrollable Education Layout
+
+1. **Secondary Dimmed Contact Text**:
+   - Style phone and email text labels inside `ProfileContact` buttons with secondary tone (`text-neutral-400 group-hover:text-neutral-200 transition-colors`).
+   - Ensures visual hierarchy where the white icon and card border lead, and data labels remain elegant and secondary.
+2. **Compact Non-Scrollable Education Layout**:
+   - Completely remove `overflow-y-auto` and `max-h` scroll restrictions from `[data-education-list]`.
+   - Consolidate item presentation into compact 2-tier rows:
+     - Header line: Degree / Title (left) and Period (right).
+     - Sub-line: Field / Track (in `#ff4421`) inline with Location / Institution (`text-neutral-400`).
+   - Compact item padding (`px-3 py-2 sm:py-2.5`) to eliminate scrollbars and fit cleanly within the bento card height.
+3. **Test Specifications**:
+   - `ProfileContact.test.ts`: Verify phone and email text spans have class `text-neutral-400`.
+   - `ProfileEducation.test.ts`: Verify `[data-education-list]` does not contain `overflow-y-auto` and each item fits without overflow.

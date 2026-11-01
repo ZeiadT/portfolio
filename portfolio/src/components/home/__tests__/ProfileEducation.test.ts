@@ -165,6 +165,16 @@ describe('ProfileEducationComponent', () => {
       expect(instEl?.textContent?.trim()).toBe('Benha University');
       expect(periodEl?.textContent?.trim()).toBe('Oct 2021 – Jun 2025');
     });
+
+    it('does not have scrollable classes on education list and organizes items compactly', () => {
+      const comp = new ProfileEducationComponent(mockEducation);
+      comp.mount(container);
+
+      const list = container.querySelector('[data-education-list]');
+      expect(list).toBeTruthy();
+      expect(list?.className).not.toContain('overflow-y-auto');
+      expect(list?.className).not.toContain('max-h-');
+    });
   });
 
   describe('Fallback behavior for undefined or incomplete data', () => {

@@ -189,6 +189,17 @@ describe('ProfileContactComponent', () => {
     expect(emailClass).not.toContain('text-[#ff4421]');
   });
 
+  it('renders phone and email text in secondary dimmed color (text-neutral-400)', () => {
+    const component = new ProfileContactComponent(mockContact);
+    component.mount(container);
+
+    const phoneText = container.querySelector('[data-contact-phone] > span:not([data-copy-indicator])');
+    const emailText = container.querySelector('[data-contact-email] > span:not([data-copy-indicator])');
+
+    expect(phoneText?.className).toContain('text-neutral-400');
+    expect(emailText?.className).toContain('text-neutral-400');
+  });
+
   it('cleans up elements and timeout listeners on destroy', () => {
     const component = new ProfileContactComponent(mockContact);
     component.mount(container);
