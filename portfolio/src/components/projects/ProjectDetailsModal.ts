@@ -138,8 +138,9 @@ export class ProjectDetailsModal {
         const dy = touchEndY - this.touchStartY;
         const dx = Math.abs(touchEndX - this.touchStartX);
 
-        // Dismiss if vertical downward swipe > 100px and vertically dominant
-        if (dy > 100 && dy > dx) {
+        // Dismiss if vertical downward swipe > 100px and vertically dominant, and user is at top of scroll
+        const isAtTop = !this.contentEl || this.contentEl.scrollTop <= 0;
+        if (dy > 100 && dy > dx && isAtTop) {
           this.close();
         }
       }
@@ -170,6 +171,9 @@ export class ProjectDetailsModal {
 
     // Save previous active element for focus restoration
     this.previousActiveElement = document.activeElement as HTMLElement | null;
+
+    // Reset scroll position to top
+    this.contentEl.scrollTop = 0;
 
     // Body scroll lock
     if (!this.isScrollLocked) {
