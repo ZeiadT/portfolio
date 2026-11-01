@@ -62,11 +62,12 @@ describe('Profile Data', () => {
     expect(eduList[0].degree).toBe('9-Month Professional Diploma');
     expect(eduList[0].field).toBe('Mobile Application Development (Native)');
 
-    // Item 2: Faculty of Computers and Artificial Intelligence, B.Sc. in Scientific Computing, Benha University
+    // Item 2: Faculty of Computers and Artificial Intelligence, B.Sc. in Scientific Computing, Benha University, Benha, Egypt
     expect(eduList[1].degree || eduList[1].title).toBe('Faculty of Computers and Artificial Intelligence');
     expect(eduList[1].field || eduList[1].track).toBe('B.Sc. in Scientific Computing');
-    expect(eduList[1].institution || eduList[1].location).toBe('Benha University');
+    expect(eduList[1].institution || eduList[1].location).toBe('Benha University, Benha, Egypt');
     expect(eduList[1].period).toBe('Oct 2021 – Jun 2025');
+    expect(eduList[1].details).toBeUndefined();
 
     expect(eduList[2].degree).toContain('Digital Egypt Pioneers Initiative');
   });

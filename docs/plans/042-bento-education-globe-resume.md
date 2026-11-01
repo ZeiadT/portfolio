@@ -170,4 +170,13 @@ Enhance the portfolio header and about bento grid by:
 ### 2. Test Specifications (TDD First)
 - `ProfileGlobe.test.ts`: Verify `createGlobe` is invoked with `scale: 1.2`.
 - `ProfileEducation.test.ts`: Verify rendering with friendly aliases (`title`, `track`, `location`) as well as `degree`, `field`, `institution`.
-- `profile.test.ts`: Verify `PROFILE_DATA.education` item 2 contains `Faculty of Computers and Artificial Intelligence`, `B.Sc. in Scientific Computing`, and `Benha University`.
+- `profile.test.ts`: Verify `PROFILE_DATA.education` item 2 contains `Faculty of Computers and Artificial Intelligence`, `B.Sc. in Scientific Computing`, location `Benha University, Benha, Egypt`, and no bullet details.
+
+---
+
+## 9. Phase 4: Education Item 2 Clean Location & Detail Removal
+
+1. **Location Update**:
+   - Location set to `Benha University, Benha, Egypt`.
+2. **Details Removal**:
+   - Remove bullet points / `details` array from item 2 so it displays cleanly without the graduation project bullets.

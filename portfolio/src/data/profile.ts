@@ -58,14 +58,9 @@ export const PROFILE_DATA: ProfileData = {
       degree: 'Faculty of Computers and Artificial Intelligence',
       track: 'B.Sc. in Scientific Computing',
       field: 'B.Sc. in Scientific Computing',
-      location: 'Benha University',
-      institution: 'Benha University',
+      location: 'Benha University, Benha, Egypt',
+      institution: 'Benha University, Benha, Egypt',
       period: 'Oct 2021 – Jun 2025',
-      details: [
-        'Graduation Project: ElevatED - An AI-powered educational platform with audio analysis for content validation and large-scale media upload via FTP.',
-        'Technologies & Architecture: Dart, Flutter, Python',
-        'Grade: Excellent',
-      ],
     },
     {
       degree: 'Digital Egypt Pioneers Initiative (DEPI)',
