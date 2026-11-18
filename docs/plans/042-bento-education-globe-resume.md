@@ -259,3 +259,14 @@ Enhance the portfolio header and about bento grid by:
      - Verify `profile-header-root` class includes `flex-1`.
      - Verify `topRow` class includes `lg:flex-1`.
      - Verify `bottomRow` class includes `mt-[22px]` and `lg:flex-1`.
+
+---
+
+## 15. Phase 10: Update Google Drive Resume URL
+
+1. **Requirements & Intent**:
+   - Update `PROFILE_DATA.resumeUrl` in `portfolio/src/data/profile.ts` to the new Google Drive resume link:
+     `https://drive.google.com/file/d/1TggAkrzcIyOsg6D0HJKYSSG3vCgCL41i/view?usp=sharing`
+2. **Test Specifications**:
+   - In `portfolio/src/data/__tests__/profile.test.ts`:
+     - Assert `PROFILE_DATA.resumeUrl` equals `https://drive.google.com/file/d/1TggAkrzcIyOsg6D0HJKYSSG3vCgCL41i/view?usp=sharing`.

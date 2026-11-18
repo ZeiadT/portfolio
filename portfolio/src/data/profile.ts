@@ -70,5 +70,5 @@ export const PROFILE_DATA: ProfileData = {
     },
   ],
   resumeUrl:
-    'https://drive.google.com/file/d/1nxESDH7D4pVdaa_3cl7Y7QlMjlBNnRQl/view?usp=sharing',
+    'https://drive.google.com/file/d/1TggAkrzcIyOsg6D0HJKYSSG3vCgCL41i/view?usp=sharing',
 };

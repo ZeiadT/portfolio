@@ -75,7 +75,7 @@ describe('Profile Data', () => {
   it('contains valid resumeUrl', () => {
     expect(PROFILE_DATA.resumeUrl).toBeDefined();
     expect(PROFILE_DATA.resumeUrl).toBe(
-      'https://drive.google.com/file/d/1nxESDH7D4pVdaa_3cl7Y7QlMjlBNnRQl/view?usp=sharing'
+      'https://drive.google.com/file/d/1TggAkrzcIyOsg6D0HJKYSSG3vCgCL41i/view?usp=sharing'
     );
   });
 });
